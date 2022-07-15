@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import useWindowDimensions from "../Hooks/WindowDimensions";
 import useMouseGlobalState from "../Hooks/MousePosition";
 import useMouseClickState from "../Hooks/mouseClick";
+import { trpc } from "../utils/trpc";
 
 
 export function Canvas() {
@@ -11,10 +12,8 @@ export function Canvas() {
   const  isClicked = useMouseClickState()
   const [scale, setScale] = useState(20)
   const [heldIndex, setHeldIndex] = useState(-1)
-  const [nodeCords, setNodeCords]  = useState([
-    {x: 0, y: 0},
-    {x: 0, y: 0},
-  ])
+  const nodesInit = trpc.useQuery(["nodes.getAll"]);
+  const [nodeCords, setNodeCords]  = useState(nodesInit.data ? nodesInit.data : [])
 
 
   // useEffect(() => {
@@ -41,21 +40,22 @@ export function Canvas() {
         ctx.arc(pos.x + width/2, pos.y + height/2, scale, 0, Math.PI * 2);
         ctx.fill()
       }
+
+
       // set state only sets the state after the whole function is done running, 
       // so we need a temp variable that can change rn
       let tempHeld = heldIndex 
       
       if (tempHeld === -2) {
         for (let i = 0; i < nodeCords.length; i++){
-          const {x, y} = nodeCords[i]!
-          nodeCords[i] = {x: x - mvx, y: y - mvy};
+          const {id, x, y} = nodeCords[i]!
+          nodeCords[i] = {id, x: x - mvx, y: y - mvy};
         }
       }
 
       // draw the nodes
       for (let i = 0; i < nodeCords.length; i++){
-        const {x, y} = nodeCords[i]!
-        console.log(y-my)
+        const {id, x, y} = nodeCords[i]!
         const inNode = Math.abs(x - mx) < scale && Math.abs(y - my) < scale;
         let color = inNode ? "lightblue" : "grey";
         if (!isClicked)
@@ -63,7 +63,7 @@ export function Canvas() {
         if (inNode && tempHeld === -1)
           tempHeld = i
         if (tempHeld === i && isClicked) {
-          nodeCords[i] = {x: mx, y: my}
+          nodeCords[i] = {id, x: mx, y: my}
           createNode({x: mx, y: my}, "lightblue")
         }
         else
@@ -75,7 +75,8 @@ export function Canvas() {
         tempHeld = -2
       
       setHeldIndex(tempHeld)
-      setNodeCords(nodeCords)
+      
+      nodesInit.data && nodeCords.length === 0 ? setNodeCords(nodesInit.data) : setNodeCords(nodeCords)
     },
     [width, height, mx, my, isClicked]
   );

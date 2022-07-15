@@ -15,6 +15,12 @@ model Example {
     id String @id @default(cuid())
 }
 
+model Node {
+    id String @id @default(cuid())
+    x  Int
+    y  Int    
+}
+
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
