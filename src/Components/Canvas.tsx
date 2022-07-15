@@ -12,6 +12,7 @@ export function Canvas() {
   const  isClicked = useMouseClickState()
   const [scale, setScale] = useState(20)
   const [heldIndex, setHeldIndex] = useState(-1)
+  const [cursor, setCursor] = useState("defualt")
   const nodesInit = trpc.useQuery(["nodes.getAll"]);
   const [nodeCords, setNodeCords]  = useState(nodesInit.data ? nodesInit.data : [])
 
@@ -54,13 +55,15 @@ export function Canvas() {
       }
 
       // draw the nodes
+      let inAnyNode = false
       for (let i = 0; i < nodeCords.length; i++){
         const {id, x, y} = nodeCords[i]!
         const inNode = Math.abs(x - mx) < scale && Math.abs(y - my) < scale;
+        inAnyNode = inAnyNode || inNode
         let color = inNode ? "lightblue" : "grey";
         if (!isClicked)
           tempHeld = -1
-        if (inNode && tempHeld === -1)
+        if (inNode && tempHeld === -1) 
           tempHeld = i
         if (tempHeld === i && isClicked) {
           nodeCords[i] = {id, x: mx, y: my}
@@ -70,9 +73,13 @@ export function Canvas() {
           createNode({x, y}, color)
       }
 
+
       // if clicked, but not hovering over any nodes, select background (-2)
       if (isClicked && tempHeld === -1)
         tempHeld = -2
+      
+      inAnyNode ? setCursor("pointer") : setCursor("default")
+      if (tempHeld === -2) setCursor("move")
       
       setHeldIndex(tempHeld)
       
@@ -82,6 +89,10 @@ export function Canvas() {
   );
 
   return (
-    <canvas ref={canvasRef} className={"absolute overflow-hidden"} width={width} height={height}/>
+    <canvas 
+      ref={canvasRef} 
+      className={`absolute overflow-hidden`}
+      style={{"cursor": cursor}}
+      width={width} height={height}/>
   )
 }
