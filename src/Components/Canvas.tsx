@@ -1,91 +1,45 @@
 import {useEffect, useRef, useState} from "react";
 import useWindowDimensions from "../Hooks/WindowDimensions";
 import useMouseGlobalState from "../Hooks/MousePosition";
-import useMouseClickState from "../Hooks/mouseClick";
-import { trpc } from "../utils/trpc";
+import useNodeCords from "../Hooks/nodeHandler";
 
 
 export function Canvas() {
   const canvasRef = useRef(null);
   const { height, width } = useWindowDimensions();
-  const { pos: {mx, my}, vel: {mvx, mvy} } = useMouseGlobalState()
-  const  isClicked = useMouseClickState()
-  const [scale, setScale] = useState(20)
-  const [heldIndex, setHeldIndex] = useState(-1)
+  const { pos: {mx, my}} = useMouseGlobalState()
   const [cursor, setCursor] = useState("defualt")
-  const nodesInit = trpc.useQuery(["nodes.getAll"]);
-  const [nodeCords, setNodeCords]  = useState(nodesInit.data ? nodesInit.data : [])
+  const {n: nodesCords, i: heldIndex} = useNodeCords() 
 
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     // centering force:
-  //     for (let i = 0; i < nodeCords.length; i++){
-  //       const {x, y} = nodeCords[i]!
-  //       nodeCords[i] = {x: x*0.99, y: y*0.99}
-  //     }
-      
-  //     setNeedUpdate(true)
-  //   }, 15);
-  //   return () => clearInterval(interval);
-  // }, []);
 
   useEffect(
     () => {
+      if (!canvasRef || !nodesCords) return;
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
       const createNode = (pos: {x: number, y: number}, color: string) => {
         ctx.beginPath()
         ctx.fillStyle = color;
+        const scale = 20;
         ctx.arc(pos.x + width/2, pos.y + height/2, scale, 0, Math.PI * 2);
         ctx.fill()
       }
 
-
-      // set state only sets the state after the whole function is done running, 
-      // so we need a temp variable that can change rn
-      let tempHeld = heldIndex 
-      
-      if (tempHeld === -2) {
-        for (let i = 0; i < nodeCords.length; i++){
-          const {id, x, y} = nodeCords[i]!
-          nodeCords[i] = {id, x: x - mvx, y: y - mvy};
+      setCursor("default")
+      nodesCords.forEach((node, id) => {
+        let color = "grey"
+        if (Math.abs(node.x - mx) < 20 && Math.abs(node.y - my) < 20) {
+          setCursor("pointer")
+          color = "lightblue"
         }
-      }
+        createNode(node, color)
+      })
 
-      // draw the nodes
-      let inAnyNode = false
-      for (let i = 0; i < nodeCords.length; i++){
-        const {id, x, y} = nodeCords[i]!
-        const inNode = Math.abs(x - mx) < scale && Math.abs(y - my) < scale;
-        inAnyNode = inAnyNode || inNode
-        let color = inNode ? "lightblue" : "grey";
-        if (!isClicked)
-          tempHeld = -1
-        if (inNode && tempHeld === -1) 
-          tempHeld = i
-        if (tempHeld === i && isClicked) {
-          nodeCords[i] = {id, x: mx, y: my}
-          createNode({x: mx, y: my}, "lightblue")
-        }
-        else
-          createNode({x, y}, color)
-      }
-
-
-      // if clicked, but not hovering over any nodes, select background (-2)
-      if (isClicked && tempHeld === -1)
-        tempHeld = -2
-      
-      inAnyNode ? setCursor("pointer") : setCursor("default")
-      if (tempHeld === -2) setCursor("move")
-      
-      setHeldIndex(tempHeld)
-      
-      nodesInit.data && nodeCords.length === 0 ? setNodeCords(nodesInit.data) : setNodeCords(nodeCords)
+      if (heldIndex.current === "background") setCursor("move") 
+          
     },
-    [width, height, mx, my, isClicked]
+    [width, height, mx, my, nodesCords]
   );
 
   return (
