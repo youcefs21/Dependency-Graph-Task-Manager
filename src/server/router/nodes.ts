@@ -6,13 +6,12 @@ export const nodeRouter = createRouter()
       return await ctx.prisma.node.findMany();
     }
   })
-  .query("connections", {
+  .query("pairs", {
     async resolve({ ctx }) {
-      return await ctx.prisma.node.findMany({
+      return await ctx.prisma.edge.findMany({
         select: {
-          id: true,
-          in_edges: true,
-          out_edges: true,
+          node1_id: true,
+          node2_id: true,
         }
       });
     },

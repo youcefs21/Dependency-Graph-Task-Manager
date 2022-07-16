@@ -28,8 +28,8 @@ export default function useNodeCords() {
           case "background": // move everything if background is held
             nodesCords.forEach((node, id) => {
               nodesCords.set(id, {
-                x: node.x - mvx,
-                y: node.y - mvy
+                x: Math.floor(node.x - mvx),
+                y: Math.floor(node.y - mvy),
               });
             });
             break;
@@ -37,8 +37,8 @@ export default function useNodeCords() {
             break
           default: // if a node is held, move it to the mouse position
             nodesCords.set(heldIndex.current, {
-              x: mx,
-              y: my
+              x: Math.round(mx),
+              y: Math.round(my),
             });
         }
       } else if (heldIndex.current !== "nothing") {
