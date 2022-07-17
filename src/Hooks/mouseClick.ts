@@ -8,13 +8,13 @@ export default function useMouseClickState() {
     const downHandler = (ev: MouseEvent) => setIsClicked(true)
     const upHandler = (ev: MouseEvent) => setIsClicked(false)
 
-    window.addEventListener('mousedown', downHandler)
-    window.addEventListener('mouseup', upHandler)
+    window.addEventListener('pointerdown', downHandler)
+    window.addEventListener('pointerup', upHandler)
 
 
     return () => {
-      window.removeEventListener('mousedown', downHandler)
-      window.removeEventListener('mouseup', upHandler)
+      window.removeEventListener('pointerdown', downHandler)
+      window.removeEventListener('pointerup', upHandler)
     }
   }, [])
 

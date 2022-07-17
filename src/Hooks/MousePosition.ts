@@ -23,8 +23,8 @@ export default function useMouseGlobalState() {
       })
     }
 
-    window.addEventListener('mousemove', handleMove)
-    return () => window.removeEventListener('mousemove', handleMove);
+    window.addEventListener('pointermove', handleMove)
+    return () => window.removeEventListener('pointermove', handleMove);
   }, [mousePos, width, height]);
 
   return {pos: mousePos, vel: mouseVel}
