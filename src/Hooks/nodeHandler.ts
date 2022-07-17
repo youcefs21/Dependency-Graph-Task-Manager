@@ -12,14 +12,21 @@ export default function useNodeCords() {
   const [nodesCords, setNodesCords] = useState(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
 
+
+  useEffect(() => {
+    if (nodesInit.data && nodesCords.size === 0) {
+      const nodes = new Map<string, {x: number, y:number}>();
+      nodesInit.data.forEach(node => {
+        nodes.set(node.id, {x: node.x, y: node.y});
+      }); 
+      setNodesCords(nodes);
+      return;
+    }
+  }, [nodesInit.data]);
+
   useEffect(
     () => {
-      if (nodesInit.data && nodesCords.size === 0) {
-        const nodes = new Map<string, {x: number, y:number}>();
-        nodesInit.data.forEach(node => {
-          nodes.set(node.id, {x: node.x, y: node.y});
-        }); 
-        setNodesCords(nodes);
+      if (nodesCords.size === 0) {
         return;
       }
       
@@ -28,8 +35,8 @@ export default function useNodeCords() {
           case "background": // move everything if background is held
             nodesCords.forEach((node, id) => {
               nodesCords.set(id, {
-                x: Math.floor(node.x - mvx),
-                y: Math.floor(node.y - mvy),
+                x: node.x - mvx,
+                y: node.y - mvy,
               });
             });
             break;
@@ -37,8 +44,8 @@ export default function useNodeCords() {
             break
           default: // if a node is held, move it to the mouse position
             nodesCords.set(heldIndex.current, {
-              x: Math.round(mx),
-              y: Math.round(my),
+              x: mx,
+              y: my,
             });
         }
       } else if (heldIndex.current !== "nothing") {
@@ -61,7 +68,7 @@ export default function useNodeCords() {
 
 
     },
-    [nodesInit, mx, my]
+    [mx, my]
   )
 
 
