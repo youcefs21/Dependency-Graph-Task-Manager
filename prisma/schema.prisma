@@ -6,14 +6,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+generator js {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 model Node {
   id        String @id @default(cuid())
-  x         Int
-  y         Int
+  goal      String @default("insert goal here")
+  x         Int    @default(0)
+  y         Int    @default(0)
   out_edges Edge[] @relation("outgoing")
   in_edges  Edge[] @relation("incoming")
 }
