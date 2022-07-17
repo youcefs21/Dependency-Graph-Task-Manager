@@ -85,7 +85,7 @@ export function Canvas() {
   return (
     <canvas 
       ref={canvasRef} 
-      className={`absolute overflow-hidden`}
+      className={`absolute overflow-hidden touch-none`}
       style={{"cursor": cursor}}
       width={width} height={height}/>
   )

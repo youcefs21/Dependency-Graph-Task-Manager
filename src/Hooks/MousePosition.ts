@@ -10,21 +10,23 @@ export default function useMouseGlobalState() {
   
   useEffect(() => {
     
-    function handleMove(event: MouseEvent) {
-      const newX = event.x - width/2
-      const newY = event.y - height/2
+    function handleMove(event: PointerEvent) {
       setMouseVel({
-        mvx: mousePos.mx - newX,
-        mvy: mousePos.my - newY
+        mvx: -event.movementX,
+        mvy: -event.movementY,
       })
       setMousePos({
-        mx: newX, 
-        my: newY 
+        mx: event.x - width/2,
+        my: event.y - height/2,
       })
     }
 
+    window.addEventListener('pointerup', handleMove)
     window.addEventListener('pointermove', handleMove)
-    return () => window.removeEventListener('pointermove', handleMove);
+    return () => {
+      window.removeEventListener('pointerup', handleMove)
+      window.removeEventListener('pointermove', handleMove);
+  }
   }, [mousePos, width, height]);
 
   return {pos: mousePos, vel: mouseVel}

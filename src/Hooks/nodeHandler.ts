@@ -48,9 +48,9 @@ export default function useNodeCords() {
               y: my,
             });
         }
-      } else if (heldIndex.current !== "nothing") {
+      } 
+      else 
         heldIndex.current = "nothing";
-      }
 
       // check if the mouse is over a node
       if (isClicked && heldIndex.current === "nothing") {
