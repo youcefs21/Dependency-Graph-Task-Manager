@@ -86,7 +86,7 @@ export function Canvas() {
     <canvas 
       ref={canvasRef} 
       className={`absolute overflow-hidden touch-none`}
-      style={{"cursor": cursor}}
+      style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}/>
   )
 }

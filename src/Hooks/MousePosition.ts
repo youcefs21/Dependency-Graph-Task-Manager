@@ -21,10 +21,8 @@ export default function useMouseGlobalState() {
       })
     }
 
-    window.addEventListener('pointerup', handleMove)
     window.addEventListener('pointermove', handleMove)
     return () => {
-      window.removeEventListener('pointerup', handleMove)
       window.removeEventListener('pointermove', handleMove);
   }
   }, [mousePos, width, height]);
