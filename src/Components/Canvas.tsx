@@ -60,15 +60,15 @@ export function Canvas() {
 
       // draw the lines
       nodeIdPairs.data.forEach((pair) => {
-        const node1 = nodesCords.get(pair.node1_id) 
-        const node2 = nodesCords.get(pair.node2_id)
+        const node1 = nodesCords.current.get(pair.node1_id) 
+        const node2 = nodesCords.current.get(pair.node2_id)
         if (node1 && node2) 
           createArrow(node1, node2, "#fae8ff")
       });
       
       // draw the nodes and set the cursor
       setCursor("default")
-      nodesCords.forEach((node, id) => {
+      nodesCords.current.forEach((node, id) => {
         let color = "#cbd5e1"
         if (Math.abs(node.x - mx) < 20 && Math.abs(node.y - my) < 20) {
           setCursor("pointer")
