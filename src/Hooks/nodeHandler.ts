@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { trpc } from "../utils/trpc";
-import useWindowDimensions from "./WindowDimensions";
 
 // return a map with node id as key and node x,y
 // the x,y should be already modified based on mouse interaction
@@ -8,11 +7,11 @@ export default function useNodeCords() {
   const nodesInit = trpc.useQuery(["nodes.getAll"]);
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
-  const { height, width } = useWindowDimensions();
   const clicked = useRef<boolean>(false);
 
 
   function handlePointerDown(event: PointerEvent) {
+    const { innerWidth: width, innerHeight: height } = window;
     clicked.current = true; 
     // check if the mouse is over a node
     nodesCords.current.forEach((node, id) => {
@@ -34,6 +33,7 @@ export default function useNodeCords() {
   }
 
   function handleMove(event: PointerEvent) {
+    const { innerWidth: width, innerHeight: height } = window;
     const mx = event.x - width/2
     const my = event.y - height/2
     if (nodesCords.current.size === 0) {
