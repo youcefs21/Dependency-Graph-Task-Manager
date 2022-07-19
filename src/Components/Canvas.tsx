@@ -25,8 +25,7 @@ export function Canvas() {
   // setInterval that updates the dash offset
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log(goals)
-      setDashOffset(dashOffset => dashOffset + 1);
+      setDashOffset(dashOffset => dashOffset + 0.05);
     }, 40);
     return () => clearInterval(interval);
   }, []);
@@ -48,17 +47,19 @@ export function Canvas() {
         ctx.beginPath()
         ctx.arc(x, y, scale.current, 0, Math.PI * 2);
         ctx.fill()
-        ctx.font = '15px serif';
-        ctx.fillStyle = "white";
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText(label, x, y + scale.current*2);
+        if (scale.current > 8){
+          ctx.font = scale.current.toString() + 'px serif';
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(label, x, y + scale.current*2);
+        }
       }
       // function that draws the arrows
       const createArrow = (pos1: vec2, pos2: vec2, color: string) => {
         ctx.lineWidth = 1 + scale.current/5;
-        ctx.setLineDash([8, 4]);
-        ctx.lineDashOffset = -dashOffset;
+        ctx.setLineDash([(scale.current*2)/5, scale.current/5]);
+        ctx.lineDashOffset = -dashOffset*scale.current;
         ctx.beginPath()
         ctx.strokeStyle = color;
         ctx.moveTo(pos1.x + width/2, pos1.y + height/2)

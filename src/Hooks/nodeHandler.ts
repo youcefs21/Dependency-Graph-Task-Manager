@@ -8,7 +8,7 @@ export default function useNodeCords() {
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
-  const scale = useRef<number>(20);
+  const scale = useRef<number>(15);
 
 
   function handlePointerDown(event: PointerEvent) {
@@ -28,7 +28,7 @@ export default function useNodeCords() {
 
   }
 
-  function handlePointerUp(event: PointerEvent) {
+  function handlePointerUp() {
     heldIndex.current = "nothing";
     clicked.current = false
   }
@@ -64,6 +64,17 @@ export default function useNodeCords() {
   }
 
 
+  function handleWheel(event: WheelEvent) {
+    scale.current -= (scale.current*event.deltaY)/1000
+    nodesCords.current.forEach((node, id) => {
+      nodesCords.current.set(id, {
+        x: node.x - (node.x*event.deltaY)/1000,
+        y: node.y - (node.y*event.deltaY)/1000
+      })
+    });
+  }
+
+
   useEffect(() => {
     if (nodesInit.data && nodesCords.current.size === 0) {
       nodesInit.data.forEach(node => {
@@ -73,11 +84,13 @@ export default function useNodeCords() {
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('pointermove', handleMove);
+    window.addEventListener("wheel", handleWheel)
 
     return () => {
       window.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener("wheel", handleWheel)
     }
   }, [nodesInit.data]);
 
