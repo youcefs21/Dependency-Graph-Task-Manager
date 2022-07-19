@@ -8,6 +8,7 @@ export default function useNodeCords() {
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
+  const scale = useRef<number>(20);
 
 
   function handlePointerDown(event: PointerEvent) {
@@ -15,7 +16,7 @@ export default function useNodeCords() {
     clicked.current = true; 
     // check if the mouse is over a node
     nodesCords.current.forEach((node, id) => {
-      if (Math.abs(node.x - (event.x - width/2)) < 20 && Math.abs(node.y - (event.y - height/2)) < 20) {
+      if (Math.abs(node.x - (event.x - width/2)) < scale.current && Math.abs(node.y - (event.y - height/2)) < scale.current) {
           heldIndex.current = id 
       }
     });
@@ -81,6 +82,6 @@ export default function useNodeCords() {
   }, [nodesInit.data]);
 
 
-  return {n: nodesCords, i: heldIndex};
+  return {n: nodesCords, i: heldIndex, s: scale};
 
 }

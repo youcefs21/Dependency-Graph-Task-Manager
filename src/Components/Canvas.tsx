@@ -16,15 +16,17 @@ export function Canvas() {
   const { height, width } = useWindowDimensions();
   const { pos: {mx, my}} = useMouseGlobalState()
   const [cursor, setCursor] = useState("defualt")
-  const {n: nodesCords, i: heldIndex} = useNodeCords()
+  const {n: nodesCords, i: heldIndex, s: scale} = useNodeCords()
   const nodeIdPairs = trpc.useQuery(["nodes.pairs"]);
+  const goals = trpc.useQuery(["nodes.goals"]);
   const [dashOffset, setDashOffset] = useState(0);
 
 
   // setInterval that updates the dash offset
   useEffect(() => {
     const interval = setInterval(() => {
-      setDashOffset(dashOffset => dashOffset + 0.5);
+      console.log(goals)
+      setDashOffset(dashOffset => dashOffset + 1);
     }, 40);
     return () => clearInterval(interval);
   }, []);
@@ -33,22 +35,28 @@ export function Canvas() {
   useEffect(
     () => {
       // do nothing if canvas or data are not ready
-      if (!canvasRef || !nodesCords || !nodeIdPairs || !nodeIdPairs.data) return;
+      if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
-      const scale = 20;
       // function that draws the nodes
-      const createNode = (pos: vec2, color: string) => {
-        ctx.beginPath()
+      const createNode = (pos: vec2, color: string, label: string) => {
+        const x = pos.x + width/2;
+        const y = pos.y + height/2;
         ctx.fillStyle = color;
-        ctx.arc(pos.x + width/2, pos.y + height/2, scale, 0, Math.PI * 2);
+        ctx.beginPath()
+        ctx.arc(x, y, scale.current, 0, Math.PI * 2);
         ctx.fill()
+        ctx.font = '15px serif';
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(label, x, y + scale.current*2);
       }
       // function that draws the arrows
       const createArrow = (pos1: vec2, pos2: vec2, color: string) => {
-        ctx.lineWidth = 1 + scale/5;
+        ctx.lineWidth = 1 + scale.current/5;
         ctx.setLineDash([8, 4]);
         ctx.lineDashOffset = -dashOffset;
         ctx.beginPath()
@@ -58,12 +66,13 @@ export function Canvas() {
         ctx.stroke()
       }
 
+
       // draw the lines
       nodeIdPairs.data.forEach((pair) => {
         const node1 = nodesCords.current.get(pair.node1_id) 
         const node2 = nodesCords.current.get(pair.node2_id)
         if (node1 && node2) 
-          createArrow(node1, node2, "#fae8ff")
+          createArrow(node1, node2, "#334155")
       });
       
       // draw the nodes and set the cursor
@@ -74,7 +83,7 @@ export function Canvas() {
           setCursor("pointer")
           color = "#f472b6"
         }
-        createNode(node, color)
+        createNode(node, color, goals.data.get(id)!)
       })
       if (heldIndex.current === "background") setCursor("move")
 
