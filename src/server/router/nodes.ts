@@ -39,7 +39,7 @@ export const nodeRouter = createRouter()
       return out 
     },
   })
-  .query("updateNode", {
+  .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
       cords: z.object({x: z.number(), y: z.number()})
@@ -47,7 +47,10 @@ export const nodeRouter = createRouter()
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.update({
         where: {id: input.nodeId},
-        data: { x: input.cords.x, y: input.cords.y}
+        data: {
+          x: Math.floor(input.cords.x),
+          y: Math.floor(input.cords.y)
+        }
       });
     },
   });

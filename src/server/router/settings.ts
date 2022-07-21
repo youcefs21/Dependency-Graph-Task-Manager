@@ -11,7 +11,7 @@ export const settingsRouter = createRouter()
       });
     }
   })
-  .query("updateScale", {
+  .mutation("updateScale", {
     input: z.object({
       userId: z.string(),
       scale: z.number()

@@ -9,6 +9,7 @@ export default function useNodeCords() {
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
   const scale = useRef<number>(15);
+  const updateNode = trpc.useMutation(["nodes.updateNode"]);
 
 
   function handlePointerDown(event: PointerEvent) {
@@ -29,8 +30,19 @@ export default function useNodeCords() {
   }
 
   function handlePointerUp() {
-    heldIndex.current = "nothing";
     clicked.current = false
+    if (heldIndex.current === "background") {
+      // every node has moved
+      heldIndex.current = "nothing";
+      return
+    }
+    else if (heldIndex.current === "nothing") {
+      return  
+    }
+    // update the node at heldIndex.current
+    updateNode.mutate({nodeId: heldIndex.current, cords: nodesCords.current.get(heldIndex.current)!});
+    
+    heldIndex.current = "nothing";
   }
 
   function handleMove(event: PointerEvent) {
