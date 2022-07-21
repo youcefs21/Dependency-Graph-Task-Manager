@@ -18,6 +18,8 @@ generator js {
 
 model Node {
   id        String @id @default(cuid())
+  userId    String @default("root")
+  user      User   @relation(fields: [userId], references: [id])
   goal      String @default("insert goal here")
   x         Int    @default(0)
   y         Int    @default(0)
@@ -31,6 +33,14 @@ model Edge {
   node2_id String
   node1    Node   @relation("outgoing", fields: [node1_id], references: [id])
   node2    Node   @relation("incoming", fields: [node2_id], references: [id])
+
+  @@unique(fields: [node1_id, node2_id])
+}
+
+model Settings {
+  userId      String @id
+  scale       Decimal @default(20)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth
@@ -68,6 +78,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  settings      Settings?
+  nodes         Node[]
 }
 
 model VerificationToken {

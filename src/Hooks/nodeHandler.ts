@@ -4,7 +4,7 @@ import { trpc } from "../utils/trpc";
 // return a map with node id as key and node x,y
 // the x,y should be already modified based on mouse interaction
 export default function useNodeCords() {
-  const nodesInit = trpc.useQuery(["nodes.getAll"]);
+  const nodesInit = trpc.useQuery(["nodes.getNodes"]);
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);

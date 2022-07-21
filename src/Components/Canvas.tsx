@@ -17,8 +17,8 @@ export function Canvas() {
   const { pos: {mx, my}} = useMouseGlobalState()
   const [cursor, setCursor] = useState("defualt")
   const {n: nodesCords, i: heldIndex, s: scale} = useNodeCords()
-  const nodeIdPairs = trpc.useQuery(["nodes.pairs"]);
-  const goals = trpc.useQuery(["nodes.goals"]);
+  const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
+  const goals = trpc.useQuery(["nodes.getGoals"]);
   const [dashOffset, setDashOffset] = useState(0);
 
 
