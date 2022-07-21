@@ -5,11 +5,14 @@ import { trpc } from "../utils/trpc";
 // the x,y should be already modified based on mouse interaction
 export default function useNodeCords() {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
+  const scaleInit = trpc.useQuery(["settings.getScale"])
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
   const scale = useRef<number>(15);
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
+  const updateScale = trpc.useMutation(["settings.updateScale"]);
+  const scaled = useRef<boolean>(false)
 
 
   function handlePointerDown(event: PointerEvent) {
@@ -31,6 +34,15 @@ export default function useNodeCords() {
 
   function handlePointerUp() {
     clicked.current = false
+
+    if (scaled.current) {
+      scaled.current = false
+      updateScale.mutate({
+        userId: "root",
+        scale: scale.current
+      });
+    }
+
     if (heldIndex.current === "background") {
       // every node has moved
       heldIndex.current = "nothing";
@@ -40,7 +52,10 @@ export default function useNodeCords() {
       return  
     }
     // update the node at heldIndex.current
-    updateNode.mutate({nodeId: heldIndex.current, cords: nodesCords.current.get(heldIndex.current)!});
+    updateNode.mutate({
+      nodeId: heldIndex.current, 
+      cords: nodesCords.current.get(heldIndex.current)!
+    });
     
     heldIndex.current = "nothing";
   }
@@ -77,6 +92,7 @@ export default function useNodeCords() {
 
 
   function handleWheel(event: WheelEvent) {
+    scaled.current = true;
     scale.current -= (scale.current*event.deltaY)/1000
     nodesCords.current.forEach((node, id) => {
       nodesCords.current.set(id, {
@@ -88,10 +104,11 @@ export default function useNodeCords() {
 
 
   useEffect(() => {
-    if (nodesInit.data && nodesCords.current.size === 0) {
+    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
-      }); 
+      });
+      scale.current = scaleInit.data.scale;
     }
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
@@ -104,7 +121,7 @@ export default function useNodeCords() {
       window.removeEventListener('pointermove', handleMove);
       window.removeEventListener("wheel", handleWheel)
     }
-  }, [nodesInit.data]);
+  }, [nodesInit.data, scaleInit.data]);
 
 
   return {n: nodesCords, i: heldIndex, s: scale};
