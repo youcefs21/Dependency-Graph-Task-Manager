@@ -109,6 +109,13 @@ export default function useNodeCords() {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
       });
       scale.current = scaleInit.data.scale;
+      const deltaY = 1000 - (50 * scale.current)
+      nodesCords.current.forEach((node, id) => {
+        nodesCords.current.set(id, {
+          x: node.x - (node.x*deltaY)/1000,
+          y: node.y - (node.y*deltaY)/1000
+        })
+      });
     }
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
