@@ -5,11 +5,12 @@ import { trpc } from "../utils/trpc";
 // the x,y should be already modified based on mouse interaction
 export default function useNodeCords() {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
-  const scaleInit = trpc.useQuery(["settings.getScale"])
+  const scaleInit = trpc.useQuery(["settings.getScale"]);
+  const centrePosInit = trpc.useQuery(["settings.getPos"]);
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
-  const scale = useRef<number>(15);
+  const scale = useRef<number>(20);
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const updateScale = trpc.useMutation(["settings.updateScale"]);
   const scaled = useRef<boolean>(false)
@@ -104,16 +105,18 @@ export default function useNodeCords() {
 
 
   useEffect(() => {
-    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data) {
+    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && centrePosInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
       });
       scale.current = scaleInit.data.scale;
-      const deltaY = 1000 - (50 * scale.current)
+      const centreX = centrePosInit.data.x
+      const centreY = centrePosInit.data.y
+      const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
       nodesCords.current.forEach((node, id) => {
         nodesCords.current.set(id, {
-          x: node.x - (node.x*deltaY)/1000,
-          y: node.y - (node.y*deltaY)/1000
+          x: (node.x - (node.x*deltaScroll)/1000) + centreX, 
+          y: (node.y - (node.y*deltaScroll)/1000) + centreY
         })
       });
     }
