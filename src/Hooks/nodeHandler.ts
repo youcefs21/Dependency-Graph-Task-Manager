@@ -14,6 +14,7 @@ export default function useNodeCords() {
   const scale = useRef<number>(20);
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const updateScale = trpc.useMutation(["settings.updateScale"]);
+  const updateCentrePos = trpc.useMutation(["settings.updatePos"]);
   const scaled = useRef<boolean>(false)
 
 
@@ -46,26 +47,27 @@ export default function useNodeCords() {
     }
 
     if (heldIndex.current === "background") {
-      // every node has moved
-      heldIndex.current = "nothing";
-      return
+      // update settings.pos with centrePos.current
+      updateCentrePos.mutate({
+        userId: "root",
+        pos: centrePos.current
+      })
     }
-    else if (heldIndex.current === "nothing") {
-      return  
-    }
-    // update the node at heldIndex.current
-    const rawCords = nodesCords.current.get(heldIndex.current)!
-    const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
-    
-    const normilizedCords = {
-      x: (rawCords.x - centrePos.current.x)/(1 - deltaScroll/1000),
-      y: (rawCords.y - centrePos.current.y)/(1 - deltaScroll/1000)
-    }
+    else if (heldIndex.current != "nothing") {
+      // update the node at heldIndex.current
+      const rawCords = nodesCords.current.get(heldIndex.current)!
+      const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
+      
+      const normilizedCords = {
+        x: (rawCords.x - centrePos.current.x)/(1 - deltaScroll/1000),
+        y: (rawCords.y - centrePos.current.y)/(1 - deltaScroll/1000)
+      }
 
-    updateNode.mutate({
-      nodeId: heldIndex.current, 
-      cords: normilizedCords
-    });
+      updateNode.mutate({
+        nodeId: heldIndex.current, 
+        cords: normilizedCords
+      });
+    }
     
     heldIndex.current = "nothing";
   }
@@ -82,6 +84,8 @@ export default function useNodeCords() {
     if (clicked.current) {
       switch (heldIndex.current) {
         case "background": // move everything if background is held
+          centrePos.current.x += event.movementX;
+          centrePos.current.y += event.movementY;
           nodesCords.current.forEach((node, id) => {
             nodesCords.current.set(id, {
               x: node.x + event.movementX,
