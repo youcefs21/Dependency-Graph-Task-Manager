@@ -7,6 +7,7 @@ export default function useNodeCords() {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
   const scaleInit = trpc.useQuery(["settings.getScale"]);
   const centrePosInit = trpc.useQuery(["settings.getPos"]);
+  const centrePos = useRef({x: 0, y: 0});
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
@@ -53,9 +54,17 @@ export default function useNodeCords() {
       return  
     }
     // update the node at heldIndex.current
+    const rawCords = nodesCords.current.get(heldIndex.current)!
+    const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
+    
+    const normilizedCords = {
+      x: (rawCords.x - centrePos.current.x)/(1 - deltaScroll/1000),
+      y: (rawCords.y - centrePos.current.y)/(1 - deltaScroll/1000)
+    }
+
     updateNode.mutate({
       nodeId: heldIndex.current, 
-      cords: nodesCords.current.get(heldIndex.current)!
+      cords: normilizedCords
     });
     
     heldIndex.current = "nothing";
@@ -119,6 +128,7 @@ export default function useNodeCords() {
           y: (node.y - (node.y*deltaScroll)/1000) + centreY
         })
       });
+      centrePos.current = {x: centreX, y: centreY}
     }
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
