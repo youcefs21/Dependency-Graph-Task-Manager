@@ -49,10 +49,9 @@ export default function useNodeCords() {
           scale: scale.current
         });
       }
-      topLeftPos.current = {x: Math.floor(topLeftPos.current.x), y: Math.floor(topLeftPos.current.y)}
       updateTopLeft.mutate({
         userId: "root",
-        pos: topLeftPos.current
+        pos: {x: Math.round(topLeftPos.current.x), y: Math.round(topLeftPos.current.y)}
       })
     }
     else if (heldIndex.current != "nothing") {
@@ -70,8 +69,6 @@ export default function useNodeCords() {
     if (nodesCords.current.size === 0)
       return;
     
-    const mx = event.x/scale.current + topLeftPos.current.x
-    const my = event.y/scale.current + topLeftPos.current.y
     if (clicked.current) {
       switch (heldIndex.current) {
         case "background": // move everything if background is held
