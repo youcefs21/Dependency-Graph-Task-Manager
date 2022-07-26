@@ -96,11 +96,11 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
       const curDiff = Math.hypot(evCache.current[0]!.clientX - evCache.current[1]!.clientX, evCache.current[0]!.clientY - evCache.current[1]!.clientY);
         
       if (pinchDiff.current > 0) {
-        const delta = curDiff - pinchDiff.current
+        const delta = pinchDiff.current - curDiff
         const old_scale = scale.current
 
         scaled.current = true;
-        scale.current -= (scale.current*delta)/100
+        scale.current -= (scale.current*delta)/200
 
         // update topLeftPos based on mx and my 
         topLeftPos.current.x += (event.x/old_scale) - (event.x/scale.current)
