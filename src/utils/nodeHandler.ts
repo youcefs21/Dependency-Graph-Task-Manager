@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { trpc } from "../utils/trpc";
 
 // return a map with node id as key and node x,y
 // the x,y should be already modified based on mouse interaction
-export default function useNodeCords() {
+export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
   const scaleInit = trpc.useQuery(["settings.getScale"]);
   const topLeftPosInit = trpc.useQuery(["settings.getPos"]);
@@ -108,11 +108,7 @@ export default function useNodeCords() {
       }
 
       pinchDiff.current = curDiff 
-    }
-
-
-    
-    if (clicked.current) {
+    } else if (clicked.current) {
       switch (heldIndex.current) {
         case "background": // move everything if background is held
           topLeftPos.current.x -= event.movementX/scale.current;
@@ -145,6 +141,10 @@ export default function useNodeCords() {
 
 
   useEffect(() => {
+    if (!canvasRef.current) {
+      console.log("loading..")
+      return;
+    }
     if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && topLeftPosInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
@@ -152,16 +152,23 @@ export default function useNodeCords() {
       scale.current = scaleInit.data.scale;
       topLeftPos.current = {x: topLeftPosInit.data.x, y: topLeftPosInit.data.y}
     }
-    window.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener("wheel", handleWheel);
+    canvasRef.current.addEventListener('pointerdown', handlePointerDown);
+    canvasRef.current.addEventListener('pointerup', handlePointerUp);
+    canvasRef.current.addEventListener('pointerout', handlePointerUp);
+    canvasRef.current.addEventListener('pointercancel', handlePointerUp);
+    canvasRef.current.addEventListener('pointerleave', handlePointerUp);
+    canvasRef.current.addEventListener('pointermove', handleMove);
+    canvasRef.current.addEventListener("wheel", handleWheel);
 
     return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener("wheel", handleWheel);
+      if (!canvasRef.current) return;
+      canvasRef.current.removeEventListener('pointerdown', handlePointerDown);
+      canvasRef.current.removeEventListener('pointerup', handlePointerUp);
+      canvasRef.current.removeEventListener('pointerout', handlePointerUp);
+      canvasRef.current.removeEventListener('pointercancel', handlePointerUp);
+      canvasRef.current.removeEventListener('pointerleave', handlePointerUp);
+      canvasRef.current.removeEventListener('pointermove', handleMove);
+      canvasRef.current.removeEventListener("wheel", handleWheel);
     }
   }, [nodesInit.data, scaleInit.data]);
 

@@ -49,11 +49,11 @@ function useMousePos() {
 }
 
 export function Canvas() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
-  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords()
+  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords(canvasRef)
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const goals = trpc.useQuery(["nodes.getGoals"]);
   const [dashOffset, setDashOffset] = useState(0);
@@ -142,7 +142,7 @@ export function Canvas() {
   return (
     <canvas 
       ref={canvasRef} 
-      className={`absolute overflow-hidden touch-none`}
+      className={`absolute overflow-hidden touch-none inset-0`}
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}/>
   )
