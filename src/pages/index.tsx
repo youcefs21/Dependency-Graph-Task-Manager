@@ -34,13 +34,10 @@ const Toolbar = () => {
   return (
     <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
       <div className="flex my-3 mx-5">
-          <AddEdgeIcon></AddEdgeIcon>
-          <RemoveEdgeIcon></RemoveEdgeIcon>
       </div>
       <div></div>
       <div className="text-white text-sm font-semibold my-3 mx-5">
-        <button className="py-0.5 px-3 bg-blue-500 rounded-md shadow focus:outline-none">
-        </button>
+        s: {}
       </div>
     </div>
   );
@@ -56,7 +53,6 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Canvas/>
-      <Toolbar/>
     </>
   );
 };

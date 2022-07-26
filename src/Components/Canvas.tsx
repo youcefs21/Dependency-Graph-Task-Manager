@@ -136,14 +136,24 @@ export function Canvas() {
       if (heldIndex.current === "background") setCursor("move")
 
     },
-    [width, height, fmx, fmy, nodesCords, dashOffset]
+    [width, height, fmx, fmy , dashOffset]
   );
 
   return (
+  <>
     <canvas 
       ref={canvasRef} 
       className={`absolute overflow-hidden touch-none inset-0`}
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}/>
+    <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
+      <div className="flex my-3 mx-5">
+      </div>
+      <div></div>
+      <div className="text-white text-md font-semibold my-3 mx-5">
+        cordsSize: {nodesCords.current.size}, scale: {scale.current}, pointer: {fmx}, {fmy}, topLeftPos: {topLeftPos.current.x}, {topLeftPos.current.y}
+      </div>
+    </div>
+  </>
   )
 }
