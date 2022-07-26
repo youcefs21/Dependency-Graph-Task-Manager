@@ -93,8 +93,8 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
     }
 
     if (evCache.current.length === 2) {
-      const curDiff = Math.abs(evCache.current[0]!.clientX - evCache.current[1]!.clientX);
-
+      const curDiff = Math.hypot(evCache.current[0]!.clientX - evCache.current[1]!.clientX, evCache.current[0]!.clientY - evCache.current[1]!.clientY);
+        
       if (pinchDiff.current > 0) {
         const delta = curDiff - pinchDiff.current
         const old_scale = scale.current
