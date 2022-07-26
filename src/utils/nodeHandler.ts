@@ -100,7 +100,7 @@ export default function useNodeCords() {
         const old_scale = scale.current
 
         scaled.current = true;
-        scale.current -= (scale.current*delta)/1000
+        scale.current -= (scale.current*delta)/100
 
         // update topLeftPos based on mx and my 
         topLeftPos.current.x += (event.x/old_scale) - (event.x/scale.current)
