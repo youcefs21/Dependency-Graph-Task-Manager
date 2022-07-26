@@ -1,7 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import useWindowDimensions from "../Hooks/WindowDimensions";
-import useMouseGlobalState from "../Hooks/MousePosition";
-import useNodeCords from "../Hooks/nodeHandler";
+import useNodeCords from "../utils/nodeHandler";
 import { trpc } from "../utils/trpc";
 
 
@@ -10,13 +8,52 @@ interface vec2 {
     y: number;
 }
 
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = useState({width: 0, height: 0});
+
+  useEffect(() => {
+    function handleResize() {
+      const { innerWidth: width, innerHeight: height } = window;
+      setWindowDimensions({width, height});
+    }
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
+function useMousePos() {
+  const [mousePos, setMousePos] = useState({mx: 0, my: 0})
+     
+  
+  useEffect(() => {
+    
+    function handleMove(event: PointerEvent) {
+      setMousePos({
+        mx: event.x,
+        my: event.y,
+      })
+    }
+
+    window.addEventListener('pointermove', handleMove)
+    return () => {
+        window.removeEventListener('pointermove', handleMove);
+    }
+  }, [mousePos]);
+
+  return mousePos
+}
 
 export function Canvas() {
   const canvasRef = useRef(null);
   const { height, width } = useWindowDimensions();
-  const { pos: {mx, my}} = useMouseGlobalState()
+  const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
-  const {n: nodesCords, i: heldIndex, s: scale} = useNodeCords()
+  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords()
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const goals = trpc.useQuery(["nodes.getGoals"]);
   const [dashOffset, setDashOffset] = useState(0);
@@ -37,12 +74,15 @@ export function Canvas() {
       if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
+      const mx = fmx/scale.current + topLeftPos.current.x
+      const my = fmy/scale.current + topLeftPos.current.y
+      //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
       // function that draws the nodes
       const createNode = (pos: vec2, color: string, label: string) => {
-        const x = pos.x + width/2;
-        const y = pos.y + height/2;
+        const x = (pos.x - topLeftPos.current.x)*scale.current
+        const y = (pos.y - topLeftPos.current.y)*scale.current
         ctx.fillStyle = color;
         ctx.beginPath()
         ctx.arc(x, y, scale.current, 0, Math.PI * 2);
@@ -57,13 +97,19 @@ export function Canvas() {
       }
       // function that draws the arrows
       const createArrow = (pos1: vec2, pos2: vec2, color: string) => {
+        // pos1 and pos2 are real positions, turn them into screen cords:
+        const x1 = (pos1.x - topLeftPos.current.x)*scale.current
+        const x2 = (pos2.x - topLeftPos.current.x)*scale.current
+        const y1 = (pos1.y - topLeftPos.current.y)*scale.current
+        const y2 = (pos2.y - topLeftPos.current.y)*scale.current
+        
         ctx.lineWidth = 1 + scale.current/5;
         ctx.setLineDash([(scale.current*2)/5, scale.current/5]);
         ctx.lineDashOffset = -dashOffset*scale.current;
         ctx.beginPath()
         ctx.strokeStyle = color;
-        ctx.moveTo(pos1.x + width/2, pos1.y + height/2)
-        ctx.lineTo(pos2.x + width/2, pos2.y + height/2)
+        ctx.moveTo(x1, y1)
+        ctx.lineTo(x2, y2)
         ctx.stroke()
       }
 
@@ -80,7 +126,7 @@ export function Canvas() {
       setCursor("default")
       nodesCords.current.forEach((node, id) => {
         let color = "#cbd5e1"
-        if (Math.abs(node.x - mx) < 20 && Math.abs(node.y - my) < 20) {
+        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
           setCursor("pointer")
           color = "#f472b6"
         }
@@ -89,7 +135,7 @@ export function Canvas() {
       if (heldIndex.current === "background") setCursor("move")
 
     },
-    [width, height, mx, my, nodesCords, dashOffset]
+    [width, height, fmx, fmy, nodesCords, dashOffset]
   );
 
   return (

@@ -6,24 +6,26 @@ import { trpc } from "../utils/trpc";
 export default function useNodeCords() {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
   const scaleInit = trpc.useQuery(["settings.getScale"]);
-  const centrePosInit = trpc.useQuery(["settings.getPos"]);
-  const centrePos = useRef({x: 0, y: 0});
+  const topLeftPosInit = trpc.useQuery(["settings.getPos"]);
+  const topLeftPos = useRef({x: 0, y: 0});
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
   const clicked = useRef<boolean>(false);
-  const scale = useRef<number>(20);
+  const scale = useRef<number>(10); // a scale of n means that unit is n pixels
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const updateScale = trpc.useMutation(["settings.updateScale"]);
-  const updateCentrePos = trpc.useMutation(["settings.updatePos"]);
+  const updateTopLeft = trpc.useMutation(["settings.updatePos"]);
   const scaled = useRef<boolean>(false)
 
 
   function handlePointerDown(event: PointerEvent) {
-    const { innerWidth: width, innerHeight: height } = window;
+    const mx = event.x/scale.current + topLeftPos.current.x
+    const my = event.y/scale.current + topLeftPos.current.y
+    
     clicked.current = true; 
     // check if the mouse is over a node
     nodesCords.current.forEach((node, id) => {
-      if (Math.abs(node.x - (event.x - width/2)) < scale.current && Math.abs(node.y - (event.y - height/2)) < scale.current) {
+      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
           heldIndex.current = id 
       }
     });
@@ -38,34 +40,26 @@ export default function useNodeCords() {
   function handlePointerUp() {
     clicked.current = false
 
-    if (scaled.current) {
-      scaled.current = false
-      updateScale.mutate({
+    if (heldIndex.current === "background" || scaled.current) {
+      // if scale changed, update database
+      if (scaled.current) {
+        scaled.current = false
+        updateScale.mutate({
+          userId: "root",
+          scale: scale.current
+        });
+      }
+      topLeftPos.current = {x: Math.floor(topLeftPos.current.x), y: Math.floor(topLeftPos.current.y)}
+      updateTopLeft.mutate({
         userId: "root",
-        scale: scale.current
-      });
-    }
-
-    if (heldIndex.current === "background") {
-      // update settings.pos with centrePos.current
-      updateCentrePos.mutate({
-        userId: "root",
-        pos: centrePos.current
+        pos: topLeftPos.current
       })
     }
     else if (heldIndex.current != "nothing") {
       // update the node at heldIndex.current
-      const rawCords = nodesCords.current.get(heldIndex.current)!
-      const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
-      
-      const normilizedCords = {
-        x: (rawCords.x - centrePos.current.x)/(1 - deltaScroll/1000),
-        y: (rawCords.y - centrePos.current.y)/(1 - deltaScroll/1000)
-      }
-
       updateNode.mutate({
         nodeId: heldIndex.current, 
-        cords: normilizedCords
+        cords: nodesCords.current.get(heldIndex.current)!
       });
     }
     
@@ -73,32 +67,23 @@ export default function useNodeCords() {
   }
 
   function handleMove(event: PointerEvent) {
-    const { innerWidth: width, innerHeight: height } = window;
-    const mx = event.x - width/2
-    const my = event.y - height/2
-    if (nodesCords.current.size === 0) {
+    if (nodesCords.current.size === 0)
       return;
-    }
     
-    
+    const mx = event.x/scale.current + topLeftPos.current.x
+    const my = event.y/scale.current + topLeftPos.current.y
     if (clicked.current) {
       switch (heldIndex.current) {
         case "background": // move everything if background is held
-          centrePos.current.x += event.movementX;
-          centrePos.current.y += event.movementY;
-          nodesCords.current.forEach((node, id) => {
-            nodesCords.current.set(id, {
-              x: node.x + event.movementX,
-              y: node.y + event.movementY,
-            });
-          });
+          topLeftPos.current.x -= event.movementX/scale.current;
+          topLeftPos.current.y -= event.movementY/scale.current;
           break;
         case "nothing": // if nothing is held, do nothing
           break
         default: // if a node is held, move it to the mouse position
           nodesCords.current.set(heldIndex.current, {
-            x: mx,
-            y: my,
+            x: event.x/scale.current + topLeftPos.current.x,
+            y: event.y/scale.current + topLeftPos.current.y,
           });
       }
     } 
@@ -106,33 +91,30 @@ export default function useNodeCords() {
 
 
   function handleWheel(event: WheelEvent) {
+    const mx = event.x/scale.current + topLeftPos.current.x
+    const my = event.y/scale.current + topLeftPos.current.y
+
     scaled.current = true;
     scale.current -= (scale.current*event.deltaY)/1000
-    nodesCords.current.forEach((node, id) => {
-      nodesCords.current.set(id, {
-        x: node.x - (node.x*event.deltaY)/1000,
-        y: node.y - (node.y*event.deltaY)/1000
-      })
-    });
+
+    // update topLeftPos based on mx and my 
+    const mxn = event.x/scale.current + topLeftPos.current.x
+    const myn = event.y/scale.current + topLeftPos.current.y
+
+    topLeftPos.current.x += mx-mxn 
+    topLeftPos.current.y += my-myn
+
+
   }
 
 
   useEffect(() => {
-    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && centrePosInit.data) {
+    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && topLeftPosInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
       });
       scale.current = scaleInit.data.scale;
-      const centreX = centrePosInit.data.x
-      const centreY = centrePosInit.data.y
-      const deltaScroll = 1000 - (50 * scale.current) // assumes an initial scale of 20
-      nodesCords.current.forEach((node, id) => {
-        nodesCords.current.set(id, {
-          x: (node.x - (node.x*deltaScroll)/1000) + centreX, 
-          y: (node.y - (node.y*deltaScroll)/1000) + centreY
-        })
-      });
-      centrePos.current = {x: centreX, y: centreY}
+      topLeftPos.current = {x: topLeftPosInit.data.x, y: topLeftPosInit.data.y}
     }
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointerup', handlePointerUp);
@@ -148,6 +130,6 @@ export default function useNodeCords() {
   }, [nodesInit.data, scaleInit.data]);
 
 
-  return {n: nodesCords, i: heldIndex, s: scale};
+  return {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos};
 
 }
