@@ -98,6 +98,7 @@ export function Canvas() {
       // function that draws the arrows
       const createArrow = (pos1: vec2, pos2: vec2, color: string) => {
         // pos1 and pos2 are real positions, turn them into screen cords:
+        // pos1 is the parent, pos2 is the child
         const x1 = (pos1.x - topLeftPos.current.x)*scale.current
         const x2 = (pos2.x - topLeftPos.current.x)*scale.current
         const y1 = (pos1.y - topLeftPos.current.y)*scale.current
@@ -108,8 +109,8 @@ export function Canvas() {
         ctx.lineDashOffset = -dashOffset*scale.current;
         ctx.beginPath()
         ctx.strokeStyle = color;
-        ctx.moveTo(x1, y1)
-        ctx.lineTo(x2, y2)
+        ctx.moveTo(x2, y2)
+        ctx.lineTo(x1, y1)
         ctx.stroke()
       }
 
