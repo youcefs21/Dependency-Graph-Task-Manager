@@ -48,7 +48,7 @@ function useMousePos() {
   return mousePos
 }
 
-export function Canvas() {
+export function Canvas({ toolbarDataCallback }: {toolbarDataCallback: (x: number, y: number, scale: number) => void}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
@@ -76,6 +76,11 @@ export function Canvas() {
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const mx = fmx/scale.current + topLeftPos.current.x
       const my = fmy/scale.current + topLeftPos.current.y
+      toolbarDataCallback(
+        topLeftPos.current.x + (width/scale.current)/2,
+        topLeftPos.current.y + (height/scale.current)/2, 
+        scale.current
+      )
       //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)

@@ -94,12 +94,11 @@ const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: Toolba
   )
 }
 
-const Toolbar = () => {
+const Toolbar = ({centrePos, scale}: {centrePos: {x: number, y: number}, scale: number}) => {
   const [currentTool, setCurrentTool] = useState("pointer");
   return (
     <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
       <div className="flex my-2 mx-5">
-        
         <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addEdge"}>
           <AddEdgeIcon/>
         </ToolbarButton>
@@ -131,16 +130,23 @@ const Toolbar = () => {
         <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"move"}>
           <MoveIcon/>
         </ToolbarButton>
-
       </div>
       <div></div>
-      <div className="text-white text-sm font-semibold my-1 mx-5">
+      <div className="flex items-center text-white text-sm font-semibold my-1 mx-5">
+        <div>
+          <p>x: {Math.round(centrePos.x)}</p>
+          <p>y: {Math.round(centrePos.y)}</p>
+        </div>
+        <Seperator/>
+        {Math.round(scale*10)}%
       </div>
     </div>
   );
 }
 
 const Home: NextPage = () => {
+  const [centrePos, setCentrePos] = useState({x: 0, y: 0});
+  const [scale, setScale] = useState(1);
 
   return (
     <>
@@ -149,8 +155,12 @@ const Home: NextPage = () => {
         <meta name="description" content="A graph based life management app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Canvas/>
-      <Toolbar/>
+      <Canvas toolbarDataCallback={(x, y, scale) => {
+          setCentrePos({x, y});
+          setScale(scale)
+        }
+        }/>
+      <Toolbar centrePos={centrePos} scale={scale}/>
     </>
   );
 };
