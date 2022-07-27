@@ -1,9 +1,9 @@
-import { RefObject, useEffect, useRef } from "react";
+import { Dispatch, MutableRefObject, RefObject, SetStateAction, useEffect, useRef } from "react";
 import { trpc } from "../utils/trpc";
 
 // return a map with node id as key and node x,y
 // the x,y should be already modified based on mouse interaction
-export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
+export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, currentTool: MutableRefObject<string>, setCurrentTool: Dispatch<SetStateAction<string>>) {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
   const scaleInit = trpc.useQuery(["settings.getScale"]);
   const topLeftPosInit = trpc.useQuery(["settings.getPos"]);
@@ -18,13 +18,25 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
   const scaled = useRef<boolean>(false);
   const evCache = useRef<PointerEvent[]>([]);
   const pinchDiff = useRef<number>(-1);
+  const userID = useRef<string>("root");
 
 
   function handlePointerDown(event: PointerEvent) {
     const mx = event.x/scale.current + topLeftPos.current.x
     const my = event.y/scale.current + topLeftPos.current.y
     evCache.current.push(event);
+
+    console.log(currentTool)
+    if (currentTool.current === "addNode") {
+      const unixTime = Date.now() 
+      const newNodeID = userID.current + unixTime.toString(36)
+      console.log(newNodeID)
+      setCurrentTool("pointer")
+      nodesCords.current.set(newNodeID, {x: mx, y: my})
+      return
+    }
     
+     
     clicked.current = true; 
     // check if the mouse is over a node
     nodesCords.current.forEach((node, id) => {
@@ -59,12 +71,12 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
       if (scaled.current) {
         scaled.current = false
         updateScale.mutate({
-          userId: "root",
+          userId: userID.current,
           scale: scale.current
         });
       }
       updateTopLeft.mutate({
-        userId: "root",
+        userId: userID.current, 
         pos: {x: Math.round(topLeftPos.current.x), y: Math.round(topLeftPos.current.y)}
       })
     }

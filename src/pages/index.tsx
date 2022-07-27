@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction} from "react";
+import {useState, Dispatch, SetStateAction, useRef, useEffect} from "react";
 import { Canvas } from "../Components/Canvas";
 
 const Seperator = () => {
@@ -113,6 +113,7 @@ const Home: NextPage = () => {
           setScale(scale)
         }}
         currentTool={currentTool}
+        setCurrentTool={setCurrentTool}
       />
       <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
         <div className="flex my-2 mx-5">

@@ -45,9 +45,13 @@ export const nodeRouter = createRouter()
       cords: z.object({x: z.number(), y: z.number()})
     }),
     async resolve({ input, ctx }) {
-      return await ctx.prisma.node.update({
+      return await ctx.prisma.node.upsert({
         where: {id: input.nodeId},
-        data: {
+        update: {
+          x: Math.floor(input.cords.x),
+          y: Math.floor(input.cords.y)
+        },
+        create: {
           x: Math.floor(input.cords.x),
           y: Math.floor(input.cords.y)
         }

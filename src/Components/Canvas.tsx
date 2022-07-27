@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import useNodeCords from "../utils/nodeHandler";
 import { trpc } from "../utils/trpc";
 
@@ -48,15 +48,26 @@ function useMousePos() {
   return mousePos
 }
 
-export function Canvas({ toolbarDataCallback, currentTool}: {toolbarDataCallback: (x: number, y: number, scale: number) => void, currentTool: string}) {
+interface canvasProps {
+  toolbarDataCallback: (x: number, y: number, scale: number) => void,
+  currentTool: string
+  setCurrentTool: Dispatch<SetStateAction<string>>
+}
+
+export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
-  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords(canvasRef)
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const goals = trpc.useQuery(["nodes.getGoals"]);
   const [dashOffset, setDashOffset] = useState(0);
+  const currentToolRef = useRef("pointer");
+  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
+
+  useEffect(() => {
+    currentToolRef.current = currentTool;
+  }, [currentTool])
 
 
   // setInterval that updates the dash offset
@@ -72,7 +83,7 @@ export function Canvas({ toolbarDataCallback, currentTool}: {toolbarDataCallback
     () => {
       // do nothing if canvas or data are not ready
       if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
-      console.log(currentTool)
+
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const mx = fmx/scale.current + topLeftPos.current.x
@@ -137,7 +148,7 @@ export function Canvas({ toolbarDataCallback, currentTool}: {toolbarDataCallback
           setCursor("pointer")
           color = "#f472b6"
         }
-        createNode(node, color, goals.data.get(id)!)
+        createNode(node, color, goals.data.get(id) ?? "new Node")
       })
       if (heldIndex.current === "background") setCursor("move")
 
