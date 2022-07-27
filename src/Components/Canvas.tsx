@@ -48,7 +48,7 @@ function useMousePos() {
   return mousePos
 }
 
-export function Canvas({ toolbarDataCallback }: {toolbarDataCallback: (x: number, y: number, scale: number) => void}) {
+export function Canvas({ toolbarDataCallback, currentTool}: {toolbarDataCallback: (x: number, y: number, scale: number) => void, currentTool: string}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
@@ -72,6 +72,7 @@ export function Canvas({ toolbarDataCallback }: {toolbarDataCallback: (x: number
     () => {
       // do nothing if canvas or data are not ready
       if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
+      console.log(currentTool)
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const mx = fmx/scale.current + topLeftPos.current.x
@@ -141,7 +142,7 @@ export function Canvas({ toolbarDataCallback }: {toolbarDataCallback: (x: number
       if (heldIndex.current === "background") setCursor("move")
 
     },
-    [width, height, fmx, fmy , dashOffset]
+    [width, height, fmx, fmy , dashOffset, currentTool]
   );
 
   return (
