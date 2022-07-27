@@ -144,13 +144,20 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       setCursor("default")
       nodesCords.current.forEach((node, id) => {
         let color = "#cbd5e1"
-        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
+        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && currentToolRef.current === "pointer") {
           setCursor("pointer")
           color = "#f472b6"
         }
         createNode(node, color, goals.data.get(id) ?? "new Node")
       })
       if (heldIndex.current === "background") setCursor("move")
+
+      if (currentToolRef.current === "move") {
+        setCursor("grab")
+        if (heldIndex.current === "background") {
+          setCursor("grabbing")
+        }
+      }
 
     },
     [width, height, fmx, fmy , dashOffset, currentTool]

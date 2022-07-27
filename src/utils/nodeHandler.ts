@@ -26,12 +26,12 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
     const my = event.y/scale.current + topLeftPos.current.y
     evCache.current.push(event);
 
-    console.log(currentTool)
     if (currentTool.current === "addNode") {
+      currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
+      setCurrentTool("pointer")
       const unixTime = Date.now() 
       const newNodeID = userID.current + unixTime.toString(36)
       console.log(newNodeID)
-      setCurrentTool("pointer")
       nodesCords.current.set(newNodeID, {x: mx, y: my})
       return
     }
@@ -39,11 +39,13 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
      
     clicked.current = true; 
     // check if the mouse is over a node
-    nodesCords.current.forEach((node, id) => {
-      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
-          heldIndex.current = id 
-      }
-    });
+    if (currentTool.current === "pointer"){
+      nodesCords.current.forEach((node, id) => {
+        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
+            heldIndex.current = id 
+        }
+      });
+    }
 
     // if clicked and nothing is held, hold the background
     if (heldIndex.current === "nothing") {
