@@ -52,6 +52,32 @@ const CompleteNodeIcon = () => {
   )
 }
 
+const DeleteNodeIcon = () => {
+  return (
+    <svg width="25" height="25" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="6.20711" y1="5.68994" x2="14.6924" y2="14.1752" stroke="white" strokeLinecap="round"/>
+      <line x1="5.5" y1="13.9828" x2="13.9853" y2="5.49755" stroke="white" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="9.5" stroke="#D9D9D9"/>
+    </svg>
+  )
+}
+
+const PointerIcon = () => {
+  return (
+    <svg width="25" height="25" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7.0762 14.4574L1.29927 1.29924L14.4574 7.07617L9.38729 9.10928L9.18887 9.18884L9.10931 9.38726L7.0762 14.4574Z" stroke="#D9D9D9"/>
+    </svg>
+  )
+}
+
+const MoveIcon = () => {
+  return (
+    <svg width="25" height="25" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7.43433 7.88366V2.91111M7.43433 2.91111V1.25359C8.41839 0.915473 8.97296 0.915468 9.95622 1.25359V7.88366V2.08235C10.9902 1.81657 11.5454 1.79346 12.4781 2.08235V7.88366V4.56862C13.4641 4.26057 14.0142 4.24932 15 4.56862V13.685L12.4781 17H7.43433L1.54992 11.1987C0.877671 10.1581 0.75815 9.60185 1.54992 8.71242L4.91244 10.3699V2.91111C5.89801 2.43616 6.44895 2.45896 7.43433 2.91111Z" stroke="#D9D9D9" strokeLinejoin="bevel"/>
+    </svg>
+  )
+}
+
 interface ToolbarButtonProps {
   children: JSX.Element,
   currentTool: string,
@@ -90,6 +116,20 @@ const Toolbar = () => {
 
         <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"completeNode"}>
           <CompleteNodeIcon/>
+        </ToolbarButton>
+
+        <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"deleteNode"}>
+          <DeleteNodeIcon/>
+        </ToolbarButton>
+
+        <Seperator/>
+
+        <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"pointer"}>
+          <PointerIcon/>
+        </ToolbarButton>
+
+        <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"move"}>
+          <MoveIcon/>
         </ToolbarButton>
 
       </div>
