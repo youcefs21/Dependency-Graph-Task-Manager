@@ -162,10 +162,8 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
 
 
   useEffect(() => {
-    if (!canvasRef.current) {
-      console.log("loading..")
+    if (!canvasRef.current)
       return;
-    }
     if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && topLeftPosInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});

@@ -63,6 +63,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
   const goals = trpc.useQuery(["nodes.getGoals"]);
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
+  const inCanvas = useRef<boolean>(false)
   const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
 
   useEffect(() => {
@@ -150,12 +151,20 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
         }
         createNode(node, color, goals.data.get(id) ?? "new Node")
       })
-      if (heldIndex.current === "background") setCursor("move")
+      if (inCanvas.current){
+        if (heldIndex.current === "background") setCursor("move")
 
-      if (currentToolRef.current === "move") {
-        setCursor("grab")
-        if (heldIndex.current === "background") {
-          setCursor("grabbing")
+        if (currentToolRef.current === "move") {
+          setCursor("grab")
+          if (heldIndex.current === "background") {
+            setCursor("grabbing")
+          }
+        }
+        else if (currentToolRef.current === "addNode") {
+          setCursor("copy")
+        }
+        else if (currentToolRef.current === "deleteNode") {
+          setCursor("no-drop")
         }
       }
 
@@ -169,7 +178,35 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       ref={canvasRef} 
       className={`absolute overflow-hidden touch-none inset-0`}
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
-      width={width} height={height}/>
+      width={width} height={height}
+      onPointerEnter={() => inCanvas.current = true}
+      onPointerLeave={() => inCanvas.current = false}
+      />
   </>
   )
 }
+
+/*
+// working custom cursor, low priority, and too tired to finish it up, 
+// also it works on mobile, which is bad
+
+      <div className="absolute overflow-hidden inset-0 w-screen h-screen pointer-events-none">
+        <svg width="55" height="55" viewBox="0 0 21 23" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute overflow-hidden pointer-events-none"
+        style={{top: fmy, left: fmx}}>
+          <CustomCursor cursor={cursor}/>
+        </svg>
+      </div>
+
+function CustomCursor({cursor}: {cursor: string}) {
+  if (cursor === "none") {
+    return (
+      <>
+      <line x1="4" y1="9.57104" x2="16" y2="9.57104" stroke="white" strokeLinecap="round"/>
+      <line x1="10" y1="15.5" x2="10" y2="3.5" stroke="white" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="9.5" stroke="#D9D9D9"/>
+      </>
+      )
+  }
+  return <></>
+}
+*/
