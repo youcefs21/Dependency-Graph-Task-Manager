@@ -83,10 +83,15 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
     if (nodesCords.current.size === 0)
       return;
 
+    let prevX = -1;
+    let prevY = -1;
+
     // handle pinch events:
     // https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events/Pinch_zoom_gestures
     for (let i = 0; i < evCache.current.length; i++) {
-      if (event.pointerId == evCache.current[i]!.pointerId) {
+      if (event.pointerId === evCache.current[i]!.pointerId) {
+        prevX = evCache.current[i]!.x;
+        prevY = evCache.current[i]!.y;
         evCache.current[i] = event;
         break;
       }
@@ -111,8 +116,10 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>) {
     } else if (clicked.current) {
       switch (heldIndex.current) {
         case "background": // move everything if background is held
-          topLeftPos.current.x -= event.movementX/scale.current;
-          topLeftPos.current.y -= event.movementY/scale.current;
+          const movementX = prevX === -1 ? 0 : prevX-event.x
+          const movementY = prevY === -1 ? 0 : prevY-event.y
+          topLeftPos.current.x += movementX/scale.current;
+          topLeftPos.current.y += movementY/scale.current;
           break;
         case "nothing": // if nothing is held, do nothing
           break
