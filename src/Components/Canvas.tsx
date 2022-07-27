@@ -146,14 +146,14 @@ export function Canvas() {
       className={`absolute overflow-hidden touch-none inset-0`}
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}/>
-    {/*<div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
-      <div className="flex my-3 mx-5">
+    <div className="relative top-5 w-5/6 max-w-4xl bg-[#121316] m-auto">
+      <div className="text-white text-md font-semibold my-3 mx-5 pt-4">
+        cordsSize: {nodesCords.current.size}, scale: {scale.current}, pointer: {fmx}, {fmy},  
       </div>
-      <div></div>
-      <div className="text-white text-md font-semibold my-3 mx-5">
-        cordsSize: {nodesCords.current.size}, scale: {scale.current}, pointer: {fmx}, {fmy}, topLeftPos: {topLeftPos.current.x}, {topLeftPos.current.y}
+      <div className="text-white text-md font-semibold my-3 mx-5 pb-4">
+      topLeftPos: {topLeftPos.current.x.toFixed(1)}, {topLeftPos.current.y.toFixed(1)}, firstNodePos: {nodesCords.current.get("cl5q9trtm00309hwbns1gskve")?.x}, {nodesCords.current.get("cl5q9trtm00309hwbns1gskve")?.y}
       </div>
-    </div>*/}
+    </div>
   </>
   )
 }
