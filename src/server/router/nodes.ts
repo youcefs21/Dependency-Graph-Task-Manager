@@ -57,4 +57,14 @@ export const nodeRouter = createRouter()
         }
       });
     },
+  })
+  .mutation("deleteNode", {
+    input: z.object({
+      nodeId: z.string()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.node.delete({
+        where: {id: input.nodeId},
+      });
+    },
   });
