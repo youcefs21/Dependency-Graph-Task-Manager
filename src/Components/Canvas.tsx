@@ -62,6 +62,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const goals = trpc.useQuery(["nodes.getGoals"]);
   const addPair = trpc.useMutation(["nodes.addPair"])
+  const deletePair = trpc.useMutation(["nodes.deletePair"])
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
   const inCanvas = useRef<boolean>(false)
@@ -69,6 +70,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
 
   useEffect(() => {
     currentToolRef.current = currentTool;
+    selectedPair.current = [];
   }, [currentTool])
 
 
@@ -171,9 +173,19 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       }
 
       if (selectedPair.current.length === 2) {
-        console.log(selectedPair.current)
-        nodeIdPairs.data.push({node1_id: selectedPair.current[0]!, node2_id: selectedPair.current[1]!})
-        addPair.mutate({node1Id: selectedPair.current[0]!, node2Id: selectedPair.current[1]!})
+        const n1 = selectedPair.current[0]!
+        const n2 = selectedPair.current[1]!
+        if (currentToolRef.current === "addEdge"){
+          nodeIdPairs.data.push({node1_id: n1, node2_id: n2})
+          addPair.mutate({node1Id: n1, node2Id: n2})
+        } else if (currentToolRef.current === "removeEdge") {
+            for (let i = 0; i < nodeIdPairs.data.length; i++){
+              if (nodeIdPairs.data[i]?.node1_id === n1 && nodeIdPairs.data[i]?.node2_id === n2) {
+                  nodeIdPairs.data.splice(i, 1)
+                  deletePair.mutate({node1Id: n1, node2Id: n2})
+                }
+            }
+          }
         selectedPair.current = []
         setCurrentTool("pointer")
       }

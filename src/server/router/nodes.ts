@@ -102,4 +102,18 @@ export const nodeRouter = createRouter()
         where: {id: input.nodeId},
       });
     },
+  })
+  .mutation("deletePair", {
+    input: z.object({
+      node1Id: z.string(),
+      node2Id: z.string()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.edge.deleteMany({
+        where: {
+          node1_id: input.node1Id,
+          node2_id: input.node2Id
+        }
+      });
+    },
   });

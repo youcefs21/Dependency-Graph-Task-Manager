@@ -45,15 +45,6 @@ const Home: NextPage = () => {
       />
       <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
         <div className="flex my-2 mx-5">
-          <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addEdge"}>
-            <AddEdgeIcon/>
-          </ToolbarButton>
-
-          <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"removeEdge"}>
-            <RemoveEdgeIcon/>
-          </ToolbarButton>
-
-          <Seperator/>
 
           <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addNode"}>
             <AddNodeIcon/>
@@ -65,6 +56,16 @@ const Home: NextPage = () => {
 
           <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"deleteNode"}>
             <DeleteNodeIcon/>
+          </ToolbarButton>
+
+          <Seperator/>
+
+          <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addEdge"}>
+            <AddEdgeIcon/>
+          </ToolbarButton>
+
+          <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"removeEdge"}>
+            <RemoveEdgeIcon/>
           </ToolbarButton>
 
           <Seperator/>
@@ -88,9 +89,11 @@ const Home: NextPage = () => {
         </div>
       </div>
       {
-        selectedCount != 2 && currentTool === "addEdge" &&
-      <p className="relative text-white font-semibold w-1/2 m-auto text-center my-7 font-mono">
-        Please select the <span className="text-green-500">{selectedCount === 0 ? "parent" : "child"}</span> node
+        selectedCount != 2 && ["addEdge", "removeEdge"].includes(currentTool) &&
+      <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
+        Please select the <span className={currentTool === "addEdge" ? "text-green-500" : "text-red-500"}>
+          {selectedCount === 0 ? "parent" : "child"}
+        </span> node
       </p>
       }
 

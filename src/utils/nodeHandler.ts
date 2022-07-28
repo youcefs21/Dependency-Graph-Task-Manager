@@ -65,7 +65,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
       return
     } 
 
-    if (currentTool.current === "addEdge" && !["nothing", "background"].includes(heldIndex.current) && selectedPair.current.length < 2 && !selectedPair.current.includes(heldIndex.current)) {
+    if (["addEdge", "removeEdge"].includes(currentTool.current) && !["nothing", "background"].includes(heldIndex.current) && selectedPair.current.length < 2 && !selectedPair.current.includes(heldIndex.current)) {
       selectedPair.current.push(heldIndex.current)
     } else {
       selectedPair.current = []
