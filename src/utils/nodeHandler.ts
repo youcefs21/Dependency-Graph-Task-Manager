@@ -14,6 +14,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
   const scale = useRef<number>(10); // a scale of n means that unit is n pixels
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
+  const archiveNode = trpc.useMutation(["nodes.archiveNode"]);
   const updateScale = trpc.useMutation(["settings.updateScale"]);
   const updateTopLeft = trpc.useMutation(["settings.updatePos"]);
   const scaled = useRef<boolean>(false);
@@ -41,7 +42,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
      
     clicked.current = true; 
     // check if the mouse is over a node
-    if (currentTool.current === "pointer" || currentTool.current === "deleteNode"){
+    if (currentTool.current != "move"){
       nodesCords.current.forEach((node, id) => {
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
             heldIndex.current = id
@@ -49,14 +50,20 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
       });
     }
 
-    if (currentTool.current === "deleteNode") {
+    if (currentTool.current === "deleteNode" || currentTool.current === "completeNode") {
+      const t = currentTool.current
       currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
       setCurrentTool("pointer")
       nodesCords.current.delete(heldIndex.current)
-      deleteNode.mutate({nodeId: heldIndex.current})
+
+      if (t === "completeNode") 
+        archiveNode.mutate({nodeId: heldIndex.current, archive: true})
+      if (t === "deleteNode")
+        deleteNode.mutate({nodeId: heldIndex.current})
+
       heldIndex.current = "nothing"
       return
-    }
+    } 
 
 
     // if clicked and nothing is held, hold the background

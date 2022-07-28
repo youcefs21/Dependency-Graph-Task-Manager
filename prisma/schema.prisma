@@ -17,14 +17,15 @@ generator js {
 }
 
 model Node {
-  id        String @id @default(cuid())
-  userId    String @default("root")
-  user      User   @relation(fields: [userId], references: [id])
-  goal      String @default("insert goal here")
-  x         Int    @default(0)
-  y         Int    @default(0)
-  out_edges Edge[] @relation("outgoing")
-  in_edges  Edge[] @relation("incoming")
+  id        String  @id @default(cuid())
+  userId    String  @default("root")
+  user      User    @relation(fields: [userId], references: [id])
+  goal      String  @default("insert goal here")
+  archive   Boolean @default(false)
+  x         Int     @default(0)
+  y         Int     @default(0)
+  out_edges Edge[]  @relation("outgoing")
+  in_edges  Edge[]  @relation("incoming")
 }
 
 model Edge {

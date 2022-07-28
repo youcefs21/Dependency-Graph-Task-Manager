@@ -10,6 +10,9 @@ export const nodeRouter = createRouter()
           id: true,
           x: true,
           y: true
+        },
+        where: {
+          archive: false
         }
       });
     }
@@ -30,6 +33,9 @@ export const nodeRouter = createRouter()
         select: {
           id: true,
           goal: true
+        },
+        where: {
+          archive: false
         }
       });
       const out = new Map<string, string>()
@@ -42,7 +48,7 @@ export const nodeRouter = createRouter()
   .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
-      cords: z.object({x: z.number(), y: z.number()})
+      cords: z.object({x: z.number(), y: z.number()}),
     }),
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.upsert({
@@ -54,6 +60,20 @@ export const nodeRouter = createRouter()
         create: {
           x: Math.floor(input.cords.x),
           y: Math.floor(input.cords.y)
+        }
+      });
+    },
+  })
+  .mutation("archiveNode", {
+    input: z.object({
+      nodeId: z.string(),
+      archive: z.boolean() 
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.node.update({
+        where: {id: input.nodeId},
+        data: {
+          archive: input.archive
         }
       });
     },

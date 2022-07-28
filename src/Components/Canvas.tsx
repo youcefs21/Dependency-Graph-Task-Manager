@@ -145,7 +145,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       setCursor("default")
       nodesCords.current.forEach((node, id) => {
         let color = "#cbd5e1"
-        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && currentToolRef.current === "pointer") {
+        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
           color = "#f472b6"
         }
