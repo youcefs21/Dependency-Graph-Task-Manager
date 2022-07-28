@@ -58,6 +58,7 @@ export const nodeRouter = createRouter()
           y: Math.floor(input.cords.y)
         },
         create: {
+          id: input.nodeId,
           x: Math.floor(input.cords.x),
           y: Math.floor(input.cords.y)
         }
