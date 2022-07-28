@@ -25,6 +25,7 @@ const Home: NextPage = () => {
   const [centrePos, setCentrePos] = useState({x: 0, y: 0});
   const [scale, setScale] = useState(1);
   const [currentTool, setCurrentTool] = useState("pointer");
+  const [selectedCount, setSelectedCount] = useState(0);
 
   return (
     <>
@@ -34,9 +35,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Canvas 
-        toolbarDataCallback={(x, y, scale) => {
+        toolbarDataCallback={(x, y, scale, edgeCount) => {
           setCentrePos({x, y});
           setScale(scale)
+          setSelectedCount(edgeCount)
         }}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
@@ -76,7 +78,7 @@ const Home: NextPage = () => {
           </ToolbarButton>
         </div>
         <div></div>
-        <div className="flex items-center text-white text-sm font-semibold my-1 mx-5">
+        <div className="flex items-center text-white text-sm font-semibold my-1 mx-5 font-mono">
           <div>
             <p>x: {Math.round(centrePos.x)}</p>
             <p>y: {Math.round(centrePos.y)}</p>
@@ -85,6 +87,12 @@ const Home: NextPage = () => {
           {Math.round(scale*10)}%
         </div>
       </div>
+      {
+        selectedCount != 2 && currentTool === "addEdge" &&
+      <p className="relative text-white font-semibold w-1/2 m-auto text-center my-7 font-mono">
+        Please select the <span className="text-green-500">{selectedCount === 0 ? "parent" : "child"}</span> node
+      </p>
+      }
 
     </>
   );

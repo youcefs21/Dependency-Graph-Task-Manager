@@ -65,6 +65,20 @@ export const nodeRouter = createRouter()
       });
     },
   })
+  .mutation("addPair", {
+    input: z.object({
+      node1Id: z.string(),
+      node2Id: z.string()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.edge.create({
+        data: {
+          node1_id: input.node1Id,
+          node2_id: input.node2Id
+        }
+      });
+    },
+  })
   .mutation("archiveNode", {
     input: z.object({
       nodeId: z.string(),

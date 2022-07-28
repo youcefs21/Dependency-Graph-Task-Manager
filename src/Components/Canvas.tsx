@@ -49,7 +49,7 @@ function useMousePos() {
 }
 
 interface canvasProps {
-  toolbarDataCallback: (x: number, y: number, scale: number) => void,
+  toolbarDataCallback: (x: number, y: number, scale: number, edgeCount: number) => void,
   currentTool: string
   setCurrentTool: Dispatch<SetStateAction<string>>
 }
@@ -61,10 +61,11 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
   const [cursor, setCursor] = useState("defualt")
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const goals = trpc.useQuery(["nodes.getGoals"]);
+  const addPair = trpc.useMutation(["nodes.addPair"])
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
   const inCanvas = useRef<boolean>(false)
-  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
+  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos, sp: selectedPair} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
 
   useEffect(() => {
     currentToolRef.current = currentTool;
@@ -92,7 +93,8 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       toolbarDataCallback(
         topLeftPos.current.x + (width/scale.current)/2,
         topLeftPos.current.y + (height/scale.current)/2, 
-        scale.current
+        scale.current,
+        selectedPair.current.length
       )
       //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
@@ -165,7 +167,15 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
         }
         else if (currentToolRef.current === "deleteNode") {
           setCursor("no-drop")
-        }
+        } 
+      }
+
+      if (selectedPair.current.length === 2) {
+        console.log(selectedPair.current)
+        nodeIdPairs.data.push({node1_id: selectedPair.current[0]!, node2_id: selectedPair.current[1]!})
+        addPair.mutate({node1Id: selectedPair.current[0]!, node2Id: selectedPair.current[1]!})
+        selectedPair.current = []
+        setCurrentTool("pointer")
       }
 
     },

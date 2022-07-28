@@ -21,6 +21,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
   const evCache = useRef<PointerEvent[]>([]);
   const pinchDiff = useRef<number>(-1);
   const userID = useRef<string>("root");
+  const selectedPair = useRef<string[]>([])
 
 
   function handlePointerDown(event: PointerEvent) {
@@ -33,7 +34,6 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
       setCurrentTool("pointer")
       const unixTime = Date.now() 
       const newNodeID = userID.current + unixTime.toString(36)
-      console.log(newNodeID)
       nodesCords.current.set(newNodeID, {x: mx, y: my})
       updateNode.mutate({nodeId: newNodeID, cords: {x: mx, y: my}})
       return
@@ -65,6 +65,11 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
       return
     } 
 
+    if (currentTool.current === "addEdge" && !["nothing", "background"].includes(heldIndex.current) && selectedPair.current.length < 2 && !selectedPair.current.includes(heldIndex.current)) {
+      selectedPair.current.push(heldIndex.current)
+    } else {
+      selectedPair.current = []
+    }
 
     // if clicked and nothing is held, hold the background
     if (heldIndex.current === "nothing") {
@@ -211,6 +216,6 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
   }, [nodesInit.data, scaleInit.data]);
 
 
-  return {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos};
+  return {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos, sp: selectedPair};
 
 }
