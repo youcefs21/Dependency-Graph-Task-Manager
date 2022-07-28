@@ -66,6 +66,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
   const inCanvas = useRef<boolean>(false)
+  const adj = useRef(new Map<string, string[]>())
   const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos, sp: selectedPair} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
 
   useEffect(() => {
@@ -73,6 +74,18 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
     selectedPair.current = [];
   }, [currentTool])
 
+  useEffect(() => {
+    if (nodeIdPairs.data && adj.current.size === 0){
+        nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
+          if (adj.current.get(node1_id)) {
+            adj.current.get(node1_id)!.push(node2_id)
+          } else {
+            adj.current.set(node1_id, [node2_id])
+            }
+        })
+      }
+
+  }, [nodeIdPairs.data])
 
   // setInterval that updates the dash offset
   useEffect(() => {
@@ -81,6 +94,32 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
     }, 40);
     return () => clearInterval(interval);
   }, []);
+
+
+  function dfs(target: string, initial: string) {
+    const visited = new Set<string>()
+
+    function isValidConnection(n: string) {
+      console.log(console.log(goals.data!.get(n)))
+      console.log("adj", adj.current.get(n))
+      if (n === target)
+        return false
+      visited.add(n)
+
+      if (!adj.current.get(n)) 
+        return true
+      var valid = true
+      adj.current.get(n)!.forEach((next) => {
+        if (!visited.has(next) && !isValidConnection(next)) {
+          valid = false
+          return
+        }
+      }) 
+      return valid
+    }
+    return isValidConnection(initial)
+
+  }
 
 
   useEffect(
@@ -176,8 +215,13 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
         const n1 = selectedPair.current[0]!
         const n2 = selectedPair.current[1]!
         if (currentToolRef.current === "addEdge"){
-          nodeIdPairs.data.push({node1_id: n1, node2_id: n2})
-          addPair.mutate({node1Id: n1, node2Id: n2})
+          // do a depth first search to check if a path from n1 to n2 already exists
+          if (dfs(n1, n2)) {
+            nodeIdPairs.data.push({node1_id: n1, node2_id: n2})
+            addPair.mutate({node1Id: n1, node2Id: n2})
+          } else {
+            console.log("connection failed, would create a cycle")  
+          }
         } else if (currentToolRef.current === "removeEdge") {
             for (let i = 0; i < nodeIdPairs.data.length; i++){
               if (nodeIdPairs.data[i]?.node1_id === n1 && nodeIdPairs.data[i]?.node2_id === n2) {
