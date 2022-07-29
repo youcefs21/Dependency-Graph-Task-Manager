@@ -100,8 +100,6 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
     const visited = new Set<string>()
 
     function isValidConnection(n: string) {
-      console.log(console.log(goals.data!.get(n)))
-      console.log("adj", adj.current.get(n))
       if (n === target)
         return false
       visited.add(n)
@@ -212,15 +210,15 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       }
 
       if (selectedPair.current.length === 2) {
-        const n1 = selectedPair.current[0]!
-        const n2 = selectedPair.current[1]!
+        const n2 = selectedPair.current[0]!
+        const n1 = selectedPair.current[1]!
         if (currentToolRef.current === "addEdge"){
           // do a depth first search to check if a path from n1 to n2 already exists
           if (dfs(n1, n2)) {
             nodeIdPairs.data.push({node1_id: n1, node2_id: n2})
             addPair.mutate({node1Id: n1, node2Id: n2})
           } else {
-            console.log("connection failed, would create a cycle")  
+            console.log("connection failed, would create a cycle")
           }
         } else if (currentToolRef.current === "removeEdge") {
             for (let i = 0; i < nodeIdPairs.data.length; i++){

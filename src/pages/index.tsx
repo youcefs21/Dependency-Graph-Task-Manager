@@ -27,6 +27,23 @@ const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState("pointer");
   const [selectedCount, setSelectedCount] = useState(0);
 
+  const hintText = (t: string) => {
+    switch(t) {
+      case "addEdge":
+        return <>Select the node you want to <span className={"text-green-500"}>connect {selectedCount === 0 ? "from" : "to"}</span> </>
+      case "removeEdge":
+        return <>select the <span className="text-red-500">{selectedCount === 0 ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
+      case "addNode":
+        return <>click anywhere on the screen to <span className="text-green-500">create</span> a node there</>
+      case "deleteNode":
+        return <>click on a node to <span className="text-red-500">permanently delete</span> it</>
+      case "completeNode":
+        return <>click on a node to mark it as <span className="text-green-500">complete</span></>
+      default:
+        return <></>
+    }
+  }
+
   return (
     <>
       <Head>
@@ -88,14 +105,10 @@ const Home: NextPage = () => {
           {Math.round(scale*10)}%
         </div>
       </div>
-      {
-        selectedCount != 2 && ["addEdge", "removeEdge"].includes(currentTool) &&
+      
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        Please select the <span className={currentTool === "addEdge" ? "text-green-500" : "text-red-500"}>
-          {selectedCount === 0 ? "parent" : "child"}
-        </span> node
+        {hintText(currentTool)}
       </p>
-      }
 
     </>
   );
