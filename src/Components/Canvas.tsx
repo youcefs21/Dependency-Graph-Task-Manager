@@ -222,7 +222,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
           }
         } else if (currentToolRef.current === "removeEdge") {
             for (let i = 0; i < nodeIdPairs.data.length; i++){
-              if (nodeIdPairs.data[i]?.node1_id === n1 && nodeIdPairs.data[i]?.node2_id === n2) {
+              if ((nodeIdPairs.data[i]?.node1_id === n1 && nodeIdPairs.data[i]?.node2_id === n2) || (nodeIdPairs.data[i]?.node1_id === n2 && nodeIdPairs.data[i]?.node2_id === n1)) {
                   nodeIdPairs.data.splice(i, 1)
                   deletePair.mutate({node1Id: n1, node2Id: n2})
                 }
