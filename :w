@@ -117,17 +117,11 @@ const Home: NextPage = () => {
         </NodeConfigPanelItem>
 
         <NodeConfigPanelItem itemHeading="Properties">
-          <div></div>
+         <input className="bg-[#393939]"></input>
         </NodeConfigPanelItem>
 
-        <NodeConfigPanelItem itemHeading="Connections">
-          <div></div>
-        </NodeConfigPanelItem>
-        
-        <NodeConfigPanelItem itemHeading="Apearance">
-          <div></div>
-        </NodeConfigPanelItem>
-      
+        <NodeConfigPanelItem itemHeading="Connections"></NodeConfigPanelItem>
+        <NodeConfigPanelItem itemHeading="Apearance"></NodeConfigPanelItem>
       </NodeConfigPanel>
 
 
@@ -149,7 +143,7 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 function NodeConfigPanel({nodeName, children}: {nodeName: string, children: JSX.Element[]}) {
   return (
-      <div className="absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y">
+      <div className="absolute top-24 right-6 w-1/5 h-5/6 max-w-2xl bg-[#222326] rounded-[34px] text-white font-mono divide-y">
           <h2 className="p-4 font-semibold">{nodeName}</h2>
           <div className="divide-y p-4">
             {children}
