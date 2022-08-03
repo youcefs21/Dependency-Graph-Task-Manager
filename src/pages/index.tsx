@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction} from "react";
+import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Canvas";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "../Components/ToolbarIcons";
 
@@ -113,7 +113,10 @@ const Home: NextPage = () => {
       <NodeConfigPanel nodeName="Node Label">
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
-         <input className="bg-[#393939]"></input>
+          <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
+            <p className="w-16">Goal</p>
+            <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0" type={'text'} name={'goal'} onInput={handleInputChange}></input>
+          </div>
         </NodeConfigPanelItem>
 
         <NodeConfigPanelItem itemHeading="Properties">
@@ -134,6 +137,12 @@ const Home: NextPage = () => {
     </>
   );
 };
+
+function handleInputChange(e: FormEvent) {
+  const input = e.target as HTMLInputElement;
+  // change the value of the state input.name to input.value
+  // save state to database after 5 seconds of no changes or when the menu is closed
+}
 
 function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, children: JSX.Element | JSX.Element[]}) {
   return (
