@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction, FormEvent} from "react";
+import {useState, Dispatch, SetStateAction, FormEvent, useRef} from "react";
 import { Canvas } from "../Components/Canvas";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "../Components/ToolbarIcons";
 
@@ -9,6 +9,13 @@ interface ToolbarButtonProps {
   currentTool: string,
   setCurrentTool: Dispatch<SetStateAction<string>>,
   toolName: string
+}
+
+interface ToolbarProps {
+  currentTool: string,
+  setCurrentTool: Dispatch<SetStateAction<string>>,
+  centrePos: {x: number, y: number},
+  scale: number
 }
 
 const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: ToolbarButtonProps) => {
@@ -20,46 +27,9 @@ const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: Toolba
   )
 }
 
-
-const Home: NextPage = () => {
-  const [centrePos, setCentrePos] = useState({x: 0, y: 0});
-  const [scale, setScale] = useState(1);
-  const [currentTool, setCurrentTool] = useState("pointer");
-  const [selectedCount, setSelectedCount] = useState(0);
-
-  const hintText = (t: string) => {
-    switch(t) {
-      case "addEdge":
-        return <>Select the node you want to <span className={"text-green-500"}>connect {selectedCount === 0 ? "from" : "to"}</span> </>
-      case "removeEdge":
-        return <>select the <span className="text-red-500">{selectedCount === 0 ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
-      case "addNode":
-        return <>click anywhere on the screen to <span className="text-green-500">create</span> a node there</>
-      case "deleteNode":
-        return <>click on a node to <span className="text-red-500">permanently delete</span> it</>
-      case "completeNode":
-        return <>click on a node to mark it as <span className="text-green-500">complete</span></>
-      default:
-        return <></>
-    }
-  }
+function Toolbar({currentTool, setCurrentTool, centrePos, scale}: ToolbarProps) {
 
   return (
-    <>
-      <Head>
-        <title>Nodify</title>
-        <meta name="description" content="A graph based life management app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Canvas 
-        toolbarDataCallback={(x, y, scale, edgeCount) => {
-          setCentrePos({x, y});
-          setScale(scale)
-          setSelectedCount(edgeCount)
-        }}
-        currentTool={currentTool}
-        setCurrentTool={setCurrentTool}
-      />
       <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
         <div className="flex my-2 mx-5">
 
@@ -105,12 +75,62 @@ const Home: NextPage = () => {
           {Math.round(scale*10)}%
         </div>
       </div>
+  )
+
+
+}
+
+
+const hintText = (t: string, selectedCount: number) => {
+  switch(t) {
+    case "addEdge":
+      return <>Select the node you want to <span className={"text-green-500"}>connect {selectedCount === 0 ? "from" : "to"}</span> </>
+    case "removeEdge":
+      return <>select the <span className="text-red-500">{selectedCount === 0 ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
+    case "addNode":
+      return <>click anywhere on the screen to <span className="text-green-500">create</span> a node there</>
+    case "deleteNode":
+      return <>click on a node to <span className="text-red-500">permanently delete</span> it</>
+    case "completeNode":
+      return <>click on a node to mark it as <span className="text-green-500">complete</span></>
+    default:
+      return <></>
+  }
+}
+
+
+const Home: NextPage = () => {
+  const [centrePos, setCentrePos] = useState({x: 0, y: 0});
+  const [scale, setScale] = useState(1);
+  const [currentTool, setCurrentTool] = useState("pointer");
+  const [selectedCount, setSelectedCount] = useState(0);
+  const [selectedNode, setSelectedNode] = useState<string>("nothing");
+  const nodeSettingsRef = useRef(new Map<string, {goal: string}>);
+
+  return (
+    <>
+      <Head>
+        <title>Nodify</title>
+        <meta name="description" content="A graph based life management app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <Canvas 
+        toolbarDataCallback={(x, y, scale, edgeCount) => {
+          setCentrePos({x, y});
+          setScale(scale)
+          setSelectedCount(edgeCount)
+        }}
+        currentTool={currentTool}
+        setCurrentTool={setCurrentTool}
+      />
       
+      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} centrePos={centrePos} scale={scale}/>
+
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        {hintText(currentTool)}
+        {hintText(currentTool, selectedCount)}
       </p>
 
-      <NodeConfigPanel nodeName="Node Label">
+      <NodeConfigPanel nodeName="Node Label" display={true}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
@@ -156,9 +176,9 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 }
 
-function NodeConfigPanel({nodeName, children}: {nodeName: string, children: JSX.Element[]}) {
+function NodeConfigPanel({nodeName, children, display}: {nodeName: string, children: JSX.Element[], display: boolean}) {
   return (
-      <div className="absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y">
+      <div className={`absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y ${display ? "" : "hidden"}`}>
           <h2 className="p-4 font-semibold">{nodeName}</h2>
           <div className="divide-y p-4">
             {children}

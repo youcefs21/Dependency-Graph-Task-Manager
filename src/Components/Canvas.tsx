@@ -8,45 +8,6 @@ interface vec2 {
     y: number;
 }
 
-function useWindowDimensions() {
-  const [windowDimensions, setWindowDimensions] = useState({width: 0, height: 0});
-
-  useEffect(() => {
-    function handleResize() {
-      const { innerWidth: width, innerHeight: height } = window;
-      setWindowDimensions({width, height});
-    }
-
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return windowDimensions;
-}
-
-function useMousePos() {
-  const [mousePos, setMousePos] = useState({mx: 0, my: 0})
-     
-  
-  useEffect(() => {
-    
-    function handleMove(event: PointerEvent) {
-      setMousePos({
-        mx: event.x,
-        my: event.y,
-      })
-    }
-
-    window.addEventListener('pointermove', handleMove)
-    return () => {
-        window.removeEventListener('pointermove', handleMove);
-    }
-  }, [mousePos]);
-
-  return mousePos
-}
 
 interface canvasProps {
   toolbarDataCallback: (x: number, y: number, scale: number, edgeCount: number) => void,
@@ -250,6 +211,45 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
   )
 }
 
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = useState({width: 0, height: 0});
+
+  useEffect(() => {
+    function handleResize() {
+      const { innerWidth: width, innerHeight: height } = window;
+      setWindowDimensions({width, height});
+    }
+
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
+function useMousePos() {
+  const [mousePos, setMousePos] = useState({mx: 0, my: 0})
+     
+  
+  useEffect(() => {
+    
+    function handleMove(event: PointerEvent) {
+      setMousePos({
+        mx: event.x,
+        my: event.y,
+      })
+    }
+
+    window.addEventListener('pointermove', handleMove)
+    return () => {
+        window.removeEventListener('pointermove', handleMove);
+    }
+  }, [mousePos]);
+
+  return mousePos
+}
 /*
 // working custom cursor, low priority, and too tired to finish it up, 
 // also it works on mobile, which is bad
