@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction, FormEvent, useRef} from "react";
-import { Canvas } from "../Components/Canvas";
+import {useState, Dispatch, SetStateAction, FormEvent, useRef, MutableRefObject} from "react";
+import { Canvas, nodeConfigType } from "../Components/Canvas";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "../Components/ToolbarIcons";
 
 interface ToolbarButtonProps {
@@ -104,8 +104,8 @@ const Home: NextPage = () => {
   const [scale, setScale] = useState(1);
   const [currentTool, setCurrentTool] = useState("pointer");
   const [selectedCount, setSelectedCount] = useState(0);
-  const [selectedNode, setSelectedNode] = useState<string>("nothing");
-  const nodeSettingsRef = useRef(new Map<string, {goal: string}>);
+  const [selectedNode, setSelectedNode] = useState<string | undefined>(undefined);
+  const nodeConfigRef = useRef(new Map<string | undefined, nodeConfigType>);
 
   return (
     <>
@@ -122,6 +122,8 @@ const Home: NextPage = () => {
         }}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
+        setSelectedNode={setSelectedNode}
+        nodeConfigRef={nodeConfigRef}
       />
       
       <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} centrePos={centrePos} scale={scale}/>
@@ -130,12 +132,17 @@ const Home: NextPage = () => {
         {hintText(currentTool, selectedCount)}
       </p>
 
-      <NodeConfigPanel nodeName="Node Label" display={true}>
+      <NodeConfigPanel nodeName={nodeConfigRef.current.get(selectedNode)?.goal ?? " "} display={selectedNode != undefined}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
             <p className="w-16">Goal</p>
-            <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0" type={'text'} name={'goal'} onInput={handleInputChange}></input>
+            <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0"
+              type={'text'}
+              name={'goal'}
+              value={nodeConfigRef.current.get(selectedNode)?.goal} 
+              onInput={(e) => handleInputChange(e, selectedNode, nodeConfigRef)}
+            />
           </div>
         </NodeConfigPanelItem>
 
@@ -158,8 +165,9 @@ const Home: NextPage = () => {
   );
 };
 
-function handleInputChange(e: FormEvent) {
+function handleInputChange(e: FormEvent, selectedNode: string | undefined, nodeConfigRef: MutableRefObject<Map<string|undefined,nodeConfigType>>) {
   const input = e.target as HTMLInputElement;
+  nodeConfigRef.current.get(selectedNode)!.goal = input.value;
   // change the value of the state input.name to input.value
   // save state to database after 5 seconds of no changes or when the menu is closed
 }

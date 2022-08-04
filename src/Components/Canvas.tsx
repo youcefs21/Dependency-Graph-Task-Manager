@@ -1,4 +1,4 @@
-import {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
+import {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState} from "react";
 import useNodeCords from "../utils/nodeHandler";
 import { trpc } from "../utils/trpc";
 
@@ -8,14 +8,19 @@ interface vec2 {
     y: number;
 }
 
+export interface nodeConfigType {
+  goal: string
+}
 
 interface canvasProps {
   toolbarDataCallback: (x: number, y: number, scale: number, edgeCount: number) => void,
   currentTool: string
-  setCurrentTool: Dispatch<SetStateAction<string>>
+  setCurrentTool: Dispatch<SetStateAction<string>>,
+  setSelectedNode: Dispatch<SetStateAction<string|undefined>>,
+  nodeConfigRef: MutableRefObject<Map<string|undefined, nodeConfigType>>
 }
 
-export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canvasProps) {
+export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSelectedNode, nodeConfigRef}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
@@ -47,6 +52,15 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
       }
 
   }, [nodeIdPairs.data])
+
+  useEffect(() => {
+    if (goals.data && nodeConfigRef.current.size === 0) {
+      goals.data.forEach((val, key) => {
+        nodeConfigRef.current.set(key, {goal: val})
+      })
+    }
+
+  }, [goals.data])
 
   // setInterval that updates the dash offset
   useEffect(() => {
@@ -85,6 +99,9 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool}: canv
     () => {
       // do nothing if canvas or data are not ready
       if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
+      
+      if (!["nothing", "background"].includes(heldIndex.current))
+        setSelectedNode(heldIndex.current);
 
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
