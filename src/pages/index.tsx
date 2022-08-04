@@ -104,14 +104,14 @@ const Home: NextPage = () => {
   const [scale, setScale] = useState(1);
   const [currentTool, setCurrentTool] = useState("pointer");
   const [selectedCount, setSelectedCount] = useState(0);
-  const [selectedNode, setSelectedNode] = useState<string | undefined>(undefined);
-  const nodeConfigRef = useRef(new Map<string | undefined, nodeConfigType>);
+  const [selectedNode, setSelectedNode] = useState<string>("nothing");
+  const nodeConfigRef = useRef(new Map<string, nodeConfigType>);
 
   return (
     <>
       <Head>
         <title>Nodify</title>
-        <meta name="description" content="A graph based life management app" />
+        <meta name="description" content="A graph based goal management app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Canvas 
@@ -131,8 +131,9 @@ const Home: NextPage = () => {
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
         {hintText(currentTool, selectedCount)}
       </p>
-
-      <NodeConfigPanel nodeName={nodeConfigRef.current.get(selectedNode)?.goal ?? " "} display={selectedNode != undefined}>
+      
+      { selectedNode != "nothing" &&
+      <NodeConfigPanel nodeName={nodeConfigRef.current.get(selectedNode)?.goal ?? " "} setSelectedNode={setSelectedNode}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
@@ -159,6 +160,7 @@ const Home: NextPage = () => {
         </NodeConfigPanelItem>
       
       </NodeConfigPanel>
+      }
 
 
     </>
@@ -184,10 +186,13 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 }
 
-function NodeConfigPanel({nodeName, children, display}: {nodeName: string, children: JSX.Element[], display: boolean}) {
+function NodeConfigPanel({nodeName, children, setSelectedNode}: {nodeName: string, children: JSX.Element[], setSelectedNode: Dispatch<SetStateAction<string>>}) {
   return (
-      <div className={`absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y ${display ? "" : "hidden"}`}>
-          <h2 className="p-4 font-semibold">{nodeName}</h2>
+      <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y "}>
+          <div className="flex justify-between p-4">
+            <h2 className="font-semibold">{nodeName}</h2>
+            <button onClick={() => setSelectedNode("nothing")}>close</button>
+          </div>
           <div className="divide-y p-4">
             {children}
           </div>

@@ -16,8 +16,8 @@ interface canvasProps {
   toolbarDataCallback: (x: number, y: number, scale: number, edgeCount: number) => void,
   currentTool: string
   setCurrentTool: Dispatch<SetStateAction<string>>,
-  setSelectedNode: Dispatch<SetStateAction<string|undefined>>,
-  nodeConfigRef: MutableRefObject<Map<string|undefined, nodeConfigType>>
+  setSelectedNode: Dispatch<SetStateAction<string>>,
+  nodeConfigRef: MutableRefObject<Map<string, nodeConfigType>>
 }
 
 export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSelectedNode, nodeConfigRef}: canvasProps) {
@@ -168,7 +168,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
           setCursor("pointer")
           color = "#f472b6"
         }
-        createNode(node, color, goals.data.get(id) ?? "new Node")
+        createNode(node, color, nodeConfigRef.current.get(id)?.goal ?? "new Node")
       })
       if (inCanvas.current){
         if (heldIndex.current === "background") setCursor("move")
