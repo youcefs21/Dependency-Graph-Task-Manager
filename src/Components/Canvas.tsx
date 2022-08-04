@@ -116,6 +116,25 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
       //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
+
+      ctx.lineWidth = scale.current/50
+      ctx.strokeStyle = "rgb(12 74 110)";
+      ctx.setLineDash([])
+      for (let i = Math.floor(topLeftPos.current.x) - topLeftPos.current.x ; i < width/scale.current; i++) {
+        // vertical lines
+        
+        ctx.beginPath()
+        ctx.moveTo(i*scale.current, 0)
+        ctx.lineTo(i*scale.current, height)
+        ctx.stroke()
+      }
+      for (let i = Math.floor(topLeftPos.current.y) - topLeftPos.current.y; i < height/scale.current; i++){
+        // 
+        ctx.beginPath()
+        ctx.moveTo(0, i*scale.current)
+        ctx.lineTo(width, i*scale.current)
+        ctx.stroke()
+      }
       // function that draws the nodes
       const createNode = (pos: vec2, color: string, label: string) => {
         const x = (pos.x - topLeftPos.current.x)*scale.current

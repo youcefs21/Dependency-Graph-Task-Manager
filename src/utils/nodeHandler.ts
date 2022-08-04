@@ -163,8 +163,8 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
           break
         default: // if a node is held, move it to the mouse position
           nodesCords.current.set(heldIndex.current, {
-            x: event.x/scale.current + topLeftPos.current.x,
-            y: event.y/scale.current + topLeftPos.current.y,
+            x: Math.round(event.x/scale.current + topLeftPos.current.x),
+            y: Math.round(event.y/scale.current + topLeftPos.current.y),
           });
       }
     } 
