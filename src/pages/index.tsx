@@ -188,7 +188,7 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 function NodeConfigPanel({nodeName, children, setSelectedNode}: {nodeName: string, children: JSX.Element[], setSelectedNode: Dispatch<SetStateAction<string>>}) {
   return (
-      <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y "}>
+      <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y"}>
           <div className="flex justify-between p-4">
             <h2 className="font-semibold">{nodeName}</h2>
             <button onClick={() => setSelectedNode("nothing")}>close</button>

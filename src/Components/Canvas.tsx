@@ -65,7 +65,7 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
   // setInterval that updates the dash offset
   useEffect(() => {
     const interval = setInterval(() => {
-      setDashOffset(dashOffset => dashOffset + 0.05);
+      setDashOffset(dashOffset => dashOffset + 0.1);
     }, 40);
     return () => clearInterval(interval);
   }, []);
@@ -116,20 +116,18 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
       //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
-
+      
+      // DRAW the grid
       ctx.lineWidth = scale.current/50
       ctx.strokeStyle = "rgb(12 74 110)";
       ctx.setLineDash([])
-      for (let i = Math.floor(topLeftPos.current.x) - topLeftPos.current.x ; i < width/scale.current; i++) {
-        // vertical lines
-        
+      for (let i = 1-(topLeftPos.current.x % 1) ; i < width/scale.current; i++) {
         ctx.beginPath()
         ctx.moveTo(i*scale.current, 0)
         ctx.lineTo(i*scale.current, height)
         ctx.stroke()
       }
-      for (let i = Math.floor(topLeftPos.current.y) - topLeftPos.current.y; i < height/scale.current; i++){
-        // 
+      for (let i =  1-(topLeftPos.current.y % 1); i < height/scale.current; i++){
         ctx.beginPath()
         ctx.moveTo(0, i*scale.current)
         ctx.lineTo(width, i*scale.current)
@@ -152,31 +150,45 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
         }
       }
       // function that draws the arrows
-      const createArrow = (pos1: vec2, pos2: vec2, color: string) => {
+      const createArrow = (pos1: vec2, pos2: vec2, color: string, bitPos: number, bitR: number) => {
         // pos1 and pos2 are real positions, turn them into screen cords:
         // pos1 is the parent, pos2 is the child
         const x1 = (pos1.x - topLeftPos.current.x)*scale.current
         const x2 = (pos2.x - topLeftPos.current.x)*scale.current
         const y1 = (pos1.y - topLeftPos.current.y)*scale.current
         const y2 = (pos2.y - topLeftPos.current.y)*scale.current
+
+        const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2)
+        const prog = (bitPos*scale.current)/len;
+        const r = (bitR*scale.current)/len
         
         ctx.lineWidth = 1 + scale.current/5;
         ctx.setLineDash([(scale.current*2)/5, scale.current/5]);
         ctx.lineDashOffset = -dashOffset*scale.current;
+        
+        const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
+        gradient.addColorStop(Math.min(Math.max(prog-r, 0), 1), color);
+        gradient.addColorStop(Math.max(Math.min(prog, 1), 0), "blue");
+        gradient.addColorStop(Math.max(Math.min(prog+r, 1), 0), color);
+
+        gradient.addColorStop(Math.min(Math.max((1-prog)-r, 0), 1), color);
+        gradient.addColorStop(Math.max(Math.min(1-prog, 1), 0), "red");
+        gradient.addColorStop(Math.max(Math.min((1-prog)+r, 1), 0), color);
+
         ctx.beginPath()
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = gradient;
         ctx.moveTo(x2, y2)
         ctx.lineTo(x1, y1)
         ctx.stroke()
       }
 
-
+      
       // draw the lines
       nodeIdPairs.data.forEach((pair) => {
         const node1 = nodesCords.current.get(pair.node1_id) 
         const node2 = nodesCords.current.get(pair.node2_id)
         if (node1 && node2) 
-          createArrow(node1, node2, "#334155")
+          createArrow(node1, node2, "#334155", 0, 4)
       });
       
       // draw the nodes and set the cursor
