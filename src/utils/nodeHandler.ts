@@ -1,12 +1,39 @@
-import { Dispatch, MutableRefObject, RefObject, SetStateAction, useEffect, useRef } from "react";
+import { Dispatch, MutableRefObject, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+// import { Map } from "immutable"
+import Immutable from "immutable";
 import { trpc } from "../utils/trpc";
+
+
+interface Node {
+  goal: string,
+  x: number,
+  y: number
+}
+
+interface graphState {
+  scale: number,
+  TopLeftX: number,
+  TopLeftY: number,
+
+}
+
+function useNodes() {
+  const [nodes, setNodes] = useState(Immutable.Map<string, Node>())
+  const [graph, setGraph] = useState<graphState>({
+    scale: 0,
+    TopLeftX: 0,
+    TopLeftY: 0
+  });
+
+  const nodesInit = trpc.useQuery(["nodes.getNodes"]);
+
+}
 
 // return a map with node id as key and node x,y
 // the x,y should be already modified based on mouse interaction
 export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, currentTool: MutableRefObject<string>, setCurrentTool: Dispatch<SetStateAction<string>>) {
   const nodesInit = trpc.useQuery(["nodes.getNodes"]);
-  const scaleInit = trpc.useQuery(["settings.getScale"]);
-  const topLeftPosInit = trpc.useQuery(["settings.getPos"]);
+  const graphInit = trpc.useQuery(["settings.getAll"]);
   const topLeftPos = useRef({x: 0, y: 0});
   const nodesCords = useRef(new Map<string, {x: number, y:number}>());
   const heldIndex = useRef<string>("nothing");
@@ -15,8 +42,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
   const archiveNode = trpc.useMutation(["nodes.archiveNode"]);
-  const updateScale = trpc.useMutation(["settings.updateScale"]);
-  const updateTopLeft = trpc.useMutation(["settings.updatePos"]);
+  const updateGraph = trpc.useMutation(["settings.updateAll"]);
   const scaled = useRef<boolean>(false);
   const evCache = useRef<PointerEvent[]>([]);
   const pinchDiff = useRef<number>(-1);
@@ -94,17 +120,12 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
 
     if (heldIndex.current === "background" || scaled.current) {
       // if scale changed, update database
-      if (scaled.current) {
-        scaled.current = false
-        updateScale.mutate({
-          userId: userID.current,
-          scale: scale.current
-        });
-      }
-      updateTopLeft.mutate({
-        userId: userID.current, 
+      updateGraph.mutate({
+        userId: userID.current,
+        scale: scaled.current ? scale.current : undefined,
         pos: {x: Math.round(topLeftPos.current.x), y: Math.round(topLeftPos.current.y)}
-      })
+      });
+      scaled.current = false
     }
     else if (heldIndex.current != "nothing") {
       // update the node at heldIndex.current
@@ -188,12 +209,12 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
   useEffect(() => {
     if (!canvasRef.current)
       return;
-    if (nodesInit.data && nodesCords.current.size === 0 && scaleInit.data && topLeftPosInit.data) {
+    if (nodesInit.data && nodesCords.current.size === 0 && graphInit.data) {
       nodesInit.data.forEach(node => {
         nodesCords.current.set(node.id, {x: node.x, y: node.y});
       });
-      scale.current = scaleInit.data.scale;
-      topLeftPos.current = {x: topLeftPosInit.data.x, y: topLeftPosInit.data.y}
+      scale.current = graphInit.data.scale;
+      topLeftPos.current = {x: graphInit.data.x, y: graphInit.data.y}
     }
     canvasRef.current.addEventListener('pointerdown', handlePointerDown);
     canvasRef.current.addEventListener('pointerup', handlePointerUp);
@@ -213,7 +234,7 @@ export default function useNodeCords(canvasRef: RefObject<HTMLCanvasElement>, cu
       canvasRef.current.removeEventListener('pointermove', handleMove);
       canvasRef.current.removeEventListener("wheel", handleWheel);
     }
-  }, [nodesInit.data, scaleInit.data]);
+  }, [nodesInit.data, graphInit.data]);
 
 
   return {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos, sp: selectedPair};
