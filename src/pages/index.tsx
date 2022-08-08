@@ -1,7 +1,9 @@
+import Immutable from "immutable";
 import type { NextPage } from "next";
 import Head from "next/head";
 import {useState, Dispatch, SetStateAction, FormEvent, useRef, MutableRefObject} from "react";
-import { Canvas, nodeConfigType } from "../Components/Canvas";
+import { Canvas } from "../Components/Graph/Canvas";
+import { graphState, nodeState, useNodes } from "../Components/Graph/nodeHandler";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "../Components/ToolbarIcons";
 
 interface ToolbarButtonProps {
@@ -100,12 +102,8 @@ const hintText = (t: string, selectedCount: number) => {
 
 
 const Home: NextPage = () => {
-  const [centrePos, setCentrePos] = useState({x: 0, y: 0});
-  const [scale, setScale] = useState(1);
   const [currentTool, setCurrentTool] = useState("pointer");
-  const [selectedCount, setSelectedCount] = useState(0);
-  const [selectedNode, setSelectedNode] = useState<string>("nothing");
-  const nodeConfigRef = useRef(new Map<string, nodeConfigType>);
+  const {nodes, setNodes, graph, setGraph} = useNodes();
 
   return (
     <>
@@ -115,25 +113,22 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Canvas 
-        toolbarDataCallback={(x, y, scale, edgeCount) => {
-          setCentrePos({x, y});
-          setScale(scale)
-          setSelectedCount(edgeCount)
-        }}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
-        setSelectedNode={setSelectedNode}
-        nodeConfigRef={nodeConfigRef}
+        nodes={nodes}
+        setNodes={setNodes}
+        graph={graph}
+        setGraph={setGraph}
       />
       
-      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} centrePos={centrePos} scale={scale}/>
+      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} centrePos={{x: graph.TopLeftX, y: graph.TopLeftY}} scale={graph.scale}/>
 
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        {hintText(currentTool, selectedCount)}
+        {hintText(currentTool, graph.selectedPair.size)}
       </p>
       
-      { selectedNode != "nothing" &&
-      <NodeConfigPanel nodeName={nodeConfigRef.current.get(selectedNode)?.goal ?? " "} setSelectedNode={setSelectedNode}>
+      { graph.selectedNode != "nothing" &&
+      <NodeConfigPanel nodeName={nodes.get(graph.selectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
@@ -141,8 +136,8 @@ const Home: NextPage = () => {
             <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0"
               type={'text'}
               name={'goal'}
-              value={nodeConfigRef.current.get(selectedNode)?.goal} 
-              onInput={(e) => handleInputChange(e, selectedNode, nodeConfigRef)}
+              value={nodes.get(graph.selectedNode)?.goal} 
+              onInput={(e) => handleInputChange(e, graph.selectedNode, nodes, setNodes)}
             />
           </div>
         </NodeConfigPanelItem>
@@ -167,9 +162,19 @@ const Home: NextPage = () => {
   );
 };
 
-function handleInputChange(e: FormEvent, selectedNode: string | undefined, nodeConfigRef: MutableRefObject<Map<string|undefined,nodeConfigType>>) {
+function handleInputChange(
+  e: FormEvent<HTMLInputElement>, 
+  selectedNode: string,
+  nodes: Immutable.Map<string, nodeState>,
+  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>
+) {
   const input = e.target as HTMLInputElement;
-  nodeConfigRef.current.get(selectedNode)!.goal = input.value;
+  setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      goal: input.value
+    })
+  )
   // change the value of the state input.name to input.value
   // save state to database after 5 seconds of no changes or when the menu is closed
 }
@@ -186,12 +191,12 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 }
 
-function NodeConfigPanel({nodeName, children, setSelectedNode}: {nodeName: string, children: JSX.Element[], setSelectedNode: Dispatch<SetStateAction<string>>}) {
+function NodeConfigPanel({nodeName, children, graph, setGraph}: {nodeName: string, children: JSX.Element[], graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>}) {
   return (
       <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y"}>
           <div className="flex justify-between p-4">
             <h2 className="font-semibold">{nodeName}</h2>
-            <button onClick={() => setSelectedNode("nothing")}>close</button>
+            <button onClick={() => setGraph({...graph, selectedNode: "nothing"})}>close</button>
           </div>
           <div className="divide-y p-4">
             {children}

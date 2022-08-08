@@ -1,15 +1,15 @@
-import {resolve} from "dns";
 import { createRouter } from "./context";
 import { z } from "zod";
 
 export const nodeRouter = createRouter()
-  .query("getNodes", {
+  .query("getAll", {
     async resolve({ ctx }) {
       return await ctx.prisma.node.findMany({
         select: {
           id: true,
           x: true,
-          y: true
+          y: true,
+          goal: true
         },
         where: {
           archive: false
@@ -27,40 +27,28 @@ export const nodeRouter = createRouter()
       });
     },
   })
-  .query("getGoals", {
-    async resolve({ ctx }) {
-      const goals = await ctx.prisma.node.findMany({
-        select: {
-          id: true,
-          goal: true
-        },
-        where: {
-          archive: false
-        }
-      });
-      const out = new Map<string, string>()
-      goals.forEach(({id, goal}) => {
-        out.set(id, goal);
-      })
-      return out 
-    },
-  })
   .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
-      cords: z.object({x: z.number(), y: z.number()}),
+      cords: z.object({x: z.number(), y: z.number()}).optional(),
+      goal: z.string().optional(),
+      archive: z.boolean().optional()
     }),
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.upsert({
         where: {id: input.nodeId},
         update: {
-          x: Math.floor(input.cords.x),
-          y: Math.floor(input.cords.y)
+          x: input.cords?.x,
+          y: input.cords?.y,
+          goal: input.goal,
+          archive: input.archive
         },
         create: {
           id: input.nodeId,
-          x: Math.floor(input.cords.x),
-          y: Math.floor(input.cords.y)
+          x: input.cords?.x,
+          y: input.cords?.y,
+          goal: input.goal,
+          archive: input.archive
         }
       });
     },
@@ -75,20 +63,6 @@ export const nodeRouter = createRouter()
         data: {
           node1_id: input.node1Id,
           node2_id: input.node2Id
-        }
-      });
-    },
-  })
-  .mutation("archiveNode", {
-    input: z.object({
-      nodeId: z.string(),
-      archive: z.boolean() 
-    }),
-    async resolve({ input, ctx }) {
-      return await ctx.prisma.node.update({
-        where: {id: input.nodeId},
-        data: {
-          archive: input.archive
         }
       });
     },

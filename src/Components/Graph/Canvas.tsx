@@ -1,6 +1,8 @@
-import {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState} from "react";
-import useNodeCords from "../utils/nodeHandler";
-import { trpc } from "../utils/trpc";
+import Immutable from "immutable";
+import React, {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState} from "react";
+import { trpc } from "../../utils/trpc";
+import { handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
+import { graphState, nodeState } from "./nodeHandler";
 
 
 interface vec2 {
@@ -8,36 +10,38 @@ interface vec2 {
     y: number;
 }
 
-export interface nodeConfigType {
-  goal: string
-}
 
 interface canvasProps {
-  toolbarDataCallback: (x: number, y: number, scale: number, edgeCount: number) => void,
   currentTool: string
   setCurrentTool: Dispatch<SetStateAction<string>>,
-  setSelectedNode: Dispatch<SetStateAction<string>>,
-  nodeConfigRef: MutableRefObject<Map<string, nodeConfigType>>
+  nodes: Immutable.Map<string, nodeState>,
+  setNodes: React.Dispatch<React.SetStateAction<Immutable.Map<string, nodeState>>>,
+  graph: graphState,
+  setGraph: React.Dispatch<React.SetStateAction<graphState>>
 }
 
-export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSelectedNode, nodeConfigRef}: canvasProps) {
+export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, setGraph }: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
-  const goals = trpc.useQuery(["nodes.getGoals"]);
   const addPair = trpc.useMutation(["nodes.addPair"])
   const deletePair = trpc.useMutation(["nodes.deletePair"])
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
   const inCanvas = useRef<boolean>(false)
   const adj = useRef(new Map<string, string[]>())
-  const {n: nodesCords, i: heldIndex, s: scale, tl: topLeftPos, sp: selectedPair} = useNodeCords(canvasRef, currentToolRef, setCurrentTool)
+  const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
+  const pinchDiff = useRef<number>(-1);
+
 
   useEffect(() => {
     currentToolRef.current = currentTool;
-    selectedPair.current = [];
+    setGraph({
+      ...graph,
+      selectedPair: Immutable.List<string>()
+    })
   }, [currentTool])
 
   useEffect(() => {
@@ -53,14 +57,6 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
 
   }, [nodeIdPairs.data])
 
-  useEffect(() => {
-    if (goals.data && nodeConfigRef.current.size === 0) {
-      goals.data.forEach((val, key) => {
-        nodeConfigRef.current.set(key, {goal: val})
-      })
-    }
-
-  }, [goals.data])
 
   // setInterval that updates the dash offset
   useEffect(() => {
@@ -98,73 +94,65 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
   useEffect(
     () => {
       // do nothing if canvas or data are not ready
-      if (!canvasRef || !nodesCords || !nodeIdPairs.data || !goals.data) return;
+      if (!canvasRef || !nodeIdPairs.data) return;
       
-      if (!["nothing", "background"].includes(heldIndex.current))
-        setSelectedNode(heldIndex.current);
 
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
-      const mx = fmx/scale.current + topLeftPos.current.x
-      const my = fmy/scale.current + topLeftPos.current.y
-      toolbarDataCallback(
-        topLeftPos.current.x + (width/scale.current)/2,
-        topLeftPos.current.y + (height/scale.current)/2, 
-        scale.current,
-        selectedPair.current.length
-      )
+      const mx = fmx/graph.scale + graph.TopLeftX 
+      const my = fmy/graph.scale + graph.TopLeftY
       //console.log("mx: ", mx, "my: ", my)
       const ctx = mainCanvas.getContext('2d')!
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
       
       // DRAW the grid
-      ctx.lineWidth = scale.current/50
+      ctx.lineWidth = graph.scale/50
       ctx.strokeStyle = "rgb(12 74 110)";
       ctx.setLineDash([])
-      for (let i = 1-(topLeftPos.current.x % 1) ; i < width/scale.current; i++) {
+      for (let i = 1-(graph.TopLeftX % 1) ; i < width/graph.scale; i++) {
         ctx.beginPath()
-        ctx.moveTo(i*scale.current, 0)
-        ctx.lineTo(i*scale.current, height)
+        ctx.moveTo(i*graph.scale, 0)
+        ctx.lineTo(i*graph.scale, height)
         ctx.stroke()
       }
-      for (let i =  1-(topLeftPos.current.y % 1); i < height/scale.current; i++){
+      for (let i =  1-(graph.TopLeftY % 1); i < height/graph.scale; i++){
         ctx.beginPath()
-        ctx.moveTo(0, i*scale.current)
-        ctx.lineTo(width, i*scale.current)
+        ctx.moveTo(0, i*graph.scale)
+        ctx.lineTo(width, i*graph.scale)
         ctx.stroke()
       }
       // function that draws the nodes
       const createNode = (pos: vec2, color: string, label: string) => {
-        const x = (pos.x - topLeftPos.current.x)*scale.current
-        const y = (pos.y - topLeftPos.current.y)*scale.current
+        const x = (pos.x - graph.TopLeftX)*graph.scale
+        const y = (pos.y - graph.TopLeftY)*graph.scale
         ctx.fillStyle = color;
         ctx.beginPath()
-        ctx.arc(x, y, scale.current, 0, Math.PI * 2);
+        ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
-        if (scale.current > 8){
-          ctx.font = scale.current.toString() + 'px serif';
+        if (graph.scale > 8){
+          ctx.font = graph.scale.toString() + 'px serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(label, x, y + scale.current*2);
+          ctx.fillText(label, x, y + graph.scale*2);
         }
       }
       // function that draws the arrows
       const createArrow = (pos1: vec2, pos2: vec2, color: string, bitPos: number, bitR: number) => {
         // pos1 and pos2 are real positions, turn them into screen cords:
         // pos1 is the parent, pos2 is the child
-        const x1 = (pos1.x - topLeftPos.current.x)*scale.current
-        const x2 = (pos2.x - topLeftPos.current.x)*scale.current
-        const y1 = (pos1.y - topLeftPos.current.y)*scale.current
-        const y2 = (pos2.y - topLeftPos.current.y)*scale.current
+        const x1 = (pos1.x - graph.TopLeftX)*graph.scale
+        const x2 = (pos2.x - graph.TopLeftX)*graph.scale
+        const y1 = (pos1.y - graph.TopLeftY)*graph.scale
+        const y2 = (pos2.y - graph.TopLeftY)*graph.scale
 
         const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2)
-        const prog = (bitPos*scale.current)/len;
-        const r = (bitR*scale.current)/len
+        const prog = (bitPos*graph.scale)/len;
+        const r = (bitR*graph.scale)/len
         
-        ctx.lineWidth = 1 + scale.current/5;
-        ctx.setLineDash([(scale.current*2)/5, scale.current/5]);
-        ctx.lineDashOffset = -dashOffset*scale.current;
+        ctx.lineWidth = 1 + graph.scale/5;
+        ctx.setLineDash([(graph.scale*2)/5, graph.scale/5]);
+        ctx.lineDashOffset = -dashOffset*graph.scale;
         
         const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
         gradient.addColorStop(Math.min(Math.max(prog-r, 0), 1), color);
@@ -185,28 +173,28 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
       
       // draw the lines
       nodeIdPairs.data.forEach((pair) => {
-        const node1 = nodesCords.current.get(pair.node1_id) 
-        const node2 = nodesCords.current.get(pair.node2_id)
+        const node1 = nodes.get(pair.node1_id) 
+        const node2 = nodes.get(pair.node2_id)
         if (node1 && node2) 
-          createArrow(node1, node2, "#334155", 0, 4)
+          createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
       });
       
       // draw the nodes and set the cursor
       setCursor("default")
-      nodesCords.current.forEach((node, id) => {
+      nodes.forEach((node, id) => {
         let color = "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
           color = "#f472b6"
         }
-        createNode(node, color, nodeConfigRef.current.get(id)?.goal ?? "new Node")
+        createNode(node, color, nodes.get(id)?.goal ?? "new Node")
       })
       if (inCanvas.current){
-        if (heldIndex.current === "background") setCursor("move")
+        if (graph.heldNode === "background") setCursor("move")
 
         if (currentToolRef.current === "move") {
           setCursor("grab")
-          if (heldIndex.current === "background") {
+          if (graph.heldNode === "background") {
             setCursor("grabbing")
           }
         }
@@ -218,9 +206,9 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
         } 
       }
 
-      if (selectedPair.current.length === 2) {
-        const n2 = selectedPair.current[0]!
-        const n1 = selectedPair.current[1]!
+      if (graph.selectedPair.size === 2) {
+        const n2 = graph.selectedPair.get(0)!
+        const n1 = graph.selectedPair.get(1)!
         if (currentToolRef.current === "addEdge"){
           // do a depth first search to check if a path from n1 to n2 already exists
           if (dfs(n1, n2)) {
@@ -237,7 +225,10 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
                 }
             }
           }
-        selectedPair.current = []
+        setGraph({
+          ...graph,
+          selectedPair: Immutable.List<string>()
+        })
         setCurrentTool("pointer")
       }
 
@@ -253,7 +244,16 @@ export function Canvas({ toolbarDataCallback, currentTool, setCurrentTool, setSe
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}
       onPointerEnter={() => inCanvas.current = true}
-      onPointerLeave={() => inCanvas.current = false}
+      onPointerDown={(ev) => handlePointerDown(ev, evCache, graph, setGraph, nodes, setNodes, currentToolRef, setCurrentTool)}
+      onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
+      onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
+      onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
+      onPointerLeave={(ev) => {
+        inCanvas.current = false;
+        handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)
+      }}
+      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, graph, setGraph, nodes, setNodes)}
+      onWheel={(ev) => handleWheel(ev, graph, setGraph)}
       />
   </>
   )
