@@ -42,19 +42,18 @@ export function handlePointerDown(
     setCurrentTool("pointer")
     setNodes(nodes.delete(newHeldNode))
 
+    let archiveList = graph.toArchive
+    let deleteList = graph.toDelete
+
     if (t === "completeNode") 
-      setGraph({
-        ...graph,
-        toArchive: graph.toArchive.push(newHeldNode)
-      });
+        archiveList = graph.toArchive.push(newHeldNode)
     if (t === "deleteNode")
-      setGraph({
-        ...graph,
-        toDelete: graph.toDelete.push(newHeldNode)
-      });
+        deleteList = graph.toDelete.push(newHeldNode)
 
     setGraph({
       ...graph,
+      toDelete: deleteList,
+      toArchive: archiveList,
       mouseDown: true,
       heldNode: "nothing"
     })

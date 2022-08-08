@@ -1,4 +1,4 @@
-import { Dispatch, MutableRefObject, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 
@@ -46,6 +46,7 @@ export function useNodes() {
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
 
+  const [saveTimer, setSaveTimer] = useState<number>(0);
   
   // ============ setup state ============
   useEffect( () => {
@@ -73,7 +74,61 @@ export function useNodes() {
 
   }, [nodesInit.data, graphInit.data])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSaveTimer(saveTimer + 1);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [saveTimer]);
 
+  useEffect(() => {
+    setSaveTimer(0)
+  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes]);
+
+  useEffect(() => {
+    if (saveTimer != 100)
+      return
+    
+    // update graph
+    updateGraph.mutate({
+      userId: "root",
+      scale: graph.scale, 
+      pos: {x: graph.TopLeftX, y: graph.TopLeftY}
+    })
+    
+    // update nodes 
+    nodes.forEach((node, key) => {
+      updateNode.mutate({
+        nodeId: key,
+        cords: {x: node.x, y: node.y},
+        goal: node.goal
+      })
+    })
+    // archive nodes
+    graph.toArchive.forEach((nodeID, i) => {
+      updateNode.mutate({
+        nodeId: nodeID,
+        archive: true
+      })
+    });
+    
+
+    // delete nodes
+    graph.toDelete.forEach((nodeID, i) => {
+      deleteNode.mutate({
+        nodeId: nodeID
+      });
+    });
+
+    // clear archive and delete lists
+    setGraph({
+      ...graph,
+      toDelete: Immutable.List<string>(),
+      toArchive: Immutable.List<string>()
+    })
+
+    console.log("updating everything")
+  }, [saveTimer]);
 
   return {nodes, setNodes, graph, setGraph}
 

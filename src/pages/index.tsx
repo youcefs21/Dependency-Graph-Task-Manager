@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction, FormEvent, useRef, MutableRefObject} from "react";
+import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { graphState, nodeState, useNodes } from "../Components/Graph/nodeHandler";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "../Components/ToolbarIcons";
