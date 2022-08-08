@@ -19,7 +19,8 @@ export interface graphState {
   selectedPair: Immutable.List<string>
   userId: string,
   toDelete: Immutable.List<string>,
-  toArchive: Immutable.List<string>
+  toArchive: Immutable.List<string>,
+  saveState: string
 }
 
 export const initialGraph = {
@@ -32,7 +33,8 @@ export const initialGraph = {
   selectedPair: Immutable.List<string>(),
   userId: "root",
   toDelete: Immutable.List<string>(),
-  toArchive: Immutable.List<string>()
+  toArchive: Immutable.List<string>(),
+  saveState: "saved"
 }
 
 export function useNodes() {
@@ -74,6 +76,7 @@ export function useNodes() {
 
   }, [nodesInit.data, graphInit.data])
 
+  // ============ setup timer ============
   useEffect(() => {
     const interval = setInterval(() => {
       setSaveTimer(saveTimer + 1);
@@ -83,8 +86,13 @@ export function useNodes() {
 
   useEffect(() => {
     setSaveTimer(0)
+    setGraph({
+      ...graph,
+      saveState: "saving..."
+    })
   }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes]);
 
+  // ============ push to database ============
   useEffect(() => {
     if (saveTimer != 100)
       return
@@ -124,7 +132,8 @@ export function useNodes() {
     setGraph({
       ...graph,
       toDelete: Immutable.List<string>(),
-      toArchive: Immutable.List<string>()
+      toArchive: Immutable.List<string>(),
+      saveState: "saved"
     })
 
     console.log("updating everything")

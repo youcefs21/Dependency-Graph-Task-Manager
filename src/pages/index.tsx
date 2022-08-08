@@ -16,8 +16,7 @@ interface ToolbarButtonProps {
 interface ToolbarProps {
   currentTool: string,
   setCurrentTool: Dispatch<SetStateAction<string>>,
-  centrePos: {x: number, y: number},
-  scale: number
+  graph: graphState
 }
 
 const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: ToolbarButtonProps) => {
@@ -29,7 +28,7 @@ const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: Toolba
   )
 }
 
-function Toolbar({currentTool, setCurrentTool, centrePos, scale}: ToolbarProps) {
+function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
 
   return (
       <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
@@ -69,12 +68,14 @@ function Toolbar({currentTool, setCurrentTool, centrePos, scale}: ToolbarProps) 
         </div>
         <div></div>
         <div className="flex items-center text-white text-sm font-semibold my-1 mx-5 font-mono">
+          <p className="text-neutral-400">{ graph.saveState }</p>
+          <Seperator/>
           <div>
-            <p>x: {Math.round(centrePos.x)}</p>
-            <p>y: {Math.round(centrePos.y)}</p>
+            <p>x: {Math.round(graph.TopLeftX)}</p>
+            <p>y: {Math.round(graph.TopLeftY)}</p>
           </div>
           <Seperator/>
-          {Math.round(scale*10)}%
+          {Math.round(graph.scale*10)}%
         </div>
       </div>
   )
@@ -121,7 +122,7 @@ const Home: NextPage = () => {
         setGraph={setGraph}
       />
       
-      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} centrePos={{x: graph.TopLeftX, y: graph.TopLeftY}} scale={graph.scale}/>
+      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
         {hintText(currentTool, graph.selectedPair.size)}
