@@ -1,6 +1,6 @@
 import Immutable from "immutable";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { graphState, nodeState } from "./nodeHandler";
+import { graphState, nodeState } from "./graphHandler";
 
 export function handlePointerDown(
   event: React.PointerEvent<HTMLCanvasElement>,
@@ -19,8 +19,8 @@ export function handlePointerDown(
     const unixTime = Date.now() 
     const newNodeID = graph.userId + unixTime.toString(36)
     setNodes(nodes.set(newNodeID, {
-      x: mx,
-      y: my,
+      x: Math.round(mx),
+      y: Math.round(my),
       goal: "insert goal here"
     }));
     return

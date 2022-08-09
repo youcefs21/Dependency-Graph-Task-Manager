@@ -1,8 +1,7 @@
 import Immutable from "immutable";
 import React, {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState} from "react";
-import { trpc } from "../../utils/trpc";
 import { handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
-import { graphState, nodeState } from "./nodeHandler";
+import { edgeState, graphState, nodeState } from "./graphHandler";
 
 
 interface vec2 {
@@ -17,21 +16,19 @@ interface canvasProps {
   nodes: Immutable.Map<string, nodeState>,
   setNodes: React.Dispatch<React.SetStateAction<Immutable.Map<string, nodeState>>>,
   graph: graphState,
-  setGraph: React.Dispatch<React.SetStateAction<graphState>>
+  setGraph: React.Dispatch<React.SetStateAction<graphState>>,
+  edges: Immutable.List<edgeState>,
+  edgeAction: (action: string, n1: string, n2: string) => void 
 }
 
-export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, setGraph }: canvasProps) {
+export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, setGraph, edges, edgeAction}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
-  const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
-  const addPair = trpc.useMutation(["nodes.addPair"])
-  const deletePair = trpc.useMutation(["nodes.deletePair"])
   const [dashOffset, setDashOffset] = useState(0);
   const currentToolRef = useRef("pointer");
   const inCanvas = useRef<boolean>(false)
-  const adj = useRef(new Map<string, string[]>())
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
   const pinchDiff = useRef<number>(-1);
 
@@ -44,18 +41,6 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
     })
   }, [currentTool])
 
-  useEffect(() => {
-    if (nodeIdPairs.data && adj.current.size === 0){
-        nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
-          if (adj.current.get(node1_id)) {
-            adj.current.get(node1_id)!.push(node2_id)
-          } else {
-            adj.current.set(node1_id, [node2_id])
-            }
-        })
-      }
-
-  }, [nodeIdPairs.data])
 
 
   // setInterval that updates the dash offset
@@ -67,34 +52,11 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
   }, []);
 
 
-  function dfs(target: string, initial: string) {
-    const visited = new Set<string>()
-
-    function isValidConnection(n: string) {
-      if (n === target)
-        return false
-      visited.add(n)
-
-      if (!adj.current.get(n)) 
-        return true
-      var valid = true
-      adj.current.get(n)!.forEach((next) => {
-        if (!visited.has(next) && !isValidConnection(next)) {
-          valid = false
-          return
-        }
-      }) 
-      return valid
-    }
-    return isValidConnection(initial)
-
-  }
-
 
   useEffect(
     () => {
       // do nothing if canvas or data are not ready
-      if (!canvasRef || !nodeIdPairs.data) return;
+      if (!canvasRef || nodes.size === 0) return;
       
 
       // set up canvas
@@ -109,13 +71,13 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       ctx.lineWidth = graph.scale/50
       ctx.strokeStyle = "rgb(12 74 110)";
       ctx.setLineDash([])
-      for (let i = 1-(graph.TopLeftX % 1) ; i < width/graph.scale; i++) {
+      for (let i = -(graph.TopLeftX % 1) ; i < width/graph.scale; i++) {
         ctx.beginPath()
         ctx.moveTo(i*graph.scale, 0)
         ctx.lineTo(i*graph.scale, height)
         ctx.stroke()
       }
-      for (let i =  1-(graph.TopLeftY % 1); i < height/graph.scale; i++){
+      for (let i =  -(graph.TopLeftY % 1); i < height/graph.scale; i++){
         ctx.beginPath()
         ctx.moveTo(0, i*graph.scale)
         ctx.lineTo(width, i*graph.scale)
@@ -172,7 +134,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
 
       
       // draw the lines
-      nodeIdPairs.data.forEach((pair) => {
+      edges.forEach((pair) => {
         const node1 = nodes.get(pair.node1_id) 
         const node2 = nodes.get(pair.node2_id)
         if (node1 && node2) 
@@ -211,29 +173,20 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
         const n1 = graph.selectedPair.get(1)!
         if (currentToolRef.current === "addEdge"){
           // do a depth first search to check if a path from n1 to n2 already exists
-          if (dfs(n1, n2)) {
-            nodeIdPairs.data.push({node1_id: n1, node2_id: n2})
-            addPair.mutate({node1Id: n1, node2Id: n2})
-          } else {
-            console.log("connection failed, would create a cycle")
-          }
-        } else if (currentToolRef.current === "removeEdge") {
-            for (let i = 0; i < nodeIdPairs.data.length; i++){
-              if ((nodeIdPairs.data[i]?.node1_id === n1 && nodeIdPairs.data[i]?.node2_id === n2) || (nodeIdPairs.data[i]?.node1_id === n2 && nodeIdPairs.data[i]?.node2_id === n1)) {
-                  nodeIdPairs.data.splice(i, 1)
-                  deletePair.mutate({node1Id: n1, node2Id: n2})
-                }
-            }
-          }
+          edgeAction("add", n1, n2)
+        } 
+        else if (currentToolRef.current === "removeEdge") {
+          edgeAction("delete", n1, n2)
+        }
         setGraph({
           ...graph,
           selectedPair: Immutable.List<string>()
-        })
+        });
         setCurrentTool("pointer")
       }
 
     },
-    [width, height, fmx, fmy , dashOffset, currentTool]
+    [width, height, fmx, fmy, dashOffset, currentTool]
   );
 
   return (

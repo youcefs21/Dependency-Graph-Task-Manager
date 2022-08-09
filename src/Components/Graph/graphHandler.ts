@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 
@@ -23,7 +23,12 @@ export interface graphState {
   saveState: string
 }
 
-export const initialGraph = {
+export interface edgeState {
+  node1_id: string,
+  node2_id: string
+}
+
+const initialGraph = {
   scale: 0,
   TopLeftX: 0,
   TopLeftY: 0,
@@ -37,22 +42,29 @@ export const initialGraph = {
   saveState: "saved"
 }
 
-export function useNodes() {
+export function useGraph() {
   const nodesInit = trpc.useQuery(["nodes.getAll"]);
   const graphInit = trpc.useQuery(["settings.getAll"]);
 
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
+  
   const updateGraph = trpc.useMutation(["settings.updateAll"]);
 
+  const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
+  const addPair = trpc.useMutation(["nodes.addPair"])
+  const deletePair = trpc.useMutation(["nodes.deletePair"])
+  const adj = useRef(new Map<string, string[]>())
+
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
+  const [edges, setEdges] = useState(Immutable.List<edgeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
 
   const [saveTimer, setSaveTimer] = useState<number>(0);
   
   // ============ setup state ============
   useEffect( () => {
-    if (nodesInit.data && nodes.size === 0 && graphInit.data) {
+    if (nodesInit.data && nodes.size === 0 && graphInit.data && nodeIdPairs.data) {
 
       let tempNodes = Immutable.Map<string,nodeState>()
       
@@ -72,9 +84,25 @@ export function useNodes() {
         scale: graphInit.data.scale
       });
 
+      let tempEdges = Immutable.List<edgeState>()
+
+      nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
+        // set up adjecency list
+        if (adj.current.get(node1_id)) {
+          adj.current.get(node1_id)!.push(node2_id)
+        } else {
+          adj.current.set(node1_id, [node2_id])
+        }
+        // set up edges
+        tempEdges = tempEdges.push({
+          node1_id: node1_id,
+          node2_id: node2_id
+        });
+      });
+      setEdges(tempEdges)
     }
 
-  }, [nodesInit.data, graphInit.data])
+  }, [nodesInit.data, graphInit.data, nodeIdPairs.data])
 
   // ============ setup timer ============
   useEffect(() => {
@@ -84,13 +112,62 @@ export function useNodes() {
     return () => clearInterval(interval);
   }, [saveTimer]);
 
+  // ============ reset timer on change ============
   useEffect(() => {
     setSaveTimer(0)
     setGraph({
       ...graph,
-      saveState: "saving..."
+      saveState: "not saved"
     })
   }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes]);
+
+
+  // ============ edge handling ============
+  
+  const edgeAction = (action: string, n1: string, n2: string) => {
+
+    let tempEdges = edges;
+
+    if (action === "add") {
+      if (dfs(n1, n2)) {
+        tempEdges = tempEdges.push({node1_id: n1, node2_id: n2})
+      } else {
+        console.log("connection failed, would create a cycle")
+      }
+    } else if (action === "delete") {
+        for (let i = 0; i < edges.size; i++){
+          const cn1 = edges.get(i)?.node1_id
+          const cn2 = edges.get(i)?.node2_id
+          if ((cn1 === n1 && cn2 === n2) || (cn1 === n2 && cn2 === n1)) {
+              tempEdges = tempEdges.splice(i, 1)
+          }
+        }
+    }
+    setEdges(tempEdges)
+
+  }
+  
+  function dfs(target: string, initial: string) {
+    const visited = new Set<string>()
+
+    function isValidConnection(n: string) {
+      if (n === target)
+        return false
+      visited.add(n)
+
+      if (!adj.current.get(n)) 
+        return true
+      var valid = true
+      adj.current.get(n)!.forEach((next) => {
+        if (!visited.has(next) && !isValidConnection(next)) {
+          valid = false
+          return
+        }
+      }) 
+      return valid
+    }
+    return isValidConnection(initial)
+  }
 
   // ============ push to database ============
   useEffect(() => {
@@ -139,6 +216,6 @@ export function useNodes() {
     console.log("updating everything")
   }, [saveTimer]);
 
-  return {nodes, setNodes, graph, setGraph}
+  return {nodes, setNodes, graph, setGraph, edges, edgeAction}
 
 }

@@ -41,8 +41,8 @@ model Edge {
 model Settings {
   userId      String  @id
   scale       Float   @default(20)
-  x           Float     @default(0)
-  y           Float     @default(0)
+  x           Float   @default(0)
+  y           Float   @default(0)
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
