@@ -1,5 +1,6 @@
 import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
+import {toolStates} from "../Toolbar/Toolbar";
 import { handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
 import { edgeState, graphState, nodeState } from "./graphHandler";
 
@@ -11,8 +12,8 @@ interface vec2 {
 
 
 interface canvasProps {
-  currentTool: string
-  setCurrentTool: Dispatch<SetStateAction<string>>,
+  currentTool: toolStates
+  setCurrentTool: Dispatch<SetStateAction<toolStates>>,
   nodes: Immutable.Map<string, nodeState>,
   setNodes: React.Dispatch<React.SetStateAction<Immutable.Map<string, nodeState>>>,
   graph: graphState,
@@ -27,7 +28,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
   const {mx: fmx, my: fmy} = useMousePos()
   const [cursor, setCursor] = useState("defualt")
   const [dashOffset, setDashOffset] = useState(0);
-  const currentToolRef = useRef("pointer");
+  const currentToolRef = useRef<toolStates>("pointer");
   const inCanvas = useRef<boolean>(false)
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
   const pinchDiff = useRef<number>(-1);

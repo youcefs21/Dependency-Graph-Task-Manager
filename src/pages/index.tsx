@@ -4,11 +4,11 @@ import Head from "next/head";
 import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { graphState, nodeState, useGraph } from "../Components/Graph/graphHandler";
-import { hintText, Toolbar } from "../Components/Toolbar/Toolbar";
+import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 
 
 const Home: NextPage = () => {
-  const [currentTool, setCurrentTool] = useState("pointer");
+  const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
 
   return (
@@ -35,7 +35,7 @@ const Home: NextPage = () => {
         {hintText(currentTool, graph.selectedPair.size)}
       </p>
       
-      { graph.selectedNode != "nothing" &&
+      { graph.selectedNode != "nothing" && currentTool === "pointer" &&
       <NodeConfigPanel nodeName={nodes.get(graph.selectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">

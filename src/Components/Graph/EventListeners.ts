@@ -1,5 +1,6 @@
 import Immutable from "immutable";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import {toolStates} from "../Toolbar/Toolbar";
 import { graphState, nodeState } from "./graphHandler";
 
 export function handlePointerDown(
@@ -7,7 +8,7 @@ export function handlePointerDown(
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
   graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>,
   nodes: Immutable.Map<string, nodeState>, setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
-  currentTool: MutableRefObject<string>, setCurrentTool: Dispatch<SetStateAction<string>>
+  currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
@@ -73,6 +74,7 @@ export function handlePointerDown(
     ...graph,
     mouseDown: true,
     heldNode: newHeldNode,
+    selectedNode: newHeldNode != "background" ? newHeldNode : graph.selectedNode,
     selectedPair: newSelectedPair
   })
 

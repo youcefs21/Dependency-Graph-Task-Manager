@@ -20,13 +20,14 @@ export interface graphState {
   userId: string,
   toDelete: Immutable.List<string>,
   toArchive: Immutable.List<string>,
-  saveState: string
+  saveState: string,
+  ignoreChange: boolean
 }
 
 export interface edgeState {
   node1_id: string,
   node2_id: string,
-  action: "nothing" | "add" | "delete"
+  action: "nothing" | "add" | "delete" 
 }
 
 const initialGraph = {
@@ -40,7 +41,8 @@ const initialGraph = {
   userId: "root",
   toDelete: Immutable.List<string>(),
   toArchive: Immutable.List<string>(),
-  saveState: "saved"
+  saveState: "saved",
+  ignoreChange: false
 }
 
 export function useGraph() {
@@ -106,24 +108,6 @@ export function useGraph() {
 
   }, [nodesInit.data, graphInit.data, nodeIdPairs.data])
 
-  // ============ setup timer ============
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSaveTimer(saveTimer + 1);
-    }, 100);
-    return () => clearInterval(interval);
-  }, [saveTimer]);
-
-  // ============ reset timer on change ============
-  useEffect(() => {
-    setSaveTimer(0)
-    setGraph({
-      ...graph,
-      saveState: "not saved"
-    })
-  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes, edges]);
-
-
   // ============ edge handling ============
   
   const edgeAction = (action: string, n1: string, n2: string) => {
@@ -137,6 +121,9 @@ export function useGraph() {
           node2_id: n2, 
           action: "add"
         });
+        adj.current.get(n1) ? adj.current.get(n1)!.push(n2) : adj.current.set(n1, [n2])
+        console.log(adj.current)
+          
       } else {
         console.log("connection failed, would create a cycle")
       }
@@ -152,6 +139,7 @@ export function useGraph() {
               });
           }
         }
+        // TODO delete the pair from adj
     }
     setEdges(tempEdges)
 
@@ -178,6 +166,32 @@ export function useGraph() {
     }
     return isValidConnection(initial)
   }
+
+  // ============ setup timer ============
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSaveTimer(saveTimer + 1);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [saveTimer]);
+
+  // ============ reset timer on change ============
+  useEffect(() => {
+    if (!graph.ignoreChange){
+      setSaveTimer(0)
+      setGraph({
+        ...graph,
+        saveState: "not saved",
+      });
+      return;
+    }
+
+    setGraph({
+      ...graph,
+      ignoreChange: false
+    });
+  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes, edges]);
+
 
   // ============ push to database ============
   useEffect(() => {
@@ -234,7 +248,8 @@ export function useGraph() {
       ...graph,
       toDelete: Immutable.List<string>(),
       toArchive: Immutable.List<string>(),
-      saveState: "saved"
+      saveState: "saved",
+      ignoreChange: true
     })
 
     console.log("updating everything")

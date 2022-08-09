@@ -6,15 +6,17 @@ import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, Co
 interface ToolbarButtonProps {
   children: JSX.Element,
   currentTool: string,
-  setCurrentTool: Dispatch<SetStateAction<string>>,
-  toolName: string
+  setCurrentTool: Dispatch<SetStateAction<toolStates>>,
+  toolName: toolStates
 }
 
 interface ToolbarProps {
   currentTool: string,
-  setCurrentTool: Dispatch<SetStateAction<string>>,
+  setCurrentTool: Dispatch<SetStateAction<toolStates>>,
   graph: graphState
 }
+
+export type toolStates =  "pointer" | "addNode" | "completeNode" | "deleteNode" | "addEdge" | "removeEdge" | "pointer" | "move"
 
 const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: ToolbarButtonProps) => {
   return (
