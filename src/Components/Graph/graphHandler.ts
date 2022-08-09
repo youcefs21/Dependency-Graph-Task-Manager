@@ -25,7 +25,8 @@ export interface graphState {
 
 export interface edgeState {
   node1_id: string,
-  node2_id: string
+  node2_id: string,
+  action: "nothing" | "add" | "delete"
 }
 
 const initialGraph = {
@@ -96,7 +97,8 @@ export function useGraph() {
         // set up edges
         tempEdges = tempEdges.push({
           node1_id: node1_id,
-          node2_id: node2_id
+          node2_id: node2_id,
+          action: "nothing"
         });
       });
       setEdges(tempEdges)
@@ -119,7 +121,7 @@ export function useGraph() {
       ...graph,
       saveState: "not saved"
     })
-  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes]);
+  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes, edges]);
 
 
   // ============ edge handling ============
@@ -130,7 +132,11 @@ export function useGraph() {
 
     if (action === "add") {
       if (dfs(n1, n2)) {
-        tempEdges = tempEdges.push({node1_id: n1, node2_id: n2})
+        tempEdges = tempEdges.push({
+          node1_id: n1, 
+          node2_id: n2, 
+          action: "add"
+        });
       } else {
         console.log("connection failed, would create a cycle")
       }
@@ -139,7 +145,11 @@ export function useGraph() {
           const cn1 = edges.get(i)?.node1_id
           const cn2 = edges.get(i)?.node2_id
           if ((cn1 === n1 && cn2 === n2) || (cn1 === n2 && cn2 === n1)) {
-              tempEdges = tempEdges.splice(i, 1)
+              tempEdges = tempEdges.set(i, {
+                node1_id: cn1,
+                node2_id: cn2,
+                action: "delete"
+              });
           }
         }
     }
@@ -197,13 +207,27 @@ export function useGraph() {
       })
     });
     
-
     // delete nodes
     graph.toDelete.forEach((nodeID, i) => {
       deleteNode.mutate({
         nodeId: nodeID
       });
     });
+
+    // add and delete edges
+    let tempEdges = edges
+    edges.forEach((edge, i) => {
+      if (edge.action === "add"){
+        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id})
+        tempEdges = edges.set(i, {...edge, action: "nothing"})
+      }
+      else if (edge.action === "delete") {
+        deletePair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id})
+        tempEdges = edges.delete(i)
+      }
+    });
+
+    setEdges(tempEdges)
 
     // clear archive and delete lists
     setGraph({

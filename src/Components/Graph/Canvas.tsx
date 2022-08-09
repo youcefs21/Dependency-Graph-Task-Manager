@@ -1,5 +1,5 @@
 import Immutable from "immutable";
-import React, {Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import { handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
 import { edgeState, graphState, nodeState } from "./graphHandler";
 
@@ -137,7 +137,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       edges.forEach((pair) => {
         const node1 = nodes.get(pair.node1_id) 
         const node2 = nodes.get(pair.node2_id)
-        if (node1 && node2) 
+        if (node1 && node2 && pair.action != "delete") 
           createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
       });
       
