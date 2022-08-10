@@ -6,7 +6,8 @@ import { trpc } from "../../utils/trpc";
 export interface nodeState {
   goal: string,
   x: number,
-  y: number
+  y: number,
+  action: "nothing" | "add" | "delete" | "archive"
 }
 
 export interface graphState {
@@ -18,8 +19,6 @@ export interface graphState {
   selectedNode: string,
   selectedPair: Immutable.List<string>
   userId: string,
-  toDelete: Immutable.List<string>,
-  toArchive: Immutable.List<string>,
   saveState: string,
   ignoreChange: boolean
 }
@@ -75,7 +74,8 @@ export function useGraph() {
         tempNodes = tempNodes.set(node.id, {
           x: node.x,
           y: node.y,
-          goal: node.goal
+          goal: node.goal,
+          action: "nothing"
         });
       });
       setNodes(tempNodes);
@@ -206,27 +206,31 @@ export function useGraph() {
     })
     
     // update nodes 
+    let tempNodes = nodes
     nodes.forEach((node, key) => {
-      updateNode.mutate({
-        nodeId: key,
-        cords: {x: node.x, y: node.y},
-        goal: node.goal
-      })
-    })
-    // archive nodes
-    graph.toArchive.forEach((nodeID, i) => {
-      updateNode.mutate({
-        nodeId: nodeID,
-        archive: true
-      })
+      if (node.action === "add"){
+        updateNode.mutate({
+          nodeId: key,
+          cords: {x: node.x, y: node.y},
+          goal: node.goal
+        })
+        tempNodes = tempNodes.set(key, {...node, action: "nothing"});
+      }
+      else if (node.action === "archive") {
+        updateNode.mutate({
+          nodeId: key,
+          archive: true
+        });
+        tempNodes = tempNodes.delete(key);
+      }
+      else if (node.action === "delete")
+        deleteNode.mutate({
+          nodeId: key
+        });
+        tempNodes = tempNodes.delete(key);
     });
-    
-    // delete nodes
-    graph.toDelete.forEach((nodeID, i) => {
-      deleteNode.mutate({
-        nodeId: nodeID
-      });
-    });
+
+    setNodes(tempNodes)
 
     // add and delete edges
     let tempEdges = edges
@@ -246,8 +250,6 @@ export function useGraph() {
     // clear archive and delete lists
     setGraph({
       ...graph,
-      toDelete: Immutable.List<string>(),
-      toArchive: Immutable.List<string>(),
       saveState: "saved",
       ignoreChange: true
     })

@@ -22,7 +22,8 @@ export function handlePointerDown(
     setNodes(nodes.set(newNodeID, {
       x: Math.round(mx),
       y: Math.round(my),
-      goal: "insert goal here"
+      goal: "insert goal here",
+      action: "nothing"
     }));
     return
   }
@@ -41,20 +42,23 @@ export function handlePointerDown(
     const t = currentTool.current
     currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
     setCurrentTool("pointer")
-    setNodes(nodes.delete(newHeldNode))
+    let tempNodes = nodes
 
-    let archiveList = graph.toArchive
-    let deleteList = graph.toDelete
 
-    if (t === "completeNode") 
-        archiveList = graph.toArchive.push(newHeldNode)
+    if (t === "completeNode")
+      tempNodes = tempNodes.set(newHeldNode, {
+        ...tempNodes.get(newHeldNode)!,
+        action: "archive"
+      });
     if (t === "deleteNode")
-        deleteList = graph.toDelete.push(newHeldNode)
+      tempNodes = tempNodes.set(newHeldNode, {
+        ...tempNodes.get(newHeldNode)!,
+        action: "delete"
+      });
 
+    setNodes(tempNodes)
     setGraph({
       ...graph,
-      toDelete: deleteList,
-      toArchive: archiveList,
       mouseDown: true,
       heldNode: "nothing"
     })

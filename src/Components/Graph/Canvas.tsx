@@ -150,6 +150,8 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
           setCursor("pointer")
           color = "#f472b6"
         }
+        if (graph.selectedNode === id)
+          color = "#f472b6"
         createNode(node, color, nodes.get(id)?.goal ?? "new Node")
       })
       if (inCanvas.current){

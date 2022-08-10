@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction, FormEvent} from "react";
+import {useState, Dispatch, SetStateAction, FormEvent, useEffect} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { graphState, nodeState, useGraph } from "../Components/Graph/graphHandler";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
@@ -10,6 +10,16 @@ import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
+  
+  const beforeUnloadListener = (event: BeforeUnloadEvent) => {
+    return "Are you sure you want to exit?";
+  };
+
+  useEffect(() => {
+    window.onbeforeunload = beforeUnloadListener
+    console.log("test")
+
+  }, [])
 
   return (
     <>
