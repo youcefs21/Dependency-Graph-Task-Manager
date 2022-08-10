@@ -23,7 +23,7 @@ export function handlePointerDown(
       x: Math.round(mx),
       y: Math.round(my),
       goal: "insert goal here",
-      action: "nothing"
+      action: "add"
     }));
     return
   }
@@ -43,18 +43,21 @@ export function handlePointerDown(
     currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
     setCurrentTool("pointer")
     let tempNodes = nodes
+    const n = nodes.get(newHeldNode)!
 
 
-    if (t === "completeNode")
+    if (t === "completeNode") // TODO what happens if you archive a node that is not saved yet
       tempNodes = tempNodes.set(newHeldNode, {
-        ...tempNodes.get(newHeldNode)!,
+        ...n,
         action: "archive"
       });
-    if (t === "deleteNode")
+    if (t === "deleteNode" && n.action != "add")
       tempNodes = tempNodes.set(newHeldNode, {
-        ...tempNodes.get(newHeldNode)!,
+        ...n,
         action: "delete"
       });
+    if (t === "deleteNode" && n.action === "add")
+      tempNodes = tempNodes.delete(newHeldNode)
 
     setNodes(tempNodes)
     setGraph({

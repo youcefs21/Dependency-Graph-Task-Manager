@@ -1,4 +1,3 @@
-
 import { Dispatch, SetStateAction } from "react";
 import { graphState } from "../Graph/graphHandler";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "./ToolbarIcons";
@@ -70,8 +69,8 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
           <p className="text-neutral-400 text-xs">{ graph.saveState }</p>
           <Seperator/>
           <div>
-            <p>x: {Math.round(graph.TopLeftX)}</p>
-            <p>y: {Math.round(graph.TopLeftY)}</p>
+            <p>x: {Math.round(graph.TopLeftX + window.innerWidth/(graph.scale*2) ?? 0)}</p>
+            <p>y: {Math.round(graph.TopLeftY + window.outerWidth/(graph.scale*2) ?? 0)}</p>
           </div>
           <Seperator/>
           {Math.round(graph.scale*10)}%

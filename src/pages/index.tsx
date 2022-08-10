@@ -10,16 +10,6 @@ import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
-  
-  const beforeUnloadListener = (event: BeforeUnloadEvent) => {
-    return "Are you sure you want to exit?";
-  };
-
-  useEffect(() => {
-    window.onbeforeunload = beforeUnloadListener
-    console.log("test")
-
-  }, [])
 
   return (
     <>

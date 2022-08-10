@@ -219,15 +219,18 @@ export function useGraph() {
       else if (node.action === "archive") {
         updateNode.mutate({
           nodeId: key,
+          cords: {x: node.x, y: node.y},
+          goal: node.goal,
           archive: true
         });
         tempNodes = tempNodes.delete(key);
       }
-      else if (node.action === "delete")
+      else if (node.action === "delete"){
         deleteNode.mutate({
           nodeId: key
         });
         tempNodes = tempNodes.delete(key);
+      }
     });
 
     setNodes(tempNodes)

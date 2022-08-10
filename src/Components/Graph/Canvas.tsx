@@ -145,6 +145,8 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       // draw the nodes and set the cursor
       setCursor("default")
       nodes.forEach((node, id) => {
+        if (node.action === "archive" || node.action === "delete")
+          return
         let color = "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
