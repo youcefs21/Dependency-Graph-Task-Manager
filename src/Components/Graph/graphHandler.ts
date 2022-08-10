@@ -57,7 +57,7 @@ export function useGraph() {
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
   const addPair = trpc.useMutation(["nodes.addPair"])
   const deletePair = trpc.useMutation(["nodes.deletePair"])
-  const adj = useRef(new Map<string, string[]>())
+  const adj = useRef(new Map<string, Set<string>>())
 
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
   const [edges, setEdges] = useState(Immutable.List<edgeState>())
@@ -92,9 +92,9 @@ export function useGraph() {
       nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
         // set up adjecency list
         if (adj.current.get(node1_id)) {
-          adj.current.get(node1_id)!.push(node2_id)
+          adj.current.get(node1_id)!.add(node2_id)
         } else {
-          adj.current.set(node1_id, [node2_id])
+          adj.current.set(node1_id, new Set(node2_id))
         }
         // set up edges
         tempEdges = tempEdges.push({
@@ -115,14 +115,13 @@ export function useGraph() {
     let tempEdges = edges;
 
     if (action === "add") {
-      if (dfs(n1, n2)) {
+      if (dfs(n1, n2) && !adj.current.get(n1)?.has(n2)) {
         tempEdges = tempEdges.push({
           node1_id: n1, 
           node2_id: n2, 
           action: "add"
         });
-        adj.current.get(n1) ? adj.current.get(n1)!.push(n2) : adj.current.set(n1, [n2])
-        console.log(adj.current)
+        adj.current.get(n1) ? adj.current.get(n1)!.add(n2) : adj.current.set(n1, new Set(n2))
           
       } else {
         console.log("connection failed, would create a cycle")
@@ -137,9 +136,10 @@ export function useGraph() {
                 node2_id: cn2,
                 action: "delete"
               });
+              adj.current.get(n1)?.delete(n2)
+              adj.current.get(n2)?.delete(n1)
           }
         }
-        // TODO delete the pair from adj
     }
     setEdges(tempEdges)
 
@@ -251,8 +251,6 @@ export function useGraph() {
       saveState: "saved",
       ignoreChange: true
     })
-
-    console.log("updating everything")
   }, [saveTimer]);
 
   return {nodes, setNodes, graph, setGraph, edges, edgeAction}
