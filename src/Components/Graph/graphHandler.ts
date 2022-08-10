@@ -7,7 +7,7 @@ export interface nodeState {
   goal: string,
   x: number,
   y: number,
-  action: "nothing" | "add" | "delete" | "archive"
+  action: "nothing" | "add" | "delete" | "archive" | "update"
 }
 
 export interface graphState {
@@ -19,7 +19,8 @@ export interface graphState {
   selectedNode: string,
   selectedPair: Immutable.List<string>
   userId: string,
-  saveState: string,
+  saveState: "saved" | "not saved",
+  loaded: boolean,
   ignoreChange: boolean
 }
 
@@ -29,7 +30,7 @@ export interface edgeState {
   action: "nothing" | "add" | "delete" 
 }
 
-const initialGraph = {
+const initialGraph: graphState = {
   scale: 0,
   TopLeftX: 0,
   TopLeftY: 0,
@@ -38,10 +39,9 @@ const initialGraph = {
   selectedNode: "nothing",
   selectedPair: Immutable.List<string>(),
   userId: "root",
-  toDelete: Immutable.List<string>(),
-  toArchive: Immutable.List<string>(),
   saveState: "saved",
-  ignoreChange: false
+  loaded: false,
+  ignoreChange: true
 }
 
 export function useGraph() {
@@ -62,7 +62,7 @@ export function useGraph() {
   const [edges, setEdges] = useState(Immutable.List<edgeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
 
-  const [saveTimer, setSaveTimer] = useState<number>(0);
+  const [saveTimer, setSaveTimer] = useState<number>(10000);
   
   // ============ setup state ============
   useEffect( () => {
@@ -84,7 +84,8 @@ export function useGraph() {
         ...graph,
         TopLeftX: graphInit.data.x,
         TopLeftY: graphInit.data.y,
-        scale: graphInit.data.scale
+        scale: graphInit.data.scale,
+        loaded: true
       });
 
       let tempEdges = Immutable.List<edgeState>()
@@ -177,6 +178,8 @@ export function useGraph() {
 
   // ============ reset timer on change ============
   useEffect(() => {
+    if (!graph.loaded)
+      return
     if (!graph.ignoreChange){
       setSaveTimer(0)
       setGraph({
@@ -190,8 +193,23 @@ export function useGraph() {
       ...graph,
       ignoreChange: false
     });
-  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, nodes, edges]);
+  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, graph.loaded, nodes, edges]);
 
+
+  // ============ trigger save if page is unloading ============
+  const beforeUnloadListener = (event: Event) => {
+    setSaveTimer(100)
+  };
+
+  useEffect( () => {
+    if (graph.saveState === "not saved") {
+      window.addEventListener("beforeunload", beforeUnloadListener);
+      return () => window.removeEventListener("beforeunload", beforeUnloadListener);
+    } else {
+      window.removeEventListener("beforeunload", beforeUnloadListener);
+    }
+
+  }, [graph.saveState]);
 
   // ============ push to database ============
   useEffect(() => {
@@ -208,7 +226,7 @@ export function useGraph() {
     // update nodes 
     let tempNodes = nodes
     nodes.forEach((node, key) => {
-      if (node.action === "add"){
+      if (node.action === "add" || node.action === "update") {
         updateNode.mutate({
           nodeId: key,
           cords: {x: node.x, y: node.y},

@@ -217,7 +217,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
   )
 }
 
-function useWindowDimensions() {
+export function useWindowDimensions() {
   const [windowDimensions, setWindowDimensions] = useState({width: 0, height: 0});
 
   useEffect(() => {
@@ -235,7 +235,7 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
-function useMousePos() {
+export function useMousePos() {
   const [mousePos, setMousePos] = useState({mx: 0, my: 0})
      
   

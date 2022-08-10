@@ -180,6 +180,7 @@ export function handleMove(
             ...nodes.get(graph.heldNode)!, 
             x: Math.round(event.clientX/graph.scale + graph.TopLeftX),
             y: Math.round(event.clientY/graph.scale + graph.TopLeftY),
+            action: "update"
           })
         )
     }

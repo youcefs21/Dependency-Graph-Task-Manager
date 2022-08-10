@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import type { NextPage } from "next";
 import Head from "next/head";
-import {useState, Dispatch, SetStateAction, FormEvent, useEffect} from "react";
+import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { graphState, nodeState, useGraph } from "../Components/Graph/graphHandler";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";

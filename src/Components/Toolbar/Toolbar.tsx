@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import {useMousePos, useWindowDimensions} from "../Graph/Canvas";
 import { graphState } from "../Graph/graphHandler";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "./ToolbarIcons";
 
@@ -27,6 +28,7 @@ const ToolbarButton = ({children, currentTool, setCurrentTool, toolName}: Toolba
 }
 
 export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
+  const {mx, my} = useMousePos()
 
   return (
       <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
@@ -69,8 +71,8 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
           <p className="text-neutral-400 text-xs">{ graph.saveState }</p>
           <Seperator/>
           <div>
-            <p>x: {Math.round(graph.TopLeftX + window.innerWidth/(graph.scale*2) ?? 0)}</p>
-            <p>y: {Math.round(graph.TopLeftY + window.outerWidth/(graph.scale*2) ?? 0)}</p>
+            <p>x: {Math.floor(graph.TopLeftX + mx/(graph.scale) ?? 0)}</p>
+            <p>y: {Math.floor(graph.TopLeftY + my/(graph.scale) ?? 0)}</p>
           </div>
           <Seperator/>
           {Math.round(graph.scale*10)}%
