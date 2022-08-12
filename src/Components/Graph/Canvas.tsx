@@ -152,12 +152,22 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
           setCursor("pointer")
           color = "#f472b6"
         }
-        if (graph.selectedNode === id)
+        if (graph.selectedNodes.has(id))
           color = "#f472b6"
         createNode(node, color, nodes.get(id)?.goal ?? "new Node")
-      })
+      });
+
+      // draw selected area
+      ctx.fillStyle = "rgb(42 153 222)"
+      ctx.globalAlpha = 0.2
+      const selectedX = (graph.selectedArea.x1 - graph.TopLeftX) * graph.scale
+      const selectedY = (graph.selectedArea.y1 - graph.TopLeftY) * graph.scale
+      const selectedW = (graph.selectedArea.x1 - graph.selectedArea.x2) * graph.scale
+      const selectedH = (graph.selectedArea.y1 - graph.selectedArea.y2) * graph.scale
+      ctx.fillRect(selectedX, selectedY, selectedW, selectedH)
+      ctx.globalAlpha = 1
+
       if (inCanvas.current){
-        if (graph.heldNode === "background") setCursor("move")
 
         if (currentToolRef.current === "move") {
           setCursor("grab")
@@ -210,7 +220,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
         inCanvas.current = false;
         handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)
       }}
-      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, graph, setGraph, nodes, setNodes)}
+      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, graph, setGraph, nodes, setNodes, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
       />
   </>

@@ -25,6 +25,7 @@ export function handlePointerDown(
       goal: "insert goal here",
       action: "add"
     }));
+    // TODO set the new node as the focus
     return
   }
   
@@ -81,8 +82,9 @@ export function handlePointerDown(
     ...graph,
     mouseDown: true,
     heldNode: newHeldNode,
-    selectedNode: newHeldNode != "background" ? newHeldNode : graph.selectedNode,
-    selectedPair: newSelectedPair
+    selectedNodes: newHeldNode != "background" ? Immutable.Set([newHeldNode]) : graph.selectedNodes,
+    selectedPair: newSelectedPair,
+    selectedArea: {x1: mx, y1: my, x2: mx, y2: my}
   })
 
 }
@@ -110,7 +112,8 @@ export function handlePointerUp(
   setGraph({
     ...graph,
     heldNode: "nothing",
-    mouseDown: false
+    mouseDown: false,
+    selectedArea: {x1: 0, y1: 0, x2: 0, y2: 0}
   })
 }
 
@@ -122,7 +125,8 @@ export function handleMove(
   graph: graphState,
   setGraph: Dispatch<SetStateAction<graphState>>,
   nodes: Immutable.Map<string, nodeState>,
-  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>
+  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  currentTool: MutableRefObject<toolStates> 
 ) {
 
 
@@ -166,11 +170,22 @@ export function handleMove(
       case "background": // move everything if background is held
         const movementX = prevX === -1 ? 0 : prevX - event.clientX
         const movementY = prevY === -1 ? 0 : prevY - event.clientY
-        setGraph({
-          ...graph,
-          TopLeftX: graph.TopLeftX + movementX/graph.scale,
-          TopLeftY: graph.TopLeftY + movementY/graph.scale
-        });
+        if (currentTool.current != "move") {
+          setGraph({
+            ...graph,
+            selectedArea: {
+              ...graph.selectedArea, 
+              x2: graph.selectedArea.x2 + movementX/graph.scale,
+              y2: graph.selectedArea.y2 + movementY/graph.scale
+            }
+          });
+        } else {
+          setGraph({
+            ...graph,
+            TopLeftX: graph.TopLeftX + movementX/graph.scale,
+            TopLeftY: graph.TopLeftY + movementY/graph.scale,
+          });
+        }
         break;
       case "nothing": // if nothing is held, do nothing
         break

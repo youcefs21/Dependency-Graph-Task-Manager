@@ -10,6 +10,7 @@ import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
+  const firstSelectedNode = graph.selectedNodes.first("nothing");
 
   return (
     <>
@@ -35,8 +36,8 @@ const Home: NextPage = () => {
         {hintText(currentTool, graph.selectedPair.size)}
       </p>
       
-      { graph.selectedNode != "nothing" && currentTool === "pointer" &&
-      <NodeConfigPanel nodeName={nodes.get(graph.selectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph}>
+      { firstSelectedNode != "nothing" && currentTool === "pointer" &&
+      <NodeConfigPanel nodeName={nodes.get(firstSelectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
@@ -44,8 +45,8 @@ const Home: NextPage = () => {
             <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0"
               type={'text'}
               name={'goal'}
-              value={nodes.get(graph.selectedNode)?.goal} 
-              onInput={(e) => handleInputChange(e, graph.selectedNode, nodes, setNodes)}
+              value={nodes.get(firstSelectedNode)?.goal} 
+              onInput={(e) => handleInputChange(e, firstSelectedNode, nodes, setNodes)}
             />
           </div>
         </NodeConfigPanelItem>
@@ -102,7 +103,7 @@ function NodeConfigPanel({nodeName, children, graph, setGraph}: {nodeName: strin
       <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y"}>
           <div className="flex justify-between p-4">
             <h2 className="font-semibold">{nodeName}</h2>
-            <button onClick={() => setGraph({...graph, selectedNode: "nothing"})}>close</button>
+            <button onClick={() => setGraph({...graph, selectedNodes: Immutable.Set<string>()})}>close</button>
           </div>
           <div className="divide-y p-4">
             {children}
