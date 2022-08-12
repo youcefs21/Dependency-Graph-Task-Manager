@@ -11,6 +11,7 @@ const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
   const firstSelectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
+  const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
 
   return (
     <>
@@ -35,9 +36,14 @@ const Home: NextPage = () => {
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
         {hintText(currentTool, graph.selectedPair.size)}
       </p>
+      <div className="text-white bg-black absolute right-5 top-5">
+        <button onClick={() => setCollapseConfig(false)} className={"text-white"}>
+          open Config Panel
+        </button>
+      </div>
       
-      { firstSelectedNode != "nothing" && currentTool === "pointer" &&
-      <NodeConfigPanel nodeName={nodes.get(firstSelectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph}>
+      { !collapseConfig && 
+      <NodeConfigPanel nodeName={nodes.get(firstSelectedNode)?.goal ?? " "} graph={graph} setGraph={setGraph} setCollapseConfig={setCollapseConfig}>
 
         <NodeConfigPanelItem itemHeading="Basic Node Data">
           <div className="flex items-center text-sm text-[#BDBDBD] pl-3">
@@ -98,12 +104,17 @@ function NodeConfigPanelItem({itemHeading, children}: {itemHeading: string, chil
 
 }
 
-function NodeConfigPanel({nodeName, children, graph, setGraph}: {nodeName: string, children: JSX.Element[], graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>}) {
+function NodeConfigPanel({nodeName, children, graph, setGraph, setCollapseConfig}: {nodeName: string, children: JSX.Element[], graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>, setCollapseConfig: Dispatch<SetStateAction<boolean>>}) {
   return (
       <div className={"absolute top-24 right-6 h-5/6 min-w-3xl bg-[#222326] rounded-[34px] text-white font-mono divide-y"}>
           <div className="flex justify-between p-4">
             <h2 className="font-semibold">{nodeName}</h2>
-            <button onClick={() => setGraph({...graph, selectedNodes: Immutable.Set<string>()})}>close</button>
+            <button onClick={
+              () => {
+                setGraph({...graph, selectedNodes: Immutable.Set<string>()})
+                setCollapseConfig(true)
+              }
+            }>close</button>
           </div>
           <div className="divide-y p-4">
             {children}
