@@ -78,7 +78,11 @@ export function handlePointerDown(
     newHeldNode = "background";
   }
   
-  const newSelectedNodes = newHeldNode != "background" ? Immutable.Set([newHeldNode]) : Immutable.Set<string>();
+  let newSelectedNodes = newHeldNode != "background" ? Immutable.Set([newHeldNode]) : Immutable.Set<string>();
+  if (graph.selectedNodes.has(newHeldNode)) {
+    newSelectedNodes = graph.selectedNodes
+  }
+
   setGraph({
     ...graph,
     mouseDown: true,
@@ -218,14 +222,22 @@ export function handleMove(
       case "nothing": // if nothing is held, do nothing
         break
       default: // if a node is held, move it to the mouse position
-        setNodes(
-          nodes.set(graph.heldNode, {
-            ...nodes.get(graph.heldNode)!, 
-            x: Math.round(event.clientX/graph.scale + graph.TopLeftX),
-            y: Math.round(event.clientY/graph.scale + graph.TopLeftY),
-            action: "update"
-          })
-        )
+        // instead of just moving the held node, move all selectedNodes
+        let tempNodes = nodes;
+        const heldNodeState = nodes.get(graph.heldNode)!
+        nodes.forEach((node, nodeID) => {
+          if (graph.selectedNodes.has(nodeID)) {
+            const xDiff = node.x - heldNodeState.x 
+            const yDiff = node.y - heldNodeState.y
+            tempNodes = tempNodes.set(nodeID, {
+              ...node, 
+              x: Math.round(event.clientX/graph.scale + graph.TopLeftX + xDiff),
+              y: Math.round(event.clientY/graph.scale + graph.TopLeftY + yDiff),
+              action: "update"
+            })
+          }
+        });
+        setNodes(tempNodes)
     }
   } 
 }
