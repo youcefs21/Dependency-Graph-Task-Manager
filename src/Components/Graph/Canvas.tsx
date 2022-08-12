@@ -164,7 +164,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       const selectedY = (graph.selectedArea.y1 - graph.TopLeftY) * graph.scale
       const selectedW = (graph.selectedArea.x1 - graph.selectedArea.x2) * graph.scale
       const selectedH = (graph.selectedArea.y1 - graph.selectedArea.y2) * graph.scale
-      ctx.fillRect(selectedX, selectedY, selectedW, selectedH)
+      ctx.fillRect(selectedX, selectedY, -selectedW, -selectedH)
       ctx.globalAlpha = 1
 
       if (inCanvas.current){

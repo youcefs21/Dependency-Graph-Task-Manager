@@ -10,7 +10,7 @@ import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = useGraph();
-  const firstSelectedNode = graph.selectedNodes.first("nothing");
+  const firstSelectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
 
   return (
     <>

@@ -77,12 +77,13 @@ export function handlePointerDown(
   if (newHeldNode === "nothing") {
     newHeldNode = "background";
   }
-
+  
+  const newSelectedNodes = newHeldNode != "background" ? Immutable.Set([newHeldNode]) : Immutable.Set<string>();
   setGraph({
     ...graph,
     mouseDown: true,
     heldNode: newHeldNode,
-    selectedNodes: newHeldNode != "background" ? Immutable.Set([newHeldNode]) : graph.selectedNodes,
+    selectedNodes: newSelectedNodes,
     selectedPair: newSelectedPair,
     selectedArea: {x1: mx, y1: my, x2: mx, y2: my}
   })
@@ -170,22 +171,49 @@ export function handleMove(
       case "background": // move everything if background is held
         const movementX = prevX === -1 ? 0 : prevX - event.clientX
         const movementY = prevY === -1 ? 0 : prevY - event.clientY
-        if (currentTool.current != "move") {
+        
+        if (currentTool.current === "pointer") {
+          // look for nodes in the new area, and add them
+          let tempSelectedNodes = graph.selectedNodes
+          const xDir = Math.sign(graph.selectedArea.x2 - graph.selectedArea.x1)
+          const yDir = Math.sign(graph.selectedArea.y2 - graph.selectedArea.y1)
+          const newX2 = event.clientX/graph.scale + graph.TopLeftX 
+          const newY2 = event.clientY/graph.scale + graph.TopLeftY
+
+          console.log("x", xDir, "y", yDir)
+
+
+          nodes.forEach((node, nodeID) => {
+            const xCond1 = xDir === 1 && node.x >= graph.selectedArea.x1 && node.x <= newX2
+            const yCond1 = yDir === 1 && node.y >= graph.selectedArea.y1 && node.y <= newY2
+            const xCond2 = xDir === -1 && node.x <= graph.selectedArea.x1 && node.x >= newX2
+            const yCond2 = yDir === -1 && node.y <= graph.selectedArea.y1 && node.y >= newY2
+            if ((xCond1 || xCond2) && (yCond1 || yCond2) && !tempSelectedNodes.has(nodeID)) {
+              tempSelectedNodes = tempSelectedNodes.add(nodeID)
+            } else if (!(xCond1 || xCond2) || !(yCond1 || yCond2)) {
+              tempSelectedNodes = tempSelectedNodes.delete(nodeID)
+            }
+          });
+
           setGraph({
             ...graph,
             selectedArea: {
               ...graph.selectedArea, 
-              x2: graph.selectedArea.x2 + movementX/graph.scale,
-              y2: graph.selectedArea.y2 + movementY/graph.scale
-            }
+              x2: newX2,
+              y2: newY2 
+            },
+            selectedNodes: tempSelectedNodes
           });
-        } else {
-          setGraph({
-            ...graph,
-            TopLeftX: graph.TopLeftX + movementX/graph.scale,
-            TopLeftY: graph.TopLeftY + movementY/graph.scale,
-          });
+          break;
         }
+
+        // if the current tool is not the pointer tool
+        setGraph({
+          ...graph,
+          TopLeftX: graph.TopLeftX + movementX/graph.scale,
+          TopLeftY: graph.TopLeftY + movementY/graph.scale,
+        });
+      
         break;
       case "nothing": // if nothing is held, do nothing
         break
