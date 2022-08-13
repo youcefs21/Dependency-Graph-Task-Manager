@@ -245,13 +245,28 @@ export function handleMove(
 
 export function handleWheel(event: React.WheelEvent<HTMLCanvasElement>, graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>) {
 
-  const newScale = graph.scale - (graph.scale*event.deltaY)/1000
+  if (event.ctrlKey) {
+    const newScale = graph.scale - (graph.scale*event.deltaY)/1000
 
-  setGraph({
-    ...graph,
-    scale: newScale,
-    TopLeftX: graph.TopLeftX + (event.clientX/graph.scale) - (event.clientX/newScale),
-    TopLeftY: graph.TopLeftY + (event.clientY/graph.scale) - (event.clientY/newScale)
-  })
+    setGraph({
+      ...graph,
+      scale: newScale,
+      TopLeftX: graph.TopLeftX + (event.clientX/graph.scale) - (event.clientX/newScale),
+      TopLeftY: graph.TopLeftY + (event.clientY/graph.scale) - (event.clientY/newScale)
+    })
+
+  } else if (event.shiftKey) {
+    setGraph({
+      ...graph,
+      TopLeftX: graph.TopLeftX + (event.deltaY/graph.scale),
+      TopLeftY: graph.TopLeftY + (event.deltaX/graph.scale),
+    })
+  } else {
+    setGraph({
+      ...graph,
+      TopLeftY: graph.TopLeftY + (event.deltaY/graph.scale),
+      TopLeftX: graph.TopLeftX + (event.deltaX/graph.scale),
+    })
+  }
 
 }

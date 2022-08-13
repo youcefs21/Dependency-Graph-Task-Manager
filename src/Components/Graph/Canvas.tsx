@@ -52,6 +52,22 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
     return () => clearInterval(interval);
   }, []);
 
+  // prevent default scrolling behavior
+  function preventScroll(e: WheelEvent) {
+    e.preventDefault();
+  }
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.addEventListener("wheel", preventScroll);
+    }
+    return () => {
+      if (canvasRef.current) {
+        canvasRef.current.removeEventListener("wheel", preventScroll);
+      }
+    }
+  } , [])
+
 
 
   useEffect(

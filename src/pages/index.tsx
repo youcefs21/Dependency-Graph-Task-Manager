@@ -38,7 +38,7 @@ const Home: NextPage = () => {
       </p>
       <div className="text-white bg-black absolute right-5 top-5">
         <button onClick={() => setCollapseConfig(false)} className={"text-white"}>
-          open Config Panel
+          Config Panel
         </button>
       </div>
       
