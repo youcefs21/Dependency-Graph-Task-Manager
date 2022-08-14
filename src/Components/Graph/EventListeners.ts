@@ -23,6 +23,7 @@ export function handlePointerDown(
       x: Math.round(mx),
       y: Math.round(my),
       goal: "insert goal here",
+      description: null,
       action: "add"
     }));
     // TODO set the new node as the focus

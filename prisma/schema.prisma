@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
   referentialIntegrity = "prisma"
 }
 
@@ -17,15 +17,16 @@ generator js {
 }
 
 model Node {
-  id        String  @id @default(cuid())
-  userId    String  @default("root")
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal      String  @default("insert goal here")
-  archive   Boolean @default(false)
-  x         Int     @default(0)
-  y         Int     @default(0)
-  out_edges Edge[]  @relation("outgoing")
-  in_edges  Edge[]  @relation("incoming")
+  id          String  @id @default(cuid())
+  userId      String  @default("root")
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal        String  @default("insert goal here")
+  archive     Boolean @default(false)
+  x           Int     @default(0)
+  y           Int     @default(0)
+  description String? @db.Text
+  out_edges   Edge[]  @relation("outgoing")
+  in_edges    Edge[]  @relation("incoming")
 }
 
 model Edge {
@@ -39,29 +40,29 @@ model Edge {
 }
 
 model Settings {
-  userId      String  @id
-  scale       Float   @default(20)
-  x           Float   @default(0)
-  y           Float   @default(0)
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @id
+  scale  Float  @default(20)
+  x      Float  @default(0)
+  y      Float  @default(0)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  refresh_token_expires_in  Int?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?
+  refresh_token_expires_in Int?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }

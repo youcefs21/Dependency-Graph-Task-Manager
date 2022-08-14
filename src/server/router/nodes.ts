@@ -9,7 +9,8 @@ export const nodeRouter = createRouter()
           id: true,
           x: true,
           y: true,
-          goal: true
+          goal: true,
+          description: true
         },
         where: {
           archive: false
@@ -32,7 +33,8 @@ export const nodeRouter = createRouter()
       nodeId: z.string(),
       cords: z.object({x: z.number(), y: z.number()}).optional(),
       goal: z.string().optional(),
-      archive: z.boolean().optional()
+      archive: z.boolean().optional(),
+      description: z.string().nullish()
     }),
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.upsert({
@@ -41,14 +43,16 @@ export const nodeRouter = createRouter()
           x: input.cords?.x,
           y: input.cords?.y,
           goal: input.goal,
-          archive: input.archive
+          archive: input.archive,
+          description: input.description
         },
         create: {
           id: input.nodeId,
           x: input.cords?.x,
           y: input.cords?.y,
           goal: input.goal,
-          archive: input.archive
+          archive: input.archive,
+          description: input.description
         }
       });
     },

@@ -2,7 +2,7 @@ import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
-import { edgeState, graphState, nodeState } from "./graphHandler";
+import { edgeState, graphState, GState, nodeState } from "./graphHandler";
 
 
 interface vec2 {
@@ -14,15 +14,10 @@ interface vec2 {
 interface canvasProps {
   currentTool: toolStates
   setCurrentTool: Dispatch<SetStateAction<toolStates>>,
-  nodes: Immutable.Map<string, nodeState>,
-  setNodes: React.Dispatch<React.SetStateAction<Immutable.Map<string, nodeState>>>,
-  graph: graphState,
-  setGraph: React.Dispatch<React.SetStateAction<graphState>>,
-  edges: Immutable.List<edgeState>,
-  edgeAction: (action: string, n1: string, n2: string) => void 
+  G: GState
 }
 
-export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, setGraph, edges, edgeAction}: canvasProps) {
+export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
@@ -32,6 +27,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
   const inCanvas = useRef<boolean>(false)
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
   const pinchDiff = useRef<number>(-1);
+  const {nodes, setNodes, graph, setGraph, edges, edgeAction} = G;
 
 
   useEffect(() => {

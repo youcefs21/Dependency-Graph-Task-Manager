@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 
@@ -7,6 +7,7 @@ export interface nodeState {
   goal: string,
   x: number,
   y: number,
+  description: string | null,
   action: "nothing" | "add" | "delete" | "archive" | "update"
 }
 
@@ -31,6 +32,15 @@ export interface edgeState {
   action: "nothing" | "add" | "delete" 
 }
 
+export interface GState {
+  nodes: Immutable.Map<string, nodeState>,
+  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  edges: Immutable.List<edgeState>,
+  edgeAction: (action: string, n1: string, n2: string) => void 
+  graph: graphState,
+  setGraph: Dispatch<SetStateAction<graphState>>,
+}
+
 const initialGraph: graphState = {
   scale: 0,
   TopLeftX: 0,
@@ -46,7 +56,7 @@ const initialGraph: graphState = {
   ignoreChange: true
 }
 
-export function useGraph() {
+export function useGraph(): GState {
   const nodesInit = trpc.useQuery(["nodes.getAll"]);
   const graphInit = trpc.useQuery(["settings.getAll"]);
 
@@ -77,6 +87,7 @@ export function useGraph() {
           x: node.x,
           y: node.y,
           goal: node.goal,
+          description: node.description,
           action: "nothing"
         });
       });
@@ -232,7 +243,8 @@ export function useGraph() {
         updateNode.mutate({
           nodeId: key,
           cords: {x: node.x, y: node.y},
-          goal: node.goal
+          goal: node.goal,
+          description: node.description
         })
         tempNodes = tempNodes.set(key, {...node, action: "nothing"});
       }
@@ -241,6 +253,7 @@ export function useGraph() {
           nodeId: key,
           cords: {x: node.x, y: node.y},
           goal: node.goal,
+          description: node.description,
           archive: true
         });
         tempNodes = tempNodes.delete(key);
