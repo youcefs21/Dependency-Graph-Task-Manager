@@ -17,7 +17,7 @@ const Home: NextPage = () => {
     <>
       <Head>
         <title>Nodify</title>
-        <meta name="description" content="A graph based goal management app" />
+        <meta name="description" content="A dependency based task management app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Canvas 
@@ -36,7 +36,7 @@ const Home: NextPage = () => {
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
         {hintText(currentTool, graph.selectedPair.size)}
       </p>
-      <div className="text-white bg-black absolute right-5 top-5">
+      <div className="text-white bg-black p-2 rounded-lg absolute right-5 top-5">
         <button onClick={() => setCollapseConfig(false)} className={"text-white"}>
           Config Panel
         </button>

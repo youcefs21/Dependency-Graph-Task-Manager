@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
+import { handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
 import { edgeState, graphState, nodeState } from "./graphHandler";
 
 
@@ -154,7 +154,7 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       edges.forEach((pair) => {
         const node1 = nodes.get(pair.node1_id) 
         const node2 = nodes.get(pair.node2_id)
-        if (node1 && node2 && pair.action != "delete") 
+        if (node1 && node2 && pair.action != "delete" && ["add", "update", "nothing"].includes(node1.action) && ["add", "update", "nothing"].includes(node2.action)) 
           createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
       });
       
@@ -238,6 +238,8 @@ export function Canvas({ currentTool, setCurrentTool, nodes, setNodes, graph, se
       }}
       onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, graph, setGraph, nodes, setNodes, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
+      onKeyDown={(ev) => handleKeyDown(ev, graph, setGraph, nodes, setNodes, currentToolRef, setCurrentTool)}
+      tabIndex={0}
       />
   </>
   )

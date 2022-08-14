@@ -1,5 +1,5 @@
 import Immutable from "immutable";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { graphState, nodeState } from "./graphHandler";
 
@@ -184,8 +184,6 @@ export function handleMove(
           const newX2 = event.clientX/graph.scale + graph.TopLeftX 
           const newY2 = event.clientY/graph.scale + graph.TopLeftY
 
-          console.log("x", xDir, "y", yDir)
-
 
           nodes.forEach((node, nodeID) => {
             const xCond1 = xDir === 1 && node.x >= graph.selectedArea.x1 && node.x <= newX2
@@ -270,3 +268,42 @@ export function handleWheel(event: React.WheelEvent<HTMLCanvasElement>, graph: g
   }
 
 }
+
+export function handleKeyDown(
+  event: React.KeyboardEvent<HTMLCanvasElement>,
+  graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>,
+  nodes: Immutable.Map<string, nodeState>, setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
+) {
+  let tempNodes = nodes
+
+  if (event.key === "Delete") {
+
+    graph.selectedNodes.forEach((nodeID) => {
+      tempNodes = tempNodes.set(nodeID, {
+        ...tempNodes.get(nodeID)!,
+        action: "delete"
+      });
+    });
+
+    setGraph({
+      ...graph,
+      selectedNodes: Immutable.Set<string>()
+    })
+
+  }
+  setNodes(tempNodes)
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
