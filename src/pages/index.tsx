@@ -4,15 +4,17 @@ import Head from "next/head";
 import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { useGraph } from "../Components/Graph/graphHandler";
-import { NodeConfigPanel } from "../Components/Panels/Panels";
+import { GraphConfigPanel, NodeConfigPanel, GroupConfigPanel, TreeExplorerPanel } from "../Components/Panels/Panels";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 
 
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const G = useGraph();
+  const {graph, setGraph} = G;
   const selectedNode = G.graph.selectedNodes.size < 2 ? G.graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
+  const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
 
   return (
     <>
@@ -42,6 +44,17 @@ const Home: NextPage = () => {
         <NodeConfigPanel G={G} selectedNodeID={selectedNode} setCollapseConfig={setCollapseConfig}/>
       }
 
+      { !collapseConfig && graph.selectedNodes.size == 0 &&
+        <GraphConfigPanel G={G} setCollapse={setCollapseConfig}/>
+      }
+
+      { !collapseConfig && graph.selectedNodes.size > 1 &&
+        <GroupConfigPanel G={G} setCollapse={setCollapseConfig}/>
+      }
+      
+      { !collapseExplorer &&
+        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer}/>
+      }
 
     </>
   );

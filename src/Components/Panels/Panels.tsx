@@ -6,20 +6,21 @@ import { ConfigPanelItem } from "./PanelElements";
 interface configPanelProps {
   G: GState,
   title: string, 
-  setCollapseConfig: Dispatch<SetStateAction<boolean>>,
+  setCollapse: Dispatch<SetStateAction<boolean>>,
+  direction?: "right" | "left",
   children: JSX.Element | JSX.Element[],
 }
 
-export const ConfigPanel = ({G, title, setCollapseConfig, children}: configPanelProps) => {
+export const ConfigPanel = ({G, title, setCollapse, direction = "right", children}: configPanelProps) => {
   const {graph, setGraph} = G
   return (
-    <div className={"absolute top-24 right-6 h-5/6 w-80 bg-[#222326] rounded-[34px] text-white font-mono divide-y"}>
+    <div className={`absolute top-24 ${direction}-6 h-5/6 w-80 bg-[#222326] rounded-[34px] text-white font-mono divide-y`}>
         <div className="flex justify-between p-4">
           <h2 className="font-semibold truncate">{title}</h2>
           <button onClick={
             () => {
               setGraph({...graph, selectedNodes: Immutable.Set<string>()})
-              setCollapseConfig(true)
+              setCollapse(true)
             }
           }>close</button>
         </div>
@@ -39,7 +40,7 @@ interface NodeConfigPanelProps {
 export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConfigPanelProps) => {
   const {nodes, setNodes} = G;
   return (
-    <ConfigPanel title={nodes.get(selectedNodeID)?.goal ?? " "} G={G} setCollapseConfig={setCollapseConfig}>
+    <ConfigPanel title={nodes.get(selectedNodeID)?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
       <ConfigPanelItem itemHeading="Basic Node Data">
         <div className="flex items-center">
           <p className="w-16">Goal</p>
@@ -82,6 +83,41 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
 
 }
 
+interface GenericPanelProps {
+  G: GState,
+  setCollapse: Dispatch<SetStateAction<boolean>> 
+}
+  
+
+export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
+  const {graph, setGraph} = G;
+  return (
+    <ConfigPanel title={"Graph Config"} G={G} setCollapse={setCollapse}>
+
+
+    </ConfigPanel>
+  )
+}
+
+export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
+  const {graph, setGraph} = G;
+  return (
+    <ConfigPanel title={"Group Config"} G={G} setCollapse={setCollapse}>
+
+
+    </ConfigPanel>
+  )
+}
+
+export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
+  const {graph, setGraph} = G;
+  return (
+    <ConfigPanel title={"Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
+
+
+    </ConfigPanel>
+  )
+}
 
 function handleInputChange(
   e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, 
