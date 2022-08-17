@@ -1,5 +1,6 @@
 import Immutable from "immutable";
 import type { NextPage } from "next";
+import {signIn, useSession} from "next-auth/react";
 import Head from "next/head";
 import {useState, Dispatch, SetStateAction, FormEvent} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
@@ -11,10 +12,17 @@ import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
   const G = useGraph();
-  const {graph, setGraph} = G;
-  const selectedNode = G.graph.selectedNodes.size < 2 ? G.graph.selectedNodes.first("nothing") : "nothing";
+  const {graph} = G;
+  const selectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
   const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
+  const auth = useSession()
+
+  if (auth.status === "unauthenticated") {
+    signIn()
+    return (<div></div>)
+  }
+  
 
   return (
     <>
@@ -29,14 +37,20 @@ const Home: NextPage = () => {
         G={G}
       />
       
-      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={G.graph}/>
+      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        {hintText(currentTool, G.graph.selectedPair.size)}
+        {hintText(currentTool, graph.selectedPair.size)}
       </p>
       <div className="text-white bg-black p-2 rounded-lg absolute right-5 top-5">
         <button onClick={() => setCollapseConfig(false)} className={"text-white"}>
           Config Panel
+        </button>
+      </div>
+
+      <div className="text-white bg-black p-2 rounded-lg absolute left-5 top-5">
+        <button onClick={() => setCollapseExplorer(false)} className={"text-white"}>
+          Tree Explorer
         </button>
       </div>
       

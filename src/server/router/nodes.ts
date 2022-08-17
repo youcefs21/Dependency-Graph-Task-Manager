@@ -3,7 +3,11 @@ import { z } from "zod";
 
 export const nodeRouter = createRouter()
   .query("getAll", {
-    async resolve({ ctx }) {
+    input: z.object({userID: z.string().nullish()}),
+    async resolve({ ctx, input }) {
+      if (input.userID === null)
+        return
+
       return await ctx.prisma.node.findMany({
         select: {
           id: true,
@@ -13,17 +17,23 @@ export const nodeRouter = createRouter()
           description: true
         },
         where: {
+          userId: input.userID,
           archive: false
         }
       });
     }
   })
   .query("getPairs", {
-    async resolve({ ctx }) {
+    input: z.object({userID: z.string().nullish()}),
+    async resolve({ ctx, input}) {
+      if (input.userID === null) return;
       return await ctx.prisma.edge.findMany({
         select: {
           node1_id: true,
           node2_id: true,
+        },
+        where: {
+          userId: input.userID
         }
       });
     },
@@ -31,6 +41,7 @@ export const nodeRouter = createRouter()
   .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
+      userId: z.string().optional(),
       cords: z.object({x: z.number(), y: z.number()}).optional(),
       goal: z.string().optional(),
       archive: z.boolean().optional(),
@@ -48,6 +59,7 @@ export const nodeRouter = createRouter()
         },
         create: {
           id: input.nodeId,
+          userId: input.userId,
           x: input.cords?.x,
           y: input.cords?.y,
           goal: input.goal,
@@ -60,13 +72,16 @@ export const nodeRouter = createRouter()
   .mutation("addPair", {
     input: z.object({
       node1Id: z.string(),
-      node2Id: z.string()
+      node2Id: z.string(),
+      userId: z.string().nullish()
     }),
     async resolve({ input, ctx }) {
+      if (input.userId === null) return;
       return await ctx.prisma.edge.create({
         data: {
           node1_id: input.node1Id,
-          node2_id: input.node2Id
+          node2_id: input.node2Id,
+          userId: input.userId
         }
       });
     },

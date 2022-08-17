@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
+import {useSession} from "next-auth/react";
 
 
 export interface nodeState {
@@ -57,7 +58,8 @@ const initialGraph: graphState = {
 }
 
 export function useGraph(): GState {
-  const nodesInit = trpc.useQuery(["nodes.getAll"]);
+  const session = useSession();
+  const nodesInit = trpc.useQuery(["nodes.getAll", {userID: session.data?.user?.id ?? null}]);
   const graphInit = trpc.useQuery(["settings.getAll"]);
 
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
@@ -65,7 +67,7 @@ export function useGraph(): GState {
   
   const updateGraph = trpc.useMutation(["settings.updateAll"]);
 
-  const nodeIdPairs = trpc.useQuery(["nodes.getPairs"]);
+  const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
   const addPair = trpc.useMutation(["nodes.addPair"])
   const deletePair = trpc.useMutation(["nodes.deletePair"])
   const adj = useRef(new Map<string, Set<string>>())
@@ -228,10 +230,16 @@ export function useGraph(): GState {
   useEffect(() => {
     if (saveTimer != 100)
       return
+
+    const userID = session.data?.user?.id
+    if (!userID){
+      setSaveTimer(0)
+      return
+    }
     
     // update graph
     updateGraph.mutate({
-      userId: "root",
+      userId: userID,
       scale: graph.scale, 
       pos: {x: graph.TopLeftX, y: graph.TopLeftY}
     })
@@ -272,7 +280,7 @@ export function useGraph(): GState {
     let tempEdges = edges
     edges.forEach((edge, i) => {
       if (edge.action === "add"){
-        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id})
+        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id, userId: session.data?.user?.id ?? null})
         tempEdges = edges.set(i, {...edge, action: "nothing"})
       }
       else if (edge.action === "delete") {

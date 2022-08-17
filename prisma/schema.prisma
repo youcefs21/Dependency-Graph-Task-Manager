@@ -35,6 +35,8 @@ model Edge {
   node2_id String
   node1    Node   @relation("outgoing", fields: [node1_id], references: [id], onDelete: Cascade)
   node2    Node   @relation("incoming", fields: [node2_id], references: [id], onDelete: Cascade)
+  userId      String  @default("root")
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique(fields: [node1_id, node2_id])
 }
@@ -85,6 +87,7 @@ model User {
   sessions      Session[]
   settings      Settings?
   nodes         Node[]
+  edges         Edge[]
 }
 
 model VerificationToken {
