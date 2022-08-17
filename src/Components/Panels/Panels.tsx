@@ -13,20 +13,21 @@ interface configPanelProps {
 
 export const ConfigPanel = ({G, title, setCollapse, direction = "right", children}: configPanelProps) => {
   const {graph, setGraph} = G
+  const style = direction === "right" ? {right: 16} : {left: 16}
   return (
-    <div className={`absolute top-24 ${direction}-6 h-5/6 w-80 bg-[#222326] rounded-[34px] text-white font-mono divide-y`}>
-        <div className="flex justify-between p-4">
-          <h2 className="font-semibold truncate">{title}</h2>
-          <button onClick={
-            () => {
-              setGraph({...graph, selectedNodes: Immutable.Set<string>()})
-              setCollapse(true)
-            }
-          }>close</button>
-        </div>
-        <div className="divide-y p-4">
-          {children}
-        </div>
+    <div className={`absolute top-24 h-5/6 w-80 bg-[#222326] rounded-[34px] text-white font-mono divide-y`} style={style}>
+      <div className="flex justify-between p-4">
+        <h2 className="font-semibold truncate">{title}</h2>
+        <button onClick={
+          () => {
+            setGraph({...graph, selectedNodes: Immutable.Set<string>()})
+            setCollapse(true)
+          }
+        }>close</button>
+      </div>
+      <div className="divide-y p-4">
+        {children}
+      </div>
     </div>
   );
 }
