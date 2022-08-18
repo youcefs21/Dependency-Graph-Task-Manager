@@ -80,7 +80,7 @@ export function useGraph(): GState {
   
   // ============ setup state ============
   useEffect( () => {
-    if (nodesInit.data && nodes.size === 0 && graphInit.data && nodeIdPairs.data) {
+    if (nodesInit.data && nodes.size === 0 && graphInit.data && nodeIdPairs.data && session.data?.user?.id) {
 
       let tempNodes = Immutable.Map<string,nodeState>()
       
@@ -99,6 +99,7 @@ export function useGraph(): GState {
         ...graph,
         TopLeftX: graphInit.data.x,
         TopLeftY: graphInit.data.y,
+        userId: session.data?.user?.id,
         scale: graphInit.data.scale,
         loaded: true
       });
