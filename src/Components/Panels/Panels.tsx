@@ -45,7 +45,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
       <ConfigPanelItem itemHeading="Basic Node Data">
         <div className="flex items-center">
           <p className="w-16">Goal</p>
-          <input className="bg-[#393939] rounded-l m-2 p-1 caret-white outline-0"
+          <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0"
             type={'text'}
             name={'goal'}
             placeholder={"short title"}
@@ -56,7 +56,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
         <div className="py-2">
           <p>Description</p>
-          <textarea className="bg-[#393939] rounded-l my-2 p-1 caret-white outline-0"
+          <textarea className="bg-[#393939] rounded my-2 p-1 caret-white outline-0"
             cols={27}
             rows={5}
             name={'description'}
@@ -68,7 +68,14 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Properties">
-        <div></div>
+        <div className="flex items-center">
+          <p className="w-16">Due</p>
+          <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
+            type={'datetime-local'}
+            name={'due'}
+            onInput={(e) => handleInputChange(e, selectedNodeID, nodes, setNodes)}
+          />
+        </div>
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Connections">
@@ -94,7 +101,13 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
   const {graph, setGraph} = G;
   return (
     <ConfigPanel title={"Graph Config"} G={G} setCollapse={setCollapse}>
+      <ConfigPanelItem itemHeading="Properties">
+        <div></div>
+      </ConfigPanelItem>
 
+      <ConfigPanelItem itemHeading="Apearance">
+        <div></div>
+      </ConfigPanelItem>
 
     </ConfigPanel>
   )
@@ -127,6 +140,7 @@ function handleInputChange(
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>
 ) {
   const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+  console.log(input.value)
 
   input.name === "goal" && setNodes(
     nodes.set(selectedNode, {

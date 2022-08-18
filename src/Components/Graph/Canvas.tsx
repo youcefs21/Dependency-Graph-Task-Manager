@@ -69,7 +69,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
   useEffect(
     () => {
       // do nothing if canvas or data are not ready
-      if (!canvasRef || nodes.size === 0) return;
+      if (!canvasRef && graph.loaded) return;
       
 
       // set up canvas
@@ -121,9 +121,10 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         const y1 = (pos1.y - graph.TopLeftY)*graph.scale
         const y2 = (pos2.y - graph.TopLeftY)*graph.scale
 
-        const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2)
+        const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2) 
+        if (len === 0) return;
         const prog = (bitPos*graph.scale)/len;
-        const r = (bitR*graph.scale)/len
+        const r = (bitR*graph.scale)/len;
         
         ctx.lineWidth = 1 + graph.scale/5;
         ctx.setLineDash([(graph.scale*2)/5, graph.scale/5]);

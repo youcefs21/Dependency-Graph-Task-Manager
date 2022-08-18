@@ -23,15 +23,20 @@ export const settingsRouter = createRouter()
       }).optional()
     }),
     async resolve({ input, ctx }) {
-        return await ctx.prisma.settings.update({
-          where: {userId: input.userId},
-          data: {
-            x: input.pos?.x,
-            y: input.pos?.y,
-            scale: input.scale
-          }
-        });
-
+      return await ctx.prisma.settings.upsert({
+        where: {userId: input.userId},
+        update: {
+          x: input.pos?.x,
+          y: input.pos?.y,
+          scale: input.scale
+        },
+        create: {
+          userId: input.userId,
+          x: input.pos?.x,
+          y: input.pos?.y,
+          scale: input.scale
+        }
+      });
     },
   });
 
