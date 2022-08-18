@@ -73,7 +73,7 @@ export const nodeRouter = createRouter()
     input: z.object({
       node1Id: z.string(),
       node2Id: z.string(),
-      userId: z.string().nullish()
+      userId: z.string()
     }),
     async resolve({ input, ctx }) {
       if (input.userId === null) return;

@@ -232,15 +232,10 @@ export function useGraph(): GState {
     if (saveTimer != 100)
       return
 
-    const userID = session.data?.user?.id
-    if (!userID){
-      setSaveTimer(0)
-      return
-    }
     
     // update graph
     updateGraph.mutate({
-      userId: userID,
+      userId: graph.userId,
       scale: graph.scale, 
       pos: {x: graph.TopLeftX, y: graph.TopLeftY}
     })
@@ -283,7 +278,7 @@ export function useGraph(): GState {
     let tempEdges = edges
     edges.forEach((edge, i) => {
       if (edge.action === "add"){
-        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id, userId: session.data?.user?.id ?? null})
+        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id, userId: graph.userId})
         tempEdges = edges.set(i, {...edge, action: "nothing"})
       }
       else if (edge.action === "delete") {
