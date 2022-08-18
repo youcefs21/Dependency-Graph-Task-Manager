@@ -123,7 +123,7 @@ export function useGraph(): GState {
       setEdges(tempEdges)
     }
 
-  }, [nodesInit.data, graphInit.data, nodeIdPairs.data])
+  }, [nodesInit.data, graphInit.data, nodeIdPairs.data, session.data])
 
   // ============ edge handling ============
   
