@@ -18,7 +18,7 @@ generator js {
 
 model Node {
   id          String  @id @default(cuid())
-  userId      String  @default("root")
+  userId      String 
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal        String  @default("insert goal here")
   archive     Boolean @default(false)
@@ -35,7 +35,7 @@ model Edge {
   node2_id String
   node1    Node   @relation("outgoing", fields: [node1_id], references: [id], onDelete: Cascade)
   node2    Node   @relation("incoming", fields: [node2_id], references: [id], onDelete: Cascade)
-  userId      String  @default("root")
+  userId      String 
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique(fields: [node1_id, node2_id])

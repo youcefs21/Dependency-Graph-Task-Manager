@@ -250,6 +250,7 @@ export function useGraph(): GState {
     nodes.forEach((node, key) => {
       if (node.action === "add" || node.action === "update") {
         updateNode.mutate({
+          userId: graph.userId,
           nodeId: key,
           cords: {x: node.x, y: node.y},
           goal: node.goal,
@@ -260,6 +261,7 @@ export function useGraph(): GState {
       else if (node.action === "archive") {
         updateNode.mutate({
           nodeId: key,
+          userId: graph.userId,
           cords: {x: node.x, y: node.y},
           goal: node.goal,
           description: node.description,

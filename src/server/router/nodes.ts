@@ -41,7 +41,7 @@ export const nodeRouter = createRouter()
   .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
-      userId: z.string().optional(),
+      userId: z.string(),
       cords: z.object({x: z.number(), y: z.number()}).optional(),
       goal: z.string().optional(),
       archive: z.boolean().optional(),
