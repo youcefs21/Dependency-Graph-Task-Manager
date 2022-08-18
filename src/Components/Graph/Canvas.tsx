@@ -69,7 +69,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
   useEffect(
     () => {
       // do nothing if canvas or data are not ready
-      if (!canvasRef && graph.loaded) return;
+      if (!canvasRef || !graph.loaded) return;
       
 
       // set up canvas
