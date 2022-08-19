@@ -28,15 +28,13 @@ export interface graphState {
 }
 
 export interface edgeState {
-  node1_id: string,
-  node2_id: string,
   action: "nothing" | "add" | "delete" 
 }
 
 export interface GState {
   nodes: Immutable.Map<string, nodeState>,
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
-  edges: Immutable.List<edgeState>,
+  edges: Immutable.Map<Immutable.List<string>, edgeState>,
   edgeAction: (action: string, n1: string, n2: string) => void 
   graph: graphState,
   setGraph: Dispatch<SetStateAction<graphState>>,
@@ -73,7 +71,7 @@ export function useGraph(): GState {
   const adj = useRef(new Map<string, Set<string>>())
 
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
-  const [edges, setEdges] = useState(Immutable.List<edgeState>())
+  const [edges, setEdges] = useState(Immutable.Map<Immutable.List<string>, edgeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
 
   const [saveTimer, setSaveTimer] = useState<number>(10000);
@@ -104,7 +102,7 @@ export function useGraph(): GState {
         loaded: true
       });
 
-      let tempEdges = Immutable.List<edgeState>()
+      let tempEdges = edges
 
       nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
         // set up adjecency list
@@ -114,9 +112,7 @@ export function useGraph(): GState {
           adj.current.set(node1_id, new Set(node2_id))
         }
         // set up edges
-        tempEdges = tempEdges.push({
-          node1_id: node1_id,
-          node2_id: node2_id,
+        tempEdges = tempEdges.set(Immutable.List([node1_id, node2_id]), {
           action: "nothing"
         });
       });
@@ -130,33 +126,40 @@ export function useGraph(): GState {
   const edgeAction = (action: string, n1: string, n2: string) => {
 
     let tempEdges = edges;
+    const p1 = Immutable.List([n1, n2])
+    const p2 = Immutable.List([n2, n1])
 
     if (action === "add") {
       if (dfs(n1, n2) && !adj.current.get(n1)?.has(n2)) {
-        tempEdges = tempEdges.push({
-          node1_id: n1, 
-          node2_id: n2, 
-          action: "add"
-        });
-        adj.current.get(n1) ? adj.current.get(n1)!.add(n2) : adj.current.set(n1, new Set(n2))
+        if (!tempEdges.has(p1)) {
+          tempEdges = tempEdges.set(p1, {
+            action: "add"
+          });
+        } else {
+          tempEdges = tempEdges.set(p1, {
+            action: "nothing"
+          });
+        }
+        adj.current.get(n1) ? adj.current.get(n1)!.add(n2) : adj.current.set(n1, new Set([n2]))
           
       } else {
         console.log("connection failed, would create a cycle")
       }
     } else if (action === "delete") {
-        for (let i = 0; i < edges.size; i++){
-          const cn1 = edges.get(i)?.node1_id
-          const cn2 = edges.get(i)?.node2_id
-          if ((cn1 === n1 && cn2 === n2) || (cn1 === n2 && cn2 === n1)) {
-              tempEdges = tempEdges.set(i, {
-                node1_id: cn1,
-                node2_id: cn2,
-                action: "delete"
-              });
-              adj.current.get(n1)?.delete(n2)
-              adj.current.get(n2)?.delete(n1)
-          }
+        if (tempEdges.has(p1)) {
+          tempEdges = tempEdges.set(p1, {
+            action: "delete"
+          });
         }
+
+        if (tempEdges.has(p2)) {
+          tempEdges = tempEdges.set(p2, {
+            action: "delete"
+          });
+        }
+        adj.current.get(n1)?.delete(n2)
+        adj.current.get(n2)?.delete(n1)
+        
     }
     setEdges(tempEdges)
 
@@ -276,14 +279,14 @@ export function useGraph(): GState {
 
     // add and delete edges
     let tempEdges = edges
-    edges.forEach((edge, i) => {
+    edges.forEach((edge, pair) => {
       if (edge.action === "add"){
-        addPair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id, userId: graph.userId})
-        tempEdges = edges.set(i, {...edge, action: "nothing"})
+        addPair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!, userId: graph.userId})
+        tempEdges = edges.set(pair, {...edge, action: "nothing"})
       }
       else if (edge.action === "delete") {
-        deletePair.mutate({node1Id: edge.node1_id, node2Id: edge.node2_id})
-        tempEdges = edges.delete(i)
+        deletePair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!})
+        tempEdges = edges.delete(pair)
       }
     });
 

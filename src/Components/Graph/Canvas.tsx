@@ -148,11 +148,17 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
 
       
       // draw the lines
-      edges.forEach((pair) => {
-        const node1 = nodes.get(pair.node1_id) 
-        const node2 = nodes.get(pair.node2_id)
-        if (node1 && node2 && pair.action != "delete" && ["add", "update", "nothing"].includes(node1.action) && ["add", "update", "nothing"].includes(node2.action)) 
+      edges.forEach((edge, pair) => {
+        const node1 = nodes.get(pair.get(0)!) 
+        const node2 = nodes.get(pair.get(1)!)
+        if (
+          node1 && node2 && 
+          edge.action != "delete" && 
+          ["add", "update", "nothing"].includes(node1.action) && 
+          ["add", "update", "nothing"].includes(node2.action)
+        ) {
           createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
+        }
       });
       
       // draw the nodes and set the cursor

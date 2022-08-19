@@ -140,7 +140,6 @@ function handleInputChange(
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>
 ) {
   const input = e.target as HTMLInputElement | HTMLTextAreaElement;
-  console.log(input.value)
 
   input.name === "goal" && setNodes(
     nodes.set(selectedNode, {
