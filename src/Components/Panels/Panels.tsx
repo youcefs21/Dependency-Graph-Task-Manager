@@ -73,6 +73,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
           <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
             type={'datetime-local'}
             name={'due'}
+            value={nodes.get(selectedNodeID)?.due ?? ""}
             onInput={(e) => handleInputChange(e, selectedNodeID, nodes, setNodes)}
           />
         </div>
@@ -147,7 +148,7 @@ function handleInputChange(
       goal: input.value,
       action: "update"
     })
-  )
+  );
 
   input.name === "description" && setNodes(
     nodes.set(selectedNode, {
@@ -155,5 +156,13 @@ function handleInputChange(
       description: input.value,
       action: "update"
     })
-  )
+  );
+
+  input.name === "due" && setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      due: input.value,
+      action: "update"
+    })
+  );
 }

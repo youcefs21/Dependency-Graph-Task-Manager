@@ -96,8 +96,21 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         ctx.lineTo(width, i*graph.scale)
         ctx.stroke()
       }
+      const parseDeltaTime = (d: number) => {
+        if (d < 0) return "00:00:00"
+        d = Math.floor(d/1000);
+        const s = d%60;
+        d = Math.floor(d/60)
+        const m = d%60;
+        d = Math.floor(d/60)
+        const h = d%60;
+        d = Math.floor(d/24)
+
+        return d.toString().padStart(2, "0") + ":" + h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0")
+
+      }
       // function that draws the nodes
-      const createNode = (pos: vec2, color: string, label: string) => {
+      const createNode = (pos: vec2, color: string, label: string, datetime: number | undefined) => {
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
         ctx.fillStyle = color;
@@ -110,6 +123,13 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.fillText(label, x, y + graph.scale*2);
+          if (datetime) {
+            ctx.font = (0.75*graph.scale).toString() + 'px serif';
+            ctx.fillStyle = "gray";
+            ctx.textAlign = "center"
+            ctx.textBaseline = "middle"
+            ctx.fillText(parseDeltaTime(datetime - Date.now()), x, y - graph.scale*2);
+          }
         }
       }
       // function that draws the arrows
@@ -173,7 +193,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         }
         if (graph.selectedNodes.has(id))
           color = "#f472b6"
-        createNode(node, color, nodes.get(id)?.goal ?? "new Node")
+        createNode(node, color, nodes.get(id)?.goal ?? "new Node", nodes.get(id)?.due ? Date.parse(nodes.get(id)?.due!) : undefined)
       });
 
       // draw selected area
