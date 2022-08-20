@@ -4,12 +4,12 @@ import superjson from "superjson";
 
 import { nodeRouter } from "./nodes";
 import { authRouter } from "./auth";
-import {settingsRouter} from "./settings";
+import { graphsRouter } from "./graphs";
 
 export const appRouter = createRouter()
   .transformer(superjson)
   .merge("nodes.", nodeRouter)
-  .merge("settings.", settingsRouter)
+  .merge("graph.", graphsRouter)
   .merge("auth.", authRouter);
 
 // export type definition of API

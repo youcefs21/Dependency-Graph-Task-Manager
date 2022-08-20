@@ -13,6 +13,8 @@ export interface nodeState {
 }
 
 export interface graphState {
+  graphId: string, 
+  graphName: string,
   scale: number,
   TopLeftX: number,
   TopLeftY: number,
@@ -41,7 +43,9 @@ export interface GState {
 }
 
 const initialGraph: graphState = {
-  scale: 0,
+  graphId: "root",
+  graphName: "Graph",
+  scale: 10,
   TopLeftX: 0,
   TopLeftY: 0,
   mouseDown: false,
@@ -58,12 +62,12 @@ const initialGraph: graphState = {
 export function useGraph(): GState {
   const session = useSession();
   const nodesInit = trpc.useQuery(["nodes.getAll", {userID: session.data?.user?.id ?? null}]);
-  const graphInit = trpc.useQuery(["settings.getAll"]);
+  const graphInit = trpc.useQuery(["graph.getFirst", {userId: session.data?.user?.id ?? null}]);
 
   const updateNode = trpc.useMutation(["nodes.updateNode"]);
   const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
   
-  const updateGraph = trpc.useMutation(["settings.updateAll"]);
+  const updateGraph = trpc.useMutation(["graph.updateOne"]);
 
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
   const addPair = trpc.useMutation(["nodes.addPair"])
@@ -95,6 +99,8 @@ export function useGraph(): GState {
 
       setGraph({
         ...graph,
+        graphId: graphInit.data.id,
+        graphName: graphInit.data.name,
         TopLeftX: graphInit.data.x,
         TopLeftY: graphInit.data.y,
         userId: session.data?.user?.id,
@@ -238,6 +244,7 @@ export function useGraph(): GState {
     
     // update graph
     updateGraph.mutate({
+      graphid: graph.graphId,
       userId: graph.userId,
       scale: graph.scale, 
       pos: {x: graph.TopLeftX, y: graph.TopLeftY}
