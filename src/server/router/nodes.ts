@@ -63,7 +63,8 @@ export const nodeRouter = createRouter()
           y: input.cords?.y,
           goal: input.goal,
           archive: input.archive,
-          description: input.description
+          description: input.description,
+          priority: input.priority
         }
       });
     },

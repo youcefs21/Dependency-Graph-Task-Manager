@@ -11,6 +11,9 @@ export const graphsRouter = createRouter()
       const firstGraph = await ctx.prisma.graph.findFirst({
         where: {
           userId: input.userId
+        },
+        include: {
+          layers: true
         }
       });
       
@@ -19,6 +22,9 @@ export const graphsRouter = createRouter()
           data: {
             userId: input.userId!,
             scale: 10
+          },
+          include: {
+            layers: true
           }
         })
       } else {
@@ -48,6 +54,9 @@ export const graphsRouter = createRouter()
           y: input.pos?.y,
           scale: input.scale
         },
+        include: {
+          layers: true
+        }
       });
     },
   });

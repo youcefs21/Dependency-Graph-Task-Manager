@@ -103,7 +103,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         d = Math.floor(d/60)
         const m = d%60;
         d = Math.floor(d/60)
-        const h = d%60;
+        const h = d%24;
         d = Math.floor(d/24)
 
         return d.toString().padStart(2, "0") + ":" + h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0")
@@ -117,7 +117,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
-        if (graph.scale > 8){
+        if (graph.scale > 5){
           ctx.font = graph.scale.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"

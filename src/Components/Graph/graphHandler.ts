@@ -29,11 +29,17 @@ export interface graphState {
   userId: string,
   saveState: "saved" | "not saved",
   loaded: boolean,
-  ignoreChange: boolean
+  ignoreChange: boolean,
+  layers: Immutable.Map<string, layerState>
 }
 
 export interface edgeState {
   action: "nothing" | "add" | "delete" 
+}
+
+export interface layerState {
+  name: string,
+  visible: boolean
 }
 
 export interface GState {
@@ -59,7 +65,8 @@ const initialGraph: graphState = {
   userId: "root",
   saveState: "saved",
   loaded: false,
-  ignoreChange: true
+  ignoreChange: true,
+  layers: Immutable.Map<string, layerState>()
 }
 
 export function useGraph(): GState {
@@ -103,6 +110,16 @@ export function useGraph(): GState {
       });
       setNodes(tempNodes);
 
+
+      const layers = graph.layers
+
+      graphInit.data.layers.forEach((edge) => {
+        layers.set(edge.id, {
+          name: edge.name,
+          visible: edge.visible
+        })
+      })
+      
       setGraph({
         ...graph,
         graphId: graphInit.data.id,
@@ -111,7 +128,8 @@ export function useGraph(): GState {
         TopLeftY: graphInit.data.y,
         userId: session.data?.user?.id,
         scale: graphInit.data.scale,
-        loaded: true
+        loaded: true,
+        layers: layers
       });
 
       let tempEdges = edges
