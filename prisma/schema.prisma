@@ -18,13 +18,16 @@ generator js {
 
 model Node {
   id          String  @id @default(cuid())
-  userId      String 
+  userId      String
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal        String  @default("insert goal here")
   archive     Boolean @default(false)
   x           Int     @default(0)
   y           Int     @default(0)
   description String? @db.Text
+  size        Float   @default(1)
+  due         String?
+  priority    String  @default("normal")
   out_edges   Edge[]  @relation("outgoing")
   in_edges    Edge[]  @relation("incoming")
 }
@@ -35,16 +38,15 @@ model Edge {
   node2_id String
   node1    Node   @relation("outgoing", fields: [node1_id], references: [id], onDelete: Cascade)
   node2    Node   @relation("incoming", fields: [node2_id], references: [id], onDelete: Cascade)
-  userId      String 
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique(fields: [node1_id, node2_id])
 }
 
-
 model Graph {
   id     String @id @default(cuid())
-  userId String 
+  userId String
   scale  Float  @default(20)
   x      Float  @default(0)
   y      Float  @default(0)
@@ -88,7 +90,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  graphs      Graph[]
+  graphs        Graph[]
   nodes         Node[]
   edges         Edge[]
 }

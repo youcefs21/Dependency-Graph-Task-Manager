@@ -9,13 +9,6 @@ export const nodeRouter = createRouter()
         return
 
       return await ctx.prisma.node.findMany({
-        select: {
-          id: true,
-          x: true,
-          y: true,
-          goal: true,
-          description: true
-        },
         where: {
           userId: input.userID,
           archive: false
@@ -45,7 +38,10 @@ export const nodeRouter = createRouter()
       cords: z.object({x: z.number(), y: z.number()}).optional(),
       goal: z.string().optional(),
       archive: z.boolean().optional(),
-      description: z.string().nullish()
+      description: z.string().nullish(),
+      nodeSize: z.number(),
+      due: z.string().nullish(),
+      priority: z.string()
     }),
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.upsert({
@@ -55,7 +51,10 @@ export const nodeRouter = createRouter()
           y: input.cords?.y,
           goal: input.goal,
           archive: input.archive,
-          description: input.description
+          description: input.description,
+          size: input.nodeSize,
+          due: input.due,
+          priority: input.priority
         },
         create: {
           id: input.nodeId,

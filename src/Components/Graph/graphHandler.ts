@@ -9,7 +9,10 @@ export interface nodeState {
   x: number,
   y: number,
   description: string | null,
-  action: "nothing" | "add" | "delete" | "archive" | "update"
+  action: "nothing" | "add" | "delete" | "archive" | "update",
+  nodeSize: number,
+  due: string | null,
+  priority: "critical" | "high" | "normal" | "low" | string
 }
 
 export interface graphState {
@@ -92,7 +95,10 @@ export function useGraph(): GState {
           y: node.y,
           goal: node.goal,
           description: node.description,
-          action: "nothing"
+          action: "nothing",
+          nodeSize: node.size,
+          due: node.due,
+          priority: node.priority
         });
       });
       setNodes(tempNodes);
@@ -259,7 +265,10 @@ export function useGraph(): GState {
           nodeId: key,
           cords: {x: node.x, y: node.y},
           goal: node.goal,
-          description: node.description
+          description: node.description,
+          nodeSize: node.nodeSize,
+          due: node.due,
+          priority: node.priority
         })
         tempNodes = tempNodes.set(key, {...node, action: "nothing"});
       }
@@ -270,6 +279,9 @@ export function useGraph(): GState {
           cords: {x: node.x, y: node.y},
           goal: node.goal,
           description: node.description,
+          nodeSize: node.nodeSize,
+          due: node.due,
+          priority: node.priority,
           archive: true
         });
         tempNodes = tempNodes.delete(key);
