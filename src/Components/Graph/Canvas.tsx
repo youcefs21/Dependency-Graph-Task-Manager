@@ -118,17 +118,18 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
         if (graph.scale > 8){
-          ctx.font = graph.scale.toString() + 'px serif';
+          ctx.font = graph.scale.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.fillText(label, x, y + graph.scale*2);
           if (datetime) {
-            ctx.font = (0.75*graph.scale).toString() + 'px serif';
-            ctx.fillStyle = "gray";
+            const delta = datetime - Date.now()
+            ctx.font = "bold " + (0.75*graph.scale).toString() + 'px monospace';
+            ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
             ctx.textAlign = "center"
             ctx.textBaseline = "middle"
-            ctx.fillText(parseDeltaTime(datetime - Date.now()), x, y - graph.scale*2);
+            ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
           }
         }
       }
