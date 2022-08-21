@@ -39,8 +39,12 @@ export function handlePointerDown(
   let newHeldNode = graph.heldNode;
   if (currentTool.current != "move"){
     nodes.forEach((node, id) => {
-      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1) {
-          newHeldNode = id
+      if (
+          Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 &&
+          (graph.showArchive || !node.archive) &&
+          node.action != "delete"
+        ) {
+        newHeldNode = id
       }
     });
   }
@@ -192,6 +196,7 @@ export function handleMove(
 
 
           nodes.forEach((node, nodeID) => {
+            if ((node.archive && !graph.showArchive) || node.action === "delete") return
             const xCond1 = xDir === 1 && node.x >= graph.selectedArea.x1 && node.x <= newX2
             const yCond1 = yDir === 1 && node.y >= graph.selectedArea.y1 && node.y <= newY2
             const xCond2 = xDir === -1 && node.x <= graph.selectedArea.x1 && node.x >= newX2

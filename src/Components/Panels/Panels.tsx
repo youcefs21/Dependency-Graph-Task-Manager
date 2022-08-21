@@ -114,11 +114,19 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
             onInput={(e) => handleInputChange(e, "graph", G)}
           />
         </div>
-        
+
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Layers">
-        <div></div>
+        <div className="flex items-center">
+          <input className="m-2" 
+            type={'checkbox'} 
+            name={'showArchive'} 
+            checked={graph.showArchive} 
+            onChange={(e) => handleInputChange(e, "graph", G)} 
+          />
+          <p className="text-xs">Show Archive</p>
+        </div>
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Properties">
@@ -188,6 +196,10 @@ function handleInputChange(
   input.name === "graphName" && setGraph({
     ...graph,
     graphName: input.value,
+  });
+  input.name === "showArchive" && setGraph({
+    ...graph,
+    showArchive: !graph.showArchive
   });
 
 }
