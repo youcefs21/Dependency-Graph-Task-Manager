@@ -28,7 +28,8 @@ export function handlePointerDown(
       nodeSize: 1,
       due: null,
       priority: "normal",
-      layerIds: Immutable.List()
+      layerIds: Immutable.List(),
+      archive: false
     }));
     // TODO set the new node as the focus
     return
@@ -51,11 +52,11 @@ export function handlePointerDown(
     let tempNodes = nodes
     const n = nodes.get(newHeldNode)!
 
-
     if (t === "completeNode") // TODO what happens if you archive a node that is not saved yet
       tempNodes = tempNodes.set(newHeldNode, {
         ...n,
-        action: "archive"
+        action: "update",
+        archive: true
       });
     if (t === "deleteNode" && n.action != "add")
       tempNodes = tempNodes.set(newHeldNode, {

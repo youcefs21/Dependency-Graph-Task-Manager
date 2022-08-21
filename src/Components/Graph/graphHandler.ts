@@ -9,11 +9,12 @@ export interface nodeState {
   x: number,
   y: number,
   description: string | null,
-  action: "nothing" | "add" | "delete" | "archive" | "update",
+  action: "nothing" | "add" | "delete" | "update",
   nodeSize: number,
   due: string | null,
   priority: "critical" | "high" | "normal" | "low" | string,
-  layerIds: Immutable.List<string>
+  layerIds: Immutable.List<string>,
+  archive: boolean
 }
 
 export interface graphState {
@@ -31,7 +32,8 @@ export interface graphState {
   saveState: "saved" | "not saved",
   loaded: boolean,
   ignoreChange: boolean,
-  layers: Immutable.Map<string, layerState>
+  layers: Immutable.Map<string, layerState>,
+  showArchive: boolean
 }
 
 export interface edgeState {
@@ -67,7 +69,8 @@ const initialGraph: graphState = {
   saveState: "saved",
   loaded: false,
   ignoreChange: true,
-  layers: Immutable.Map<string, layerState>()
+  layers: Immutable.Map<string, layerState>(),
+  showArchive: false
 }
 
 export function useGraph(): GState {
@@ -107,7 +110,8 @@ export function useGraph(): GState {
           nodeSize: node.size,
           due: node.due,
           priority: node.priority,
-          layerIds: Immutable.List(node.nodeLayers.map((val) => val.layerId))
+          layerIds: Immutable.List(node.nodeLayers.map((val) => val.layerId)),
+          archive: node.archive
         });
       });
       setNodes(tempNodes);
@@ -288,23 +292,10 @@ export function useGraph(): GState {
           description: node.description,
           nodeSize: node.nodeSize,
           due: node.due,
-          priority: node.priority
+          priority: node.priority,
+          archive: node.archive
         })
         tempNodes = tempNodes.set(key, {...node, action: "nothing"});
-      }
-      else if (node.action === "archive") {
-        updateNode.mutate({
-          nodeId: key,
-          userId: graph.userId,
-          cords: {x: node.x, y: node.y},
-          goal: node.goal,
-          description: node.description,
-          nodeSize: node.nodeSize,
-          due: node.due,
-          priority: node.priority,
-          archive: true
-        });
-        tempNodes = tempNodes.delete(key);
       }
       else if (node.action === "delete"){
         deleteNode.mutate({

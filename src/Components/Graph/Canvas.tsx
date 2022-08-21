@@ -175,8 +175,8 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         if (
           node1 && node2 && 
           edge.action != "delete" && 
-          ["add", "update", "nothing"].includes(node1.action) && 
-          ["add", "update", "nothing"].includes(node2.action)
+          node1.action != "delete" && node2.action != "delete" && 
+          (graph.showArchive || (!node1.archive && !node2.archive))
         ) {
           createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
         }
@@ -185,7 +185,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       // draw the nodes and set the cursor
       setCursor("default")
       nodes.forEach((node, id) => {
-        if (node.action === "archive" || node.action === "delete")
+        if ((node.archive && !graph.showArchive) || node.action === "delete")
           return
         let color = "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {

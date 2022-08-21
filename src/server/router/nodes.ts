@@ -11,7 +11,6 @@ export const nodeRouter = createRouter()
       return await ctx.prisma.node.findMany({
         where: {
           userId: input.userID,
-          archive: false
         },
         select: {
           description: true,
@@ -22,7 +21,8 @@ export const nodeRouter = createRouter()
           priority: true,
           size: true,
           x: true,
-          y: true
+          y: true,
+          archive: true
         }
       });
     }
