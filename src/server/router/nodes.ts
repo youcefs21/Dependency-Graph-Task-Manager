@@ -12,6 +12,17 @@ export const nodeRouter = createRouter()
         where: {
           userId: input.userID,
           archive: false
+        },
+        select: {
+          description: true,
+          due: true,
+          goal: true,
+          id: true,
+          nodeLayers: {select: {layerId: true}},
+          priority: true,
+          size: true,
+          x: true,
+          y: true
         }
       });
     }

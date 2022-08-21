@@ -12,7 +12,8 @@ export interface nodeState {
   action: "nothing" | "add" | "delete" | "archive" | "update",
   nodeSize: number,
   due: string | null,
-  priority: "critical" | "high" | "normal" | "low" | string
+  priority: "critical" | "high" | "normal" | "low" | string,
+  layerIds: Immutable.List<string>
 }
 
 export interface graphState {
@@ -105,7 +106,8 @@ export function useGraph(): GState {
           action: "nothing",
           nodeSize: node.size,
           due: node.due,
-          priority: node.priority
+          priority: node.priority,
+          layerIds: Immutable.List(node.nodeLayers.map((val) => val.layerId))
         });
       });
       setNodes(tempNodes);

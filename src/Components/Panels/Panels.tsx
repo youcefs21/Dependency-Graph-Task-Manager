@@ -51,7 +51,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             placeholder={"short title"}
             value={nodes.get(selectedNodeID)?.goal ?? ""} 
             maxLength={35}
-            onInput={(e) => handleInputChange(e, selectedNodeID, nodes, setNodes)}
+            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
         <div className="py-2">
@@ -62,7 +62,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             name={'description'}
             placeholder={"long description"}
             value={nodes.get(selectedNodeID)?.description ?? ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, nodes, setNodes)}
+            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
       </ConfigPanelItem>
@@ -74,7 +74,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             type={'datetime-local'}
             name={'due'}
             value={nodes.get(selectedNodeID)?.due ?? ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, nodes, setNodes)}
+            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
       </ConfigPanelItem>
@@ -99,9 +99,28 @@ interface GenericPanelProps {
   
 
 export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
-  const {graph, setGraph} = G;
+  const {graph} = G;
   return (
-    <ConfigPanel title={"Graph Config"} G={G} setCollapse={setCollapse}>
+    <ConfigPanel title={graph.graphName + " Config"} G={G} setCollapse={setCollapse}>
+      <ConfigPanelItem itemHeading="Basic Info">
+        <div className="flex items-center">
+          <p className="w-16">Goal</p>
+          <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0"
+            type={'text'}
+            name={'graphName'}
+            placeholder={"Project Title"}
+            value={graph.graphName} 
+            maxLength={35}
+            onInput={(e) => handleInputChange(e, "graph", G)}
+          />
+        </div>
+        
+      </ConfigPanelItem>
+
+      <ConfigPanelItem itemHeading="Layers">
+        <div></div>
+      </ConfigPanelItem>
+
       <ConfigPanelItem itemHeading="Properties">
         <div></div>
       </ConfigPanelItem>
@@ -137,10 +156,10 @@ export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
 function handleInputChange(
   e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, 
   selectedNode: string,
-  nodes: Immutable.Map<string, nodeState>,
-  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>
+  G: GState
 ) {
   const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+  const {nodes, setNodes, graph, setGraph} = G;
 
   input.name === "goal" && setNodes(
     nodes.set(selectedNode, {
@@ -165,4 +184,10 @@ function handleInputChange(
       action: "update"
     })
   );
+
+  input.name === "graphName" && setGraph({
+    ...graph,
+    graphName: input.value,
+  });
+
 }

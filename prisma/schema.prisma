@@ -30,6 +30,7 @@ model Node {
   priority    String  @default("normal")
   out_edges   Edge[]  @relation("outgoing")
   in_edges    Edge[]  @relation("incoming")
+  nodeLayers  NodeLayers[]
 }
 
 model Edge {
@@ -61,6 +62,15 @@ model Layer {
   graphId String
   graph   Graph   @relation(fields: [graphId], references: [id])
   visible Boolean @default(false)
+  nodeIds NodeLayers[]
+}
+
+model NodeLayers {
+  id String @id @default(cuid())
+  nodeId String 
+  layerId String
+  node Node @relation(fields: [nodeId], references: [id])
+  layer Layer @relation(fields: [layerId], references: [id])
 }
 
 // Necessary for Next auth
