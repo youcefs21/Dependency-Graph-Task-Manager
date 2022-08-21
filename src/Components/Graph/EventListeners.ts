@@ -75,7 +75,7 @@ export function handlePointerDown(
       ...graph,
       mouseDown: true,
       heldNode: "nothing",
-      scale: graph.scale - 0.00001,
+      scale: graph.scale + 0.00001,
     })
     return
   }
@@ -300,7 +300,8 @@ export function handleKeyDown(
 
     setGraph({
       ...graph,
-      selectedNodes: Immutable.Set<string>()
+      selectedNodes: Immutable.Set<string>(),
+      scale: graph.scale + 0.00001
     })
 
   }
