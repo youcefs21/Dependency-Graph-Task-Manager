@@ -74,7 +74,8 @@ export function handlePointerDown(
     setGraph({
       ...graph,
       mouseDown: true,
-      heldNode: "nothing"
+      heldNode: "nothing",
+      scale: graph.scale - 0.00001,
     })
     return
   }
