@@ -134,7 +134,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                     const newLayers = graph.layers.set(index, {
                       ...layer, 
                       visible: !layer.visible, 
-                      action: "update"
+                      action: layer.action != "add" ? "update" : "add"
                     });
                     setGraph({...graph, layers: newLayers})
                   }} className={"bg-black p-1 rounded w-7 h-7"}>
@@ -144,6 +144,22 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
               </li>
             )
           }).values())}
+          <li className="my-2 rounded bg-[#2A2B34] hover:bg-slate-700">
+            <div className="flex justify-center items-center select-none">
+              <button className="w-full h-full px-4 py-2" onClick={
+                () => {
+                  const newLayers = graph.layers.set(graph.layers.size.toString(), {
+                    name: "New Layer",
+                    visible: true,
+                    action: "add"
+                  });
+                  setGraph({...graph, layers: newLayers})
+                }
+              }>
+                + New Layer
+              </button>
+            </div>
+          </li>
         </ul>
         <div className="flex items-center">
           <input className="m-2" 
