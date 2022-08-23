@@ -28,14 +28,16 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
                   if (!node) return;
                   
                   if (isSelected) {
-                    //TODO
+                    setNodes(nodes.set(nodeID, {
+                      ...node,
+                      layerIds: node.layerIds.delete(node.layerIds.indexOf(layerID))
+                    }));
                   } else {
                     setNodes(nodes.set(nodeID, {
                       ...node, 
                       layerIds: node.layerIds.push(layerID)
                     }));
                   }
-
                 }}>
                 {layer.name}
               </button>
