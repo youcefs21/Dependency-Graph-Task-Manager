@@ -118,6 +118,15 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Layers">
+        <ul>
+          {Array.from(graph.layers.map((layer, index) => {
+            return (
+              <li key={index} className={"p-2 my-2 rounded bg-[#2A2B34] hover:bg-slate-700"}>
+                {layer.name}
+              </li>
+            )
+          }).values())}
+        </ul>
         <div className="flex items-center">
           <input className="m-2" 
             type={'checkbox'} 

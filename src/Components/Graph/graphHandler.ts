@@ -117,10 +117,10 @@ export function useGraph(): GState {
       setNodes(tempNodes);
 
 
-      const layers = graph.layers
+      let layers = graph.layers
 
       graphInit.data.layers.forEach((edge) => {
-        layers.set(edge.id, {
+        layers = layers.set(edge.id, {
           name: edge.name,
           visible: edge.visible
         })
