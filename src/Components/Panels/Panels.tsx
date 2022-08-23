@@ -250,6 +250,14 @@ function handleInputChange(
     })
   );
 
+  input.name === "archiveNode" && setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      archive: !nodes.get(selectedNode)!.archive,
+      action: "update"
+    })
+  );
+
   input.name === "graphName" && setGraph({
     ...graph,
     graphName: input.value,
@@ -269,5 +277,6 @@ function handleInputChange(
     }),
     scale: graph.scale + 0.000001
   });
+
 
 }
