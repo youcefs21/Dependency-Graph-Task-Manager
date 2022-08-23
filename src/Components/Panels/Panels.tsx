@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { graphState, GState, nodeState } from "../Graph/graphHandler";
-import { ConfigPanelItem } from "./PanelElements";
+import { ConfigPanelItem, SelectLayers } from "./PanelElements";
 
 interface configPanelProps {
   G: GState,
@@ -39,9 +39,10 @@ interface NodeConfigPanelProps {
 }
 
 export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConfigPanelProps) => {
-  const {nodes, setNodes} = G;
+  const {nodes, graph, setGraph} = G;
+  const node = nodes.get(selectedNodeID);
   return (
-    <ConfigPanel title={nodes.get(selectedNodeID)?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
+    <ConfigPanel title={node?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
       <ConfigPanelItem itemHeading="Basic Node Data">
         <div className="flex items-center">
           <p className="w-16">Goal</p>
@@ -49,7 +50,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             type={'text'}
             name={'goal'}
             placeholder={"short title"}
-            value={nodes.get(selectedNodeID)?.goal ?? ""} 
+            value={node?.goal ?? ""} 
             maxLength={35}
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
@@ -61,7 +62,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             rows={5}
             name={'description'}
             placeholder={"long description"}
-            value={nodes.get(selectedNodeID)?.description ?? ""}
+            value={node?.description ?? ""}
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
@@ -73,9 +74,22 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
           <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
             type={'datetime-local'}
             name={'due'}
-            value={nodes.get(selectedNodeID)?.due ?? ""}
+            value={node?.due ?? ""}
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
+        </div>
+      </ConfigPanelItem>
+
+      <ConfigPanelItem itemHeading="Layers">
+        <SelectLayers G={G} nodeID={selectedNodeID} />
+        <div className="flex items-center">
+          <input className="m-2" 
+            type={'checkbox'} 
+            name={'archiveNode'} 
+            checked={node?.archive ?? false} 
+            onChange={(e) => handleInputChange(e, selectedNodeID, G)} 
+          />
+          <p className="text-xs">Archive Node</p>
         </div>
       </ConfigPanelItem>
 
