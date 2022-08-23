@@ -52,7 +52,7 @@ model Graph {
   x      Float   @default(0)
   y      Float   @default(0)
   name   String  @default("Graph")
-  user   User    @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   layers Layer[]
 }
 
@@ -60,7 +60,7 @@ model Layer {
   id      String  @id @default(cuid())
   name    String
   graphId String
-  graph   Graph   @relation(fields: [graphId], references: [id])
+  graph   Graph   @relation(fields: [graphId], references: [id], onDelete: Cascade)
   visible Boolean @default(false)
   nodeIds NodeLayers[]
 }
@@ -69,8 +69,8 @@ model NodeLayers {
   id String @id @default(cuid())
   nodeId String 
   layerId String
-  node Node @relation(fields: [nodeId], references: [id])
-  layer Layer @relation(fields: [layerId], references: [id])
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  layer Layer @relation(fields: [layerId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth
