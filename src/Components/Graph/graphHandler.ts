@@ -42,7 +42,8 @@ export interface edgeState {
 
 export interface layerState {
   name: string,
-  visible: boolean
+  visible: boolean,
+  action: "nothing" | "add" | "delete" | "update"
 }
 
 export interface GState {
@@ -82,6 +83,7 @@ export function useGraph(): GState {
   const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
   
   const updateGraph = trpc.useMutation(["graph.updateOne"]);
+  const updateLayer = trpc.useMutation(["graph.upsertLayer"]);
 
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
   const addPair = trpc.useMutation(["nodes.addPair"])
@@ -122,7 +124,8 @@ export function useGraph(): GState {
       graphInit.data.layers.forEach((edge) => {
         layers = layers.set(edge.id, {
           name: edge.name,
-          visible: edge.visible
+          visible: edge.visible,
+          action: "nothing"
         })
       })
       
@@ -278,7 +281,19 @@ export function useGraph(): GState {
       userId: graph.userId,
       scale: graph.scale, 
       pos: {x: graph.TopLeftX, y: graph.TopLeftY}
-    })
+    });
+
+    // update layers
+    graph.layers.forEach((layer, id) => {
+      if (layer.action === "update" || layer.action === "add") {
+        updateLayer.mutate({
+          graphId: graph.graphId,
+          layerId: id,
+          name: layer.name,
+          visible: layer.visible
+        });
+      }
+    });
     
     // update nodes 
     let tempNodes = nodes

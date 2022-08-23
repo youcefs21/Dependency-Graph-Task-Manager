@@ -59,5 +59,29 @@ export const graphsRouter = createRouter()
         }
       });
     },
+  })
+  .mutation("upsertLayer", {
+    input: z.object({
+      layerId: z.string(),
+      graphId: z.string(),
+      name: z.string(),
+      visible: z.boolean()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.layer.upsert({
+        where: {
+          id: input.layerId
+        },
+        update: {
+          name: input.name,
+          visible: input.visible
+        },
+        create: {
+          graphId: input.graphId,
+          name: input.name,
+          visible: input.visible
+        }
+      });
+    }
   });
 

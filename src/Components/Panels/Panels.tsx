@@ -99,7 +99,7 @@ interface GenericPanelProps {
   
 
 export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
-  const {graph} = G;
+  const {graph, setGraph} = G;
   return (
     <ConfigPanel title={graph.graphName + " Config"} G={G} setCollapse={setCollapse}>
       <ConfigPanelItem itemHeading="Basic Info">
@@ -121,8 +121,26 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
         <ul>
           {Array.from(graph.layers.map((layer, index) => {
             return (
-              <li key={index} className={"p-2 my-2 rounded bg-[#2A2B34] hover:bg-slate-700"}>
-                {layer.name}
+              <li key={index} className={"my-2 rounded bg-[#2A2B34] hover:bg-slate-700"}>
+                <div className="flex justify-between items-center px-4 py-2">
+                  <input className={"bg-transparent border-0 outline-0"}
+                    type={'text'}
+                    name={'layerName'}
+                    value={layer.name}
+                    onInput={(e) => handleInputChange(e, index, G)}
+                  />
+                  
+                  <button onClick={() => {
+                    const newLayers = graph.layers.set(index, {
+                      ...layer, 
+                      visible: !layer.visible, 
+                      action: "update"
+                    });
+                    setGraph({...graph, layers: newLayers})
+                  }} className={"bg-black p-1 rounded w-7 h-7"}>
+                    {layer.visible ? "V" : "H"}
+                  </button>
+                </div>
               </li>
             )
           }).values())}
@@ -206,9 +224,20 @@ function handleInputChange(
     ...graph,
     graphName: input.value,
   });
+
   input.name === "showArchive" && setGraph({
     ...graph,
     showArchive: !graph.showArchive
+  });
+
+  input.name === "layerName" && setGraph({
+    ...graph,
+    layers: graph.layers.set(selectedNode, {
+      ...graph.layers.get(selectedNode)!,
+      name: input.value,
+      action: "update"
+    }),
+    scale: graph.scale + 0.000001
   });
 
 }
