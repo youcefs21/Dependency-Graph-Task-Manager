@@ -28,7 +28,7 @@ export function handlePointerDown(
       nodeSize: 1,
       due: null,
       priority: "normal",
-      layerIds: Immutable.List(),
+      layerIds: Immutable.Map(),
       archive: false
     }));
     // TODO set the new node as the focus

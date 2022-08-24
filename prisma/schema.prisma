@@ -66,11 +66,12 @@ model Layer {
 }
 
 model NodeLayers {
-  id String @id @default(cuid())
   nodeId String 
   layerId String
   node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   layer Layer @relation(fields: [layerId], references: [id], onDelete: Cascade)
+  
+  @@unique(fields: [nodeId, layerId])
 }
 
 // Necessary for Next auth

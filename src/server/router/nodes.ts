@@ -80,6 +80,20 @@ export const nodeRouter = createRouter()
       });
     },
   })
+  .mutation("addNodeLayer", {
+    input: z.object({
+      nodeId: z.string(),
+      layerId: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.nodeLayers.create({
+        data: {
+          nodeId: input.nodeId,
+          layerId: input.layerId
+        }
+      });
+    }
+  })
   .mutation("addPair", {
     input: z.object({
       node1Id: z.string(),
@@ -104,6 +118,20 @@ export const nodeRouter = createRouter()
     async resolve({ input, ctx }) {
       return await ctx.prisma.node.delete({
         where: {id: input.nodeId},
+      });
+    },
+  })
+  .mutation("deleteNodeLayer", {
+    input: z.object({
+      nodeId: z.string(),
+      layerId: z.string()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.nodeLayers.deleteMany({
+        where: {
+          nodeId: input.nodeId,
+          layerId: input.layerId
+        }
       });
     },
   })

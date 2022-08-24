@@ -18,7 +18,7 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
   return (
     <ul>
       {Array.from(graph.layers.map((layer, layerID) => {
-        const isSelected = node?.layerIds.contains(layerID);
+        const isSelected = node?.layerIds.has(layerID) && node?.layerIds.get(layerID) != "delete";
         return (
           <li key={layerID} 
           className={`my-2 rounded ${!isSelected ? 'bg-[#2A2B34] hover:bg-slate-700' : 'bg-blue-500 text-white'}`}>
@@ -28,14 +28,21 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
                   if (!node) return;
                   
                   if (isSelected) {
-                    setNodes(nodes.set(nodeID, {
-                      ...node,
-                      layerIds: node.layerIds.delete(node.layerIds.indexOf(layerID))
-                    }));
+                    if (node.layerIds.get(layerID) === "delete") {
+                      setNodes(nodes.set(nodeID, {
+                        ...node,
+                        layerIds: node.layerIds.delete(layerID)
+                      }))
+                    } else {
+                      setNodes(nodes.set(nodeID, {
+                        ...node,
+                        layerIds: node.layerIds.set(layerID, "delete")
+                      }));
+                    }
                   } else {
                     setNodes(nodes.set(nodeID, {
                       ...node, 
-                      layerIds: node.layerIds.push(layerID)
+                      layerIds: node.layerIds.set(layerID, "add")
                     }));
                   }
                 }}>

@@ -4,16 +4,18 @@ import { trpc } from "../../utils/trpc";
 import {useSession} from "next-auth/react";
 
 
+export type actionType = "nothing" | "add" | "delete" | "update"
+
 export interface nodeState {
   goal: string,
   x: number,
   y: number,
   description: string | null,
-  action: "nothing" | "add" | "delete" | "update",
+  action: actionType,
   nodeSize: number,
   due: string | null,
   priority: "critical" | "high" | "normal" | "low" | string,
-  layerIds: Immutable.List<string>,
+  layerIds: Immutable.Map<string, actionType>,
   archive: boolean
 }
 
@@ -43,7 +45,7 @@ export interface edgeState {
 export interface layerState {
   name: string,
   visible: boolean,
-  action: "nothing" | "add" | "delete" | "update"
+  action: actionType 
 }
 
 export interface GState {
@@ -85,6 +87,9 @@ export function useGraph(): GState {
   const updateGraph = trpc.useMutation(["graph.updateOne"]);
   const updateLayer = trpc.useMutation(["graph.upsertLayer"]);
 
+  const deleteNodeLayer = trpc.useMutation(["nodes.deleteNodeLayer"]);
+  const addNodeLayer = trpc.useMutation(["nodes.addNodeLayer"]);
+
   const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
   const addPair = trpc.useMutation(["nodes.addPair"])
   const deletePair = trpc.useMutation(["nodes.deletePair"])
@@ -103,6 +108,10 @@ export function useGraph(): GState {
       let tempNodes = Immutable.Map<string,nodeState>()
       
       nodesInit.data.forEach(node => {
+        let layerIds = Immutable.Map<string, actionType>()
+        node.nodeLayers.forEach(layer => {
+          layerIds = layerIds.set(layer.layerId, "nothing")
+        });
         tempNodes = tempNodes.set(node.id, {
           x: node.x,
           y: node.y,
@@ -112,7 +121,7 @@ export function useGraph(): GState {
           nodeSize: node.size,
           due: node.due,
           priority: node.priority,
-          layerIds: Immutable.List(node.nodeLayers.map((val) => val.layerId)),
+          layerIds: layerIds,
           archive: node.archive
         });
       });
@@ -298,6 +307,23 @@ export function useGraph(): GState {
     // update nodes 
     let tempNodes = nodes
     nodes.forEach((node, key) => {
+
+      // update nodeLayer
+      node.layerIds.forEach((action, layerId) => {
+        if (action === "add") {
+          addNodeLayer.mutate({
+            nodeId: key,
+            layerId: layerId
+          });
+        } else if (action === "delete") {
+          deleteNodeLayer.mutate({
+            nodeId: key,
+            layerId: layerId
+          });
+        }
+      });
+
+      // update node
       if (node.action === "add" || node.action === "update") {
         updateNode.mutate({
           userId: graph.userId,
