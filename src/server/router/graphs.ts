@@ -37,12 +37,13 @@ export const graphsRouter = createRouter()
     input: z.object({
       graphid: z.string(),
       userId: z.string(),
-      name: z.string().optional(),
-      scale: z.number().optional(),
+      name: z.string(),
+      scale: z.number(),
       pos: z.object({
         x: z.number(),
         y: z.number()
-      }).optional()
+      }),
+      completeLayerId: z.string(),
     }),
     async resolve({ input, ctx }) {
       return await ctx.prisma.graph.update({
@@ -50,9 +51,10 @@ export const graphsRouter = createRouter()
         data: {
           userId: input.userId,
           name: input.name,
-          x: input.pos?.x,
-          y: input.pos?.y,
-          scale: input.scale
+          x: input.pos.x,
+          y: input.pos.y,
+          scale: input.scale,
+          completeLayerId: input.completeLayerId
         },
         include: {
           layers: true

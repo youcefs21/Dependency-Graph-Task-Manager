@@ -128,20 +128,23 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
 
       }
       // function that draws the nodes
-      const createNode = (pos: vec2, color: string, label: string, datetime: number | undefined) => {
+      const createNode = (node: nodeState, color: string) => {
+        const pos = {x: node.x, y: node.y}
+        const label = node.goal
+        const datetime = node.due ? Date.parse(node.due) : undefined
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
         ctx.fillStyle = color;
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
-        if (graph.scale > 5){
+        if (graph.scale > 5 ){
           ctx.font = graph.scale.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.fillText(label, x, y + graph.scale*2);
-          if (datetime) {
+          if (datetime && !node.layerIds.has(graph.completeLayerId)) {
             const delta = datetime - Date.now()
             ctx.font = "bold " + (0.75*graph.scale).toString() + 'px monospace';
             ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
@@ -166,7 +169,6 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         const r = (bitR*graph.scale)/len;
         
         ctx.lineWidth = 1 + graph.scale/5;
-        ctx.setLineDash([(graph.scale*2)/5, graph.scale/5]);
         ctx.lineDashOffset = -dashOffset*graph.scale;
         
         const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
@@ -193,9 +195,15 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         if (!node1 || !node2) return;
         
         if (!isNodeVisible(node1, G) || !isNodeVisible(node2, G)) return;
+        let color = "#334155"
+        let endsSize = 4
+        if (node1.layerIds.has(graph.completeLayerId) || node2.layerIds.has(graph.completeLayerId)) {
+          color = "#336555"
+          endsSize = 0
+        }
 
         if (edge.action != "delete") {
-          createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
+          createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, color, 0, endsSize)
         }
       });
       
@@ -203,15 +211,17 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       setCursor("default")
       nodes.forEach((node, id) => {
         if (!isNodeVisible(node, G)) return;
+        const isComplete = node.layerIds.has(graph.completeLayerId)
 
-        let color = "#cbd5e1"
+        let color = isComplete ? "#99ff99" : "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
-          color = "#f472b6"
+          color = isComplete ? "#f4a2b6" : "#f472b6"
         }
-        if (graph.selectedNodes.has(id))
-          color = "#f472b6"
-        createNode(node, color, nodes.get(id)?.goal ?? "new Node", nodes.get(id)?.due ? Date.parse(nodes.get(id)?.due!) : undefined)
+        if (graph.selectedNodes.has(id)){
+          color = isComplete ? "#f4a2b6" : "#f472b6"
+        }
+        createNode(node, color)
       });
 
       // draw selected area

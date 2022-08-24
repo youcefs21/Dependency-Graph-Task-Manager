@@ -17,19 +17,19 @@ generator js {
 }
 
 model Node {
-  id          String  @id @default(cuid())
+  id          String       @id @default(cuid())
   userId      String
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal        String  @default("insert goal here")
-  archive     Boolean @default(false)
-  x           Int     @default(0)
-  y           Int     @default(0)
-  description String? @db.Text
-  size        Float   @default(1)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal        String       @default("insert goal here")
+  archive     Boolean      @default(false)
+  x           Int          @default(0)
+  y           Int          @default(0)
+  description String?      @db.Text
+  size        Float        @default(1)
   due         String?
-  priority    String  @default("normal")
-  out_edges   Edge[]  @relation("outgoing")
-  in_edges    Edge[]  @relation("incoming")
+  priority    String       @default("normal")
+  out_edges   Edge[]       @relation("outgoing")
+  in_edges    Edge[]       @relation("incoming")
   nodeLayers  NodeLayers[]
 }
 
@@ -46,31 +46,32 @@ model Edge {
 }
 
 model Graph {
-  id     String  @id @default(cuid())
-  userId String
-  scale  Float   @default(20)
-  x      Float   @default(0)
-  y      Float   @default(0)
-  name   String  @default("Graph")
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  layers Layer[]
+  id              String  @id @default(cuid())
+  userId          String
+  scale           Float   @default(20)
+  x               Float   @default(0)
+  y               Float   @default(0)
+  name            String  @default("Graph")
+  completeLayerId String? @unique
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  layers          Layer[]
 }
 
 model Layer {
-  id      String  @id @default(cuid())
+  id      String       @id @default(cuid())
   name    String
   graphId String
-  graph   Graph   @relation(fields: [graphId], references: [id], onDelete: Cascade)
-  visible Boolean @default(false)
+  graph   Graph        @relation(fields: [graphId], references: [id], onDelete: Cascade)
+  visible Boolean      @default(false)
   nodeIds NodeLayers[]
 }
 
 model NodeLayers {
-  nodeId String 
+  nodeId  String
   layerId String
-  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  layer Layer @relation(fields: [layerId], references: [id], onDelete: Cascade)
-  
+  node    Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  layer   Layer  @relation(fields: [layerId], references: [id], onDelete: Cascade)
+
   @@unique(fields: [nodeId, layerId])
 }
 

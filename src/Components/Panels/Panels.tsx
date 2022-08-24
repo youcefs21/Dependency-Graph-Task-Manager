@@ -135,9 +135,9 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
         <ul>
           {Array.from(graph.layers.map((layer, index) => {
             return (
-              <li key={index} className={"my-2 rounded bg-[#2A2B34] hover:bg-slate-700"}>
-                <div className="flex justify-between items-center px-4 py-2">
-                  <input className={"bg-transparent border-0 outline-0"}
+              <li key={index}>
+                <div className="flex justify-between items-center">
+                  <input className={"border-0 outline-0 bg-[#2A2B34] hover:bg-slate-700 px-4 py-2 w-full rounded"}
                     type={'text'}
                     name={'layerName'}
                     value={layer.name}
@@ -151,9 +151,17 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                       action: layer.action != "add" ? "update" : "add"
                     });
                     setGraph({...graph, layers: newLayers})
-                  }} className={"bg-black p-1 rounded w-7 h-7"}>
+                  }} className={"bg-[#121316] hover:bg-neutral-600 py-2 w-1/4 h-full ml-1 mt-1 rounded"}>
                     {layer.visible ? "V" : "H"}
                   </button>
+                  { graph.completeLayerId != index &&
+                  <button className="bg-[#121316] hover:bg-rose-700 py-2 w-1/4 h-full ml-1 mt-1 rounded">
+                    D
+                  </button>
+                  }
+                  { graph.completeLayerId === index &&
+                    <div className="w-1/4 ml-1"></div>
+                  }
                 </div>
               </li>
             )

@@ -35,7 +35,8 @@ export interface graphState {
   loaded: boolean,
   ignoreChange: boolean,
   layers: Immutable.Map<string, layerState>,
-  showArchive: boolean
+  showArchive: boolean,
+  completeLayerId: string,
 }
 
 export interface edgeState {
@@ -73,7 +74,8 @@ const initialGraph: graphState = {
   loaded: false,
   ignoreChange: true,
   layers: Immutable.Map<string, layerState>(),
-  showArchive: false
+  showArchive: false,
+  completeLayerId: ""
 }
 
 export function useGraph(): GState {
@@ -147,7 +149,8 @@ export function useGraph(): GState {
         userId: session.data?.user?.id,
         scale: graphInit.data.scale,
         loaded: true,
-        layers: layers
+        layers: layers,
+        completeLayerId: graphInit.data.completeLayerId ?? layers.keySeq().first()
       });
 
       let tempEdges = edges
@@ -287,9 +290,11 @@ export function useGraph(): GState {
     // update graph
     updateGraph.mutate({
       graphid: graph.graphId,
+      name: graph.graphName,
       userId: graph.userId,
       scale: graph.scale, 
-      pos: {x: graph.TopLeftX, y: graph.TopLeftY}
+      pos: {x: graph.TopLeftX, y: graph.TopLeftY},
+      completeLayerId: graph.completeLayerId
     });
 
     // update layers
