@@ -1,5 +1,6 @@
 import {z} from "zod";
 import { createRouter } from "./context";
+import cuid from 'cuid';
 
 export const graphsRouter = createRouter()
   .query("getFirst", {
@@ -8,7 +9,8 @@ export const graphsRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       if (input.userId === null) return;
-      const firstGraph = await ctx.prisma.graph.findFirst({
+      // get the first graph for the user
+      let firstGraph = await ctx.prisma.graph.findFirst({
         where: {
           userId: input.userId
         },
@@ -17,19 +19,29 @@ export const graphsRouter = createRouter()
         }
       });
       
+      // if the graph doesn't exist, create it, also create the complete layer
       if (firstGraph === null) {
-        return await ctx.prisma.graph.create({
+        const layerId = cuid();
+        firstGraph = await ctx.prisma.graph.create({
           data: {
             userId: input.userId!,
-            scale: 10
+            scale: 10,
+            layers: {
+              create: {
+                id: layerId,
+                name: "Graph",
+              }
+            },
+            completeLayerId: layerId
           },
           include: {
             layers: true
           }
         })
-      } else {
-        return firstGraph
       }
+
+      return firstGraph
+      
 
     }
   })

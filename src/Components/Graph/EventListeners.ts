@@ -1,3 +1,4 @@
+import cuid from "cuid";
 import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
@@ -18,8 +19,7 @@ export function handlePointerDown(
   if (currentTool.current === "addNode") {
     currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
     setCurrentTool("pointer")
-    const unixTime = Date.now() 
-    const newNodeID = graph.userId + unixTime.toString(36)
+    const newNodeID = cuid();
     setNodes(nodes.set(newNodeID, {
       x: Math.round(mx),
       y: Math.round(my),

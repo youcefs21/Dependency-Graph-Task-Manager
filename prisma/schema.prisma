@@ -52,18 +52,20 @@ model Graph {
   x               Float   @default(0)
   y               Float   @default(0)
   name            String  @default("Graph")
-  completeLayerId String? @unique
+  completeLayerId String  @unique
+  completeLayer   Layer   @relation("completing", fields: [completeLayerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  layers          Layer[]
+  layers          Layer[] @relation("normal")
 }
 
 model Layer {
-  id      String       @id @default(cuid())
-  name    String
-  graphId String
-  graph   Graph        @relation(fields: [graphId], references: [id], onDelete: Cascade)
-  visible Boolean      @default(false)
-  nodeIds NodeLayers[]
+  id              String       @id @default(cuid())
+  name            String
+  graphId         String
+  completingGraph Graph?       @relation("completing")
+  graph           Graph        @relation("normal", fields: [graphId], references: [id], onDelete: Cascade)
+  visible         Boolean      @default(false)
+  nodeIds         NodeLayers[]
 }
 
 model NodeLayers {
