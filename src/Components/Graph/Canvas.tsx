@@ -17,6 +17,24 @@ interface canvasProps {
   G: GState
 }
 
+export function isNodeVisible(node: nodeState, G: GState) {
+  const {graph} = G;
+
+  if (node.action === "delete") return false;
+  if (!graph.showArchive && node.archive) return false;
+
+  let inVisibleLayer = false;
+  let inNoLayers = true;
+  node.layerIds.forEach((action, layerId) => {
+    if (action === "delete") return;
+    inNoLayers = false;
+    if (graph.layers.get(layerId)?.visible) {
+      inVisibleLayer = true
+    }
+  });
+  return inVisibleLayer || inNoLayers;
+}
+
 export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
@@ -167,17 +185,16 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         ctx.stroke()
       }
 
-      
+
       // draw the lines
       edges.forEach((edge, pair) => {
         const node1 = nodes.get(pair.get(0)!) 
         const node2 = nodes.get(pair.get(1)!)
-        if (
-          node1 && node2 && 
-          edge.action != "delete" && 
-          node1.action != "delete" && node2.action != "delete" && 
-          (graph.showArchive || (!node1.archive && !node2.archive))
-        ) {
+        if (!node1 || !node2) return;
+        
+        if (!isNodeVisible(node1, G) || !isNodeVisible(node2, G)) return;
+
+        if (edge.action != "delete") {
           createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, "#334155", 0, 4)
         }
       });
@@ -185,8 +202,8 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       // draw the nodes and set the cursor
       setCursor("default")
       nodes.forEach((node, id) => {
-        if ((node.archive && !graph.showArchive) || node.action === "delete")
-          return
+        if (!isNodeVisible(node, G)) return;
+
         let color = "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
@@ -252,7 +269,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}
       onPointerEnter={() => inCanvas.current = true}
-      onPointerDown={(ev) => handlePointerDown(ev, evCache, graph, setGraph, nodes, setNodes, currentToolRef, setCurrentTool)}
+      onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool)}
       onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
       onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
       onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
@@ -260,7 +277,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         inCanvas.current = false;
         handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)
       }}
-      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, graph, setGraph, nodes, setNodes, currentToolRef)}
+      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
       onKeyDown={(ev) => handleKeyDown(ev, graph, setGraph, nodes, setNodes, currentToolRef, setCurrentTool)}
       tabIndex={0}

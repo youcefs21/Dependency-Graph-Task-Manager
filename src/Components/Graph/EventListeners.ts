@@ -1,15 +1,16 @@
 import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { graphState, nodeState } from "./graphHandler";
+import { isNodeVisible } from "./Canvas";
+import { graphState, GState, nodeState } from "./graphHandler";
 
 export function handlePointerDown(
   event: React.PointerEvent<HTMLCanvasElement>,
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
-  graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>,
-  nodes: Immutable.Map<string, nodeState>, setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  G: GState,
   currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
+  const {graph, setGraph, nodes, setNodes} = G;
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
   evCache.current.push(event);
@@ -39,11 +40,7 @@ export function handlePointerDown(
   let newHeldNode = graph.heldNode;
   if (currentTool.current != "move"){
     nodes.forEach((node, id) => {
-      if (
-          Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 &&
-          (graph.showArchive || !node.archive) &&
-          node.action != "delete"
-        ) {
+      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && isNodeVisible(node, G)) {
         newHeldNode = id
       }
     });
@@ -138,12 +135,10 @@ export function handleMove(
   event: React.PointerEvent<HTMLCanvasElement>,
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
   pinchDiff: MutableRefObject<number>,
-  graph: graphState,
-  setGraph: Dispatch<SetStateAction<graphState>>,
-  nodes: Immutable.Map<string, nodeState>,
-  setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  G: GState,
   currentTool: MutableRefObject<toolStates> 
 ) {
+  const {graph, setGraph, nodes, setNodes} = G;
 
 
   if (nodes.size === 0)
@@ -197,7 +192,7 @@ export function handleMove(
 
 
           nodes.forEach((node, nodeID) => {
-            if ((node.archive && !graph.showArchive) || node.action === "delete") return
+            if (!isNodeVisible(node, G)) return
             const xCond1 = xDir === 1 && node.x >= graph.selectedArea.x1 && node.x <= newX2
             const yCond1 = yDir === 1 && node.y >= graph.selectedArea.y1 && node.y <= newY2
             const xCond2 = xDir === -1 && node.x <= graph.selectedArea.x1 && node.x >= newX2

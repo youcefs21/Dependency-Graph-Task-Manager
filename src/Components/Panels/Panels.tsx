@@ -80,7 +80,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
       </ConfigPanelItem>
 
-      <ConfigPanelItem itemHeading="Layers">
+      <ConfigPanelItem itemHeading="Select Layers">
         <SelectLayers G={G} nodeID={selectedNodeID} />
         <div className="flex items-center">
           <input className="m-2" 
