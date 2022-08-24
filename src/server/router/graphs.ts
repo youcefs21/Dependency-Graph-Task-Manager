@@ -91,6 +91,7 @@ export const graphsRouter = createRouter()
           visible: input.visible
         },
         create: {
+          id: input.layerId,
           graphId: input.graphId,
           name: input.name,
           visible: input.visible

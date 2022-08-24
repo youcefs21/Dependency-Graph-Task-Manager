@@ -1,3 +1,4 @@
+import cuid from "cuid";
 import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { graphState, GState, nodeState } from "../Graph/graphHandler";
@@ -170,7 +171,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
             <div className="flex justify-center items-center select-none">
               <button className="w-full h-full px-4 py-2" onClick={
                 () => {
-                  const newLayers = graph.layers.set(graph.layers.size.toString(), {
+                  const newLayers = graph.layers.set(cuid(), {
                     name: "New Layer",
                     visible: true,
                     action: "add"

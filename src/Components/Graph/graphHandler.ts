@@ -298,6 +298,7 @@ export function useGraph(): GState {
     });
 
     // update layers
+    let newLayers = graph.layers
     graph.layers.forEach((layer, id) => {
       if (layer.action === "update" || layer.action === "add") {
         updateLayer.mutate({
@@ -305,6 +306,10 @@ export function useGraph(): GState {
           layerId: id,
           name: layer.name,
           visible: layer.visible
+        });
+        newLayers = newLayers.set(id, {
+          ...layer,
+          action: "nothing"
         });
       }
     });
@@ -314,6 +319,7 @@ export function useGraph(): GState {
     nodes.forEach((node, key) => {
 
       // update nodeLayer
+      let tempLayerIds = node.layerIds
       node.layerIds.forEach((action, layerId) => {
         if (action === "add") {
           addNodeLayer.mutate({
@@ -326,6 +332,13 @@ export function useGraph(): GState {
             layerId: layerId
           });
         }
+        if (action != "nothing") {
+          tempLayerIds = tempLayerIds.set(layerId, "nothing")
+        }
+      });
+      tempNodes = tempNodes.set(key, {
+        ...node, 
+        layerIds: tempLayerIds 
       });
 
       // update node
@@ -372,7 +385,8 @@ export function useGraph(): GState {
     setGraph({
       ...graph,
       saveState: "saved",
-      ignoreChange: true
+      ignoreChange: true,
+      layers: newLayers,
     })
   }, [saveTimer]);
 
