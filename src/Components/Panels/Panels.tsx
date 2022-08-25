@@ -79,6 +79,21 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
+
+        <div className="flex items-center text-xs">
+          <p className="w-16 my-2">Priority</p>
+          <select className={"bg-[#393939] rounded p-1 outline-0 mx-2 w-full"}
+            name="priority" 
+            value={node?.priority ?? ""} 
+            onChange={(e) => handleInputChange(e, selectedNodeID, G)}
+          >
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
         <div className="flex items-center text-xs">
           <p className="w-16 mr-1 my-2">Position</p>
           
@@ -256,11 +271,11 @@ export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
 }
 
 function handleInputChange(
-  e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, 
+  e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 
   selectedNode: string,
   G: GState
 ) {
-  const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+  const input = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   const {nodes, setNodes, graph, setGraph} = G;
 
   input.name === "goal" && setNodes(
@@ -283,6 +298,14 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       due: input.value,
+      action: "update"
+    })
+  );
+
+  input.name === "priority" && setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      priority: input.value,
       action: "update"
     })
   );
