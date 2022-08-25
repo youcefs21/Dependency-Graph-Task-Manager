@@ -34,6 +34,7 @@ const Home: NextPage = () => {
       <Canvas 
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
+        setCollapseConfig={setCollapseConfig}
         G={G}
       />
       

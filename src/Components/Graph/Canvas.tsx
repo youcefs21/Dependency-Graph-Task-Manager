@@ -1,7 +1,7 @@
 import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
+import { handleDoubleClick, handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
 import { edgeState, graphState, GState, nodeState } from "./graphHandler";
 
 
@@ -14,6 +14,7 @@ interface vec2 {
 interface canvasProps {
   currentTool: toolStates
   setCurrentTool: Dispatch<SetStateAction<toolStates>>,
+  setCollapseConfig: Dispatch<SetStateAction<boolean>>,
   G: GState
 }
 
@@ -35,7 +36,7 @@ export function isNodeVisible(node: nodeState, G: GState) {
   return inVisibleLayer || inNoLayers;
 }
 
-export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
+export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { height, width } = useWindowDimensions();
   const {mx: fmx, my: fmy} = useMousePos()
@@ -284,6 +285,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       width={width} height={height}
       onPointerEnter={() => inCanvas.current = true}
       onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool)}
+      onDoubleClick={(ev) => handleDoubleClick(ev, G, currentToolRef, setCollapseConfig)}
       onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
       onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
       onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}

@@ -5,6 +5,37 @@ import {toolStates} from "../Toolbar/Toolbar";
 import { isNodeVisible } from "./Canvas";
 import { graphState, GState, nodeState } from "./graphHandler";
 
+export function handleDoubleClick(
+  event: React.MouseEvent<HTMLCanvasElement>,
+  G: GState,
+  currentTool: MutableRefObject<toolStates>, setCollapseConfig: Dispatch<SetStateAction<boolean>>
+) {
+  const {graph, setGraph, nodes} = G;
+
+  if (currentTool.current === "pointer"){
+    setCollapseConfig(false);
+
+    const selectedNode = graph.selectedNodes.first()
+    if (selectedNode) {
+      // get the width and height of the screen
+      const {width, height} = event.currentTarget.getBoundingClientRect();
+      const node = nodes.get(selectedNode);
+      if (node) {
+        const deltaX = graph.TopLeftX - node.x;
+        const deltaY = graph.TopLeftY - node.y;
+        setGraph({
+          ...graph,
+          TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
+          TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+        });
+      }
+
+    }
+  }
+}
+
+
+
 export function handlePointerDown(
   event: React.PointerEvent<HTMLCanvasElement>,
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
