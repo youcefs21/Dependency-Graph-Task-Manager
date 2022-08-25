@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 import {useSession} from "next-auth/react";
-import { UseTRPCMutationOptions } from "@trpc/react";
 
 
 export type actionType = "nothing" | "add" | "delete" | "update"
