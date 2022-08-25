@@ -326,14 +326,13 @@ export function useGraph(): GState {
             nodeId: key,
             layerId: layerId
           });
+          tempLayerIds = tempLayerIds.set(layerId, "nothing")
         } else if (action === "delete") {
           deleteNodeLayer.mutate({
             nodeId: key,
             layerId: layerId
           });
-        }
-        if (action != "nothing") {
-          tempLayerIds = tempLayerIds.set(layerId, "nothing")
+          tempLayerIds = tempLayerIds.delete(layerId)
         }
       });
       tempNodes = tempNodes.set(key, {

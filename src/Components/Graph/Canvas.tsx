@@ -144,14 +144,15 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.fillText(label, x, y + graph.scale*2);
-          if (datetime && !node.layerIds.has(graph.completeLayerId)) {
-            const delta = datetime - Date.now()
-            ctx.font = "bold " + (0.75*graph.scale).toString() + 'px monospace';
-            ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
-            ctx.textAlign = "center"
-            ctx.textBaseline = "middle"
-            ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
-          }
+          
+          if (!datetime || (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete")) return;
+          
+          const delta = datetime - Date.now()
+          ctx.font = "bold " + (0.75*graph.scale).toString() + 'px monospace';
+          ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
         }
       }
       // function that draws the arrows
@@ -197,7 +198,10 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
         if (!isNodeVisible(node1, G) || !isNodeVisible(node2, G)) return;
         let color = "#334155"
         let endsSize = 4
-        if (node1.layerIds.has(graph.completeLayerId) || node2.layerIds.has(graph.completeLayerId)) {
+        if (
+          (node1.layerIds.has(graph.completeLayerId) && node1.layerIds.get(graph.completeLayerId) != "delete") || 
+          (node2.layerIds.has(graph.completeLayerId) && node2.layerIds.get(graph.completeLayerId) != "delete")
+        ) {
           color = "#336555"
           endsSize = 0
         }
@@ -211,7 +215,7 @@ export function Canvas({ currentTool, setCurrentTool, G}: canvasProps) {
       setCursor("default")
       nodes.forEach((node, id) => {
         if (!isNodeVisible(node, G)) return;
-        const isComplete = node.layerIds.has(graph.completeLayerId)
+        const isComplete = node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete"
 
         let color = isComplete ? "#99ff99" : "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
