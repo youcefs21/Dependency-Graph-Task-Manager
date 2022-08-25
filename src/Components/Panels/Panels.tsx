@@ -70,7 +70,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
       </ConfigPanelItem>
 
       <ConfigPanelItem itemHeading="Properties">
-        <div className="flex items-center">
+        <div className="flex items-center text-xs">
           <p className="w-16">Due</p>
           <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
             type={'datetime-local'}
@@ -78,6 +78,26 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
             value={node?.due ?? ""}
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
+        </div>
+        <div className="flex items-center text-xs">
+          <p className="w-16 mr-1 my-2">Position</p>
+          
+          <div className="bg-[#393939] text-[#3AB9D4] p-1 rounded-l">x: </div>
+          <input className="bg-[#393939] p-1 mr-2 caret-white outline-0 w-1/4 rounded-r"
+            type={'number'}
+            name={'x'}
+            value={node?.x ?? ""}
+            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
+          />
+
+          <div className="bg-[#393939] p-1 text-[#3AB9D4] rounded-l">y: </div>
+          <input className="bg-[#393939] p-1 caret-white outline-0 w-1/4 rounded-r"
+            type={'number'}
+            name={'y'}
+            value={node?.y ?? ""}
+            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
+          />
+
         </div>
       </ConfigPanelItem>
 
@@ -263,6 +283,22 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       due: input.value,
+      action: "update"
+    })
+  );
+
+  input.name === "x" && setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      x: Number(input.value),
+      action: "update"
+    })
+  );
+
+  input.name === "y" && setNodes(
+    nodes.set(selectedNode, {
+      ...nodes.get(selectedNode)!,
+      y: Math.floor(Number(input.value)),
       action: "update"
     })
   );
