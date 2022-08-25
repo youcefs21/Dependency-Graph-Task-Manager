@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 import {useSession} from "next-auth/react";
+import { UseTRPCMutationOptions } from "@trpc/react";
 
 
 export type actionType = "nothing" | "add" | "delete" | "update"
@@ -31,7 +32,7 @@ export interface graphState {
   selectedPair: Immutable.List<string>,
   selectedArea: {x1: number, y1: number, x2: number, y2: number},
   userId: string,
-  saveState: "saved" | "not saved",
+  saveState: "saved" | "not saved" | "saving" | "save error",
   loaded: boolean,
   ignoreChange: boolean,
   layers: Immutable.Map<string, layerState>,
@@ -80,29 +81,40 @@ const initialGraph: graphState = {
 
 export function useGraph(): GState {
   const session = useSession();
-  const nodesInit = trpc.useQuery(["nodes.getAll", {userID: session.data?.user?.id ?? null}]);
-  const graphInit = trpc.useQuery(["graph.getFirst", {userId: session.data?.user?.id ?? null}]);
-
-  const updateNode = trpc.useMutation(["nodes.updateNode"]);
-  const deleteNode = trpc.useMutation(["nodes.deleteNode"]);
-  
-  const updateGraph = trpc.useMutation(["graph.updateOne"]);
-  const updateLayer = trpc.useMutation(["graph.upsertLayer"]);
-  const deleteLayer = trpc.useMutation(["graph.deleteLayer"]);
-
-  const deleteNodeLayer = trpc.useMutation(["nodes.deleteNodeLayer"]);
-  const addNodeLayer = trpc.useMutation(["nodes.addNodeLayer"]);
-
-  const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
-  const addPair = trpc.useMutation(["nodes.addPair"])
-  const deletePair = trpc.useMutation(["nodes.deletePair"])
-  const adj = useRef(new Map<string, Set<string>>())
 
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
   const [edges, setEdges] = useState(Immutable.Map<Immutable.List<string>, edgeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
 
   const [saveTimer, setSaveTimer] = useState<number>(10000);
+
+  const mutationOptions = {
+    onSuccess: () => {
+      setGraph({...graph, saveState: "saved"})
+    },
+    onError: () => {
+      setGraph({...graph, saveState: "save error"});
+    },
+  }
+
+  const nodesInit = trpc.useQuery(["nodes.getAll", {userID: session.data?.user?.id ?? null}]);
+  const graphInit = trpc.useQuery(["graph.getFirst", {userId: session.data?.user?.id ?? null}]);
+
+  const updateNode = trpc.useMutation(["nodes.updateNode"], mutationOptions);
+  const deleteNode = trpc.useMutation(["nodes.deleteNode"], mutationOptions);
+  
+  const updateGraph = trpc.useMutation(["graph.updateOne"], mutationOptions);
+  const updateLayer = trpc.useMutation(["graph.upsertLayer"], mutationOptions);
+  const deleteLayer = trpc.useMutation(["graph.deleteLayer"], mutationOptions);
+
+  const deleteNodeLayer = trpc.useMutation(["nodes.deleteNodeLayer"], mutationOptions);
+  const addNodeLayer = trpc.useMutation(["nodes.addNodeLayer"], mutationOptions);
+
+  const nodeIdPairs = trpc.useQuery(["nodes.getPairs", {userID: session.data?.user?.id ?? null}]);
+  const addPair = trpc.useMutation(["nodes.addPair"], mutationOptions)
+  const deletePair = trpc.useMutation(["nodes.deletePair"], mutationOptions)
+  const adj = useRef(new Map<string, Set<string>>())
+
   
   // ============ setup state ============
   useEffect( () => {
@@ -389,7 +401,7 @@ export function useGraph(): GState {
     // clear archive and delete lists
     setGraph({
       ...graph,
-      saveState: "saved",
+      saveState: "saving",
       ignoreChange: true,
       layers: newLayers,
     })

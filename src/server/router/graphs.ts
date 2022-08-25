@@ -67,9 +67,6 @@ export const graphsRouter = createRouter()
           y: input.pos.y,
           scale: input.scale,
           completeLayerId: input.completeLayerId
-        },
-        include: {
-          layers: true
         }
       });
     },
