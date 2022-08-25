@@ -135,6 +135,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
       <ConfigPanelItem itemHeading="Layers">
         <ul>
           {Array.from(graph.layers.map((layer, index) => {
+            if (layer.action === "delete") return null;
             return (
               <li key={index}>
                 <div className="flex justify-between items-center">
@@ -156,7 +157,14 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                     {layer.visible ? "V" : "H"}
                   </button>
                   { graph.completeLayerId != index &&
-                  <button className="bg-[#121316] hover:bg-rose-700 py-2 w-1/4 h-full ml-1 mt-1 rounded">
+                  <button className="bg-[#121316] hover:bg-rose-700 py-2 w-1/4 h-full ml-1 mt-1 rounded"
+                    onClick={() => {
+                      const newLayers = graph.layers.set(index, {
+                        ...layer, 
+                        action: "delete"
+                      });
+                      setGraph({...graph, layers: newLayers})
+                    }}>
                     D
                   </button>
                   }

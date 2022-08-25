@@ -19,6 +19,7 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
     <ul>
       {Array.from(graph.layers.map((layer, layerID) => {
         const isSelected = node?.layerIds.has(layerID) && node?.layerIds.get(layerID) != "delete";
+        if (layer.action === "delete") return null;
         return (
           <li key={layerID} 
           className={`my-2 rounded ${!isSelected ? 'bg-[#2A2B34] hover:bg-slate-700' : 'bg-blue-500 text-white'}`}>

@@ -98,5 +98,17 @@ export const graphsRouter = createRouter()
         }
       });
     }
-  });
+  })
+  .mutation("deleteLayer", {
+    input: z.object({
+      layerId: z.string()
+    }),
+    async resolve({ input, ctx }) {
+      return await ctx.prisma.layer.delete({
+        where: {
+          id: input.layerId
+        }
+      });
+    }
+  })
 

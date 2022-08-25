@@ -88,6 +88,7 @@ export function useGraph(): GState {
   
   const updateGraph = trpc.useMutation(["graph.updateOne"]);
   const updateLayer = trpc.useMutation(["graph.upsertLayer"]);
+  const deleteLayer = trpc.useMutation(["graph.deleteLayer"]);
 
   const deleteNodeLayer = trpc.useMutation(["nodes.deleteNodeLayer"]);
   const addNodeLayer = trpc.useMutation(["nodes.addNodeLayer"]);
@@ -311,6 +312,11 @@ export function useGraph(): GState {
           ...layer,
           action: "nothing"
         });
+      } else if (layer.action === "delete") {
+        deleteLayer.mutate({
+          layerId: id
+        });
+        newLayers = newLayers.delete(id);
       }
     });
     
