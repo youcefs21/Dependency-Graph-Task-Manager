@@ -26,7 +26,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
           }
         }>close</button>
       </div>
-      <div className="divide-y p-4">
+      <div className="divide-y p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-900 scrollbar-track-zinc-800 h-5/6">
         {children}
       </div>
     </div>
@@ -81,7 +81,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
 
         <div className="flex items-center text-xs">
-          <p className="w-16 my-2">Priority</p>
+          <p className="w-16 my-3">Priority</p>
           <select className={"bg-[#393939] rounded p-1 outline-0 mx-2 w-full"}
             name="priority" 
             value={node?.priority ?? ""} 
@@ -95,7 +95,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
 
         <div className="flex items-center text-xs">
-          <p className="w-16 mr-1 my-2">Position</p>
+          <p className="w-16 mr-1 my-3">Position</p>
           
           <div className="bg-[#393939] text-[#3AB9D4] p-1 rounded-l">x: </div>
           <input className="bg-[#393939] p-1 mr-2 caret-white outline-0 w-1/4 rounded-r"
