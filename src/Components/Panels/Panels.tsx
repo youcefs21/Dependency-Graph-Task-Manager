@@ -1,8 +1,9 @@
 import cuid from "cuid";
 import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
+import { isNodeVisible } from "../Graph/Canvas";
 import { graphState, GState, nodeState } from "../Graph/graphHandler";
-import { ConfigPanelItem, SelectLayers } from "./PanelElements";
+import { ConfigPanelItem, NodeListItem, SelectLayers } from "./PanelElements";
 
 interface configPanelProps {
   G: GState,
@@ -40,7 +41,7 @@ interface NodeConfigPanelProps {
 }
 
 export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConfigPanelProps) => {
-  const {nodes} = G;
+  const {nodes, graph, setGraph} = G;
   const node = nodes.get(selectedNodeID);
   return (
     <ConfigPanel title={node?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
@@ -120,35 +121,12 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
       <ConfigPanelItem itemHeading="Connections">
         <h3>Dependent Nodes (do after)</h3>
         <ul>
-          {node?.dependentIds?.map((id) => {
-            const dependentNode = nodes.get(id);
-            return (
-              <li key={id} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
-                <div className="flex justify-between items-center">
-                  <button className="w-full h-full px-4 py-2">
-                    {dependentNode?.goal ?? " "}
-                  </button>
-                </div>
-              </li>
-                  
-            )
-          })}
+          {node?.dependentIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
         </ul>
 
         <h3>Node Dependencies (do before)</h3>
         <ul>
-          {node?.dependencyIds?.map((id) => {
-            const dependencyNode = nodes.get(id);
-            return (
-              <li key={id} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
-                <div className="flex justify-between items-center">
-                  <button className="w-full h-full px-4 py-2">
-                    {dependencyNode?.goal ?? " "}
-                  </button>
-                </div>
-              </li>
-            )
-          })}
+          {node?.dependencyIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
         </ul>
 
       </ConfigPanelItem>

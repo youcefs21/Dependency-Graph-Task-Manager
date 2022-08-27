@@ -1,3 +1,5 @@
+import Immutable from "immutable";
+import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { GState } from "../Graph/graphHandler"
 
 
@@ -55,4 +57,37 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
       }).values())}
     </ul>
   )
+}
+
+
+export const NodeListItem = ({nodeId, G}: {nodeId: string, G: GState}) => {
+
+  const {graph, nodes, setGraph} = G;
+  const {width, height} = useWindowDimensions();
+
+  const node = nodes.get(nodeId);
+  if (!node) return null;
+  if (!isNodeVisible(node, G)) return null;
+  return (
+    <li key={nodeId} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
+      <div className="flex justify-between items-center">
+        <button className="w-full h-full px-4 py-2"
+        onClick={(e) => {
+          const deltaX = graph.TopLeftX - node.x;
+          const deltaY = graph.TopLeftY - node.y;
+          setGraph({
+            ...graph,
+            selectedNodes: Immutable.Set<string>([nodeId]),
+            TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
+            TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+          })
+
+        }}
+        >
+          {node?.goal ?? " "}
+        </button>
+      </div>
+    </li>
+  )
+  
 }
