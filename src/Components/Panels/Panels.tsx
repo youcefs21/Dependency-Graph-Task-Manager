@@ -26,7 +26,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
           }
         }>close</button>
       </div>
-      <div className="divide-y p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-900 scrollbar-track-zinc-800 h-5/6">
+      <div className="divide-y p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-5/6 shadow-white">
         {children}
       </div>
     </div>
@@ -40,7 +40,7 @@ interface NodeConfigPanelProps {
 }
 
 export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConfigPanelProps) => {
-  const {nodes, graph, setGraph} = G;
+  const {nodes} = G;
   const node = nodes.get(selectedNodeID);
   return (
     <ConfigPanel title={node?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
@@ -116,6 +116,43 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
       </ConfigPanelItem>
 
+
+      <ConfigPanelItem itemHeading="Connections">
+        <h3>Dependent Nodes (do after)</h3>
+        <ul>
+          {node?.dependentIds?.map((id) => {
+            const dependentNode = nodes.get(id);
+            return (
+              <li key={id} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
+                <div className="flex justify-between items-center">
+                  <button className="w-full h-full px-4 py-2">
+                    {dependentNode?.goal ?? " "}
+                  </button>
+                </div>
+              </li>
+                  
+            )
+          })}
+        </ul>
+
+        <h3>Node Dependencies (do before)</h3>
+        <ul>
+          {node?.dependencyIds?.map((id) => {
+            const dependencyNode = nodes.get(id);
+            return (
+              <li key={id} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
+                <div className="flex justify-between items-center">
+                  <button className="w-full h-full px-4 py-2">
+                    {dependencyNode?.goal ?? " "}
+                  </button>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+
+      </ConfigPanelItem>
+      
       <ConfigPanelItem itemHeading="Select Layers">
         <SelectLayers G={G} nodeID={selectedNodeID} />
         <div className="flex items-center">
@@ -129,10 +166,6 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
         </div>
       </ConfigPanelItem>
 
-      <ConfigPanelItem itemHeading="Connections">
-        <div></div>
-      </ConfigPanelItem>
-      
       <ConfigPanelItem itemHeading="Apearance">
         <div></div>
       </ConfigPanelItem>

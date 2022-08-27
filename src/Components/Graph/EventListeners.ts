@@ -42,7 +42,7 @@ export function handlePointerDown(
   G: GState,
   currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
-  const {graph, setGraph, nodes, setNodes} = G;
+  const {graph, setGraph, nodes, setNodes, edgeAction} = G;
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
   evCache.current.push(event);
@@ -61,7 +61,9 @@ export function handlePointerDown(
       due: null,
       priority: "normal",
       layerIds: Immutable.Map(),
-      archive: false
+      archive: false,
+      dependencyIds: Immutable.List(),
+      dependentIds: Immutable.List()
     }));
     // TODO set the new node as the focus
     return
@@ -90,13 +92,17 @@ export function handlePointerDown(
         action: "update",
         archive: true
       });
-    if (t === "deleteNode" && n.action != "add")
+    if (t === "deleteNode" && n.action != "add") {
+      tempNodes = edgeAction("delete", newHeldNode, "all", tempNodes)
       tempNodes = tempNodes.set(newHeldNode, {
         ...n,
         action: "delete"
       });
-    if (t === "deleteNode" && n.action === "add")
+    }
+    if (t === "deleteNode" && n.action === "add") {
+      tempNodes = edgeAction("delete", newHeldNode, "all", tempNodes)
       tempNodes = tempNodes.delete(newHeldNode)
+    }
 
     setNodes(tempNodes)
     setGraph({

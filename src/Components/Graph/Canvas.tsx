@@ -260,10 +260,10 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const n1 = graph.selectedPair.get(1)!
         if (currentToolRef.current === "addEdge"){
           // do a depth first search to check if a path from n1 to n2 already exists
-          edgeAction("add", n1, n2)
+          setNodes(edgeAction("add", n1, n2, nodes))
         } 
         else if (currentToolRef.current === "removeEdge") {
-          edgeAction("delete", n1, n2)
+          setNodes(edgeAction("delete", n1, n2, nodes))
         }
         setGraph({
           ...graph,

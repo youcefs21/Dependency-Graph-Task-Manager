@@ -16,7 +16,9 @@ export interface nodeState {
   due: string | null,
   priority: "critical" | "high" | "normal" | "low" | string,
   layerIds: Immutable.Map<string, actionType>,
-  archive: boolean
+  archive: boolean,
+  dependencyIds: Immutable.List<string>,
+  dependentIds: Immutable.List<string>
 }
 
 export interface graphState {
@@ -53,7 +55,7 @@ export interface GState {
   nodes: Immutable.Map<string, nodeState>,
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
   edges: Immutable.Map<Immutable.List<string>, edgeState>,
-  edgeAction: (action: string, n1: string, n2: string) => void 
+  edgeAction: (action: string, n1: string, n2: string, tempNodes: Immutable.Map<string, nodeState>) => Immutable.Map<string, nodeState>,
   graph: graphState,
   setGraph: Dispatch<SetStateAction<graphState>>,
 }
@@ -136,10 +138,11 @@ export function useGraph(): GState {
           due: node.due,
           priority: node.priority,
           layerIds: layerIds,
-          archive: node.archive
+          archive: node.archive,
+          dependencyIds: Immutable.List(),
+          dependentIds: Immutable.List()
         });
       });
-      setNodes(tempNodes);
 
 
       let layers = graph.layers
@@ -169,6 +172,16 @@ export function useGraph(): GState {
 
       nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
         // set up adjecency list
+        if (tempNodes.has(node1_id) && tempNodes.has(node2_id)) {
+          tempNodes = tempNodes.set(node1_id, {
+            ...tempNodes.get(node1_id)!,
+            dependencyIds: tempNodes.get(node1_id)!.dependencyIds.push(node2_id)
+          })
+          tempNodes = tempNodes.set(node2_id, {
+            ...tempNodes.get(node2_id)!,
+            dependentIds: tempNodes.get(node2_id)!.dependentIds.push(node1_id)
+          })
+        }
         if (adj.current.get(node1_id)) {
           adj.current.get(node1_id)!.add(node2_id)
         } else {
@@ -179,14 +192,15 @@ export function useGraph(): GState {
           action: "nothing"
         });
       });
-      setEdges(tempEdges)
+      setEdges(tempEdges);
+      setNodes(tempNodes);
     }
 
   }, [nodesInit.data, graphInit.data, nodeIdPairs.data, session.data])
 
   // ============ edge handling ============
   
-  const edgeAction = (action: string, n1: string, n2: string) => {
+  const edgeAction = (action: string, n1: string, n2: string, tempNodes: Immutable.Map<string, nodeState>) => {
 
     let tempEdges = edges;
     const p1 = Immutable.List([n1, n2])
@@ -194,6 +208,19 @@ export function useGraph(): GState {
 
     if (action === "add") {
       if (dfs(n1, n2) && !adj.current.get(n1)?.has(n2)) {
+
+        if (tempNodes.has(n1) && tempNodes.has(n2)) {
+          tempNodes = tempNodes.set(n1, {
+            ...tempNodes.get(n1)!,
+            dependencyIds: tempNodes.get(n1)!.dependencyIds.push(n2)
+          })
+
+          tempNodes = tempNodes.set(n2, {
+            ...tempNodes.get(n2)!,
+            dependentIds: tempNodes.get(n2)!.dependentIds.push(n1)
+          })
+        }
+        
         if (!tempEdges.has(p1)) {
           tempEdges = tempEdges.set(p1, {
             action: "add"
@@ -209,22 +236,65 @@ export function useGraph(): GState {
         console.log("connection failed, would create a cycle")
       }
     } else if (action === "delete") {
-        if (tempEdges.has(p1)) {
-          tempEdges = tempEdges.set(p1, {
-            action: "delete"
-          });
-        }
+      
+      if (tempNodes.has(n1) && tempNodes.has(n2)) {
+        tempNodes = tempNodes.set(n1, {
+          ...tempNodes.get(n1)!,
+          dependencyIds: tempNodes.get(n1)!.dependencyIds.filter(id => id != n2),
+          dependentIds: tempNodes.get(n1)!.dependentIds.filter(id => id != n2)
+        })
 
-        if (tempEdges.has(p2)) {
-          tempEdges = tempEdges.set(p2, {
-            action: "delete"
+        tempNodes = tempNodes.set(n2, {
+          ...tempNodes.get(n2)!,
+          dependencyIds: tempNodes.get(n2)!.dependencyIds.filter(id => id != n1),
+          dependentIds: tempNodes.get(n2)!.dependentIds.filter(id => id != n1)
+        })
+
+      }
+
+      if (tempNodes.has(n1) && n2 === "all") {
+        const node = tempNodes.get(n1)!
+        // for every dependency of the deleted node, make them not depend on it
+        node.dependencyIds.forEach(id => {
+          tempEdges = tempEdges.delete(Immutable.List([id, n1]))
+          tempEdges = tempEdges.delete(Immutable.List([n1, id]))
+
+          tempNodes = tempNodes.set(id, {
+            ...tempNodes.get(id)!,
+            dependentIds: tempNodes.get(id)!.dependentIds.filter(idd => idd != n1)
+          })
+        });
+        
+        // for every dependent of the deleted node, make them not a dependecy of it
+        node.dependentIds.forEach(id => {
+          tempEdges = tempEdges.delete(Immutable.List([n1, id]))
+
+          tempNodes = tempNodes.set(id, {
+            ...tempNodes.get(id)!,
+            dependencyIds: tempNodes.get(id)!.dependencyIds.filter(idd => idd != n1)
           });
-        }
-        adj.current.get(n1)?.delete(n2)
-        adj.current.get(n2)?.delete(n1)
+
+        });
+        adj.current.delete(n1)
+      }
+
+      if (tempEdges.has(p1)) {
+        tempEdges = tempEdges.set(p1, {
+          action: "delete"
+        });
+      }
+
+      if (tempEdges.has(p2)) {
+        tempEdges = tempEdges.set(p2, {
+          action: "delete"
+        });
+      }
+      adj.current.get(n1)?.delete(n2)
+      adj.current.get(n2)?.delete(n1)
         
     }
     setEdges(tempEdges)
+    return tempNodes
 
   }
   
