@@ -135,7 +135,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
       }
       // function that draws the nodes
-      const createNode = (node: nodeState, color: string) => {
+      const createNode = (node: nodeState, color: string, nodeID: string) => {
         const pos = {x: node.x, y: node.y}
         const label = node.goal
         const datetime = node.due ? Date.parse(node.due) : undefined
@@ -145,15 +145,22 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
+        ctx.closePath()
 
-        if (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 50) {
+        if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 100)) {
+          ctx.beginPath()
           ctx.fillStyle = "pink"
           ctx.globalAlpha = 0.2
           const selectedW = 16 * graph.scale
           const selectedH = 12 * graph.scale
           const selectedX = x - selectedW/2
           const selectedY = y - selectedH/2
-          ctx.fillRect(selectedX, selectedY, selectedW, selectedH)
+          ctx.rect(selectedX, selectedY, selectedW, selectedH)
+          ctx.strokeStyle = "black"
+          ctx.fill()
+          ctx.globalAlpha = 0.1
+          ctx.stroke();
+          ctx.closePath()
           ctx.globalAlpha = 1
         }
 
@@ -245,7 +252,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         if (graph.selectedNodes.has(id)){
           color = isComplete ? "#f4a2b6" : "#f472b6"
         }
-        createNode(node, color)
+        createNode(node, color, id)
       });
 
       // draw selected area
