@@ -46,6 +46,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   const inCanvas = useRef<boolean>(false)
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
   const pinchDiff = useRef<number>(-1);
+  const clickTimestamp = useRef<number>(-1);
   const {nodes, setNodes, graph, setGraph, edges, edgeAction} = G;
 
 
@@ -89,6 +90,11 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
     () => {
       // do nothing if canvas or data are not ready
       if (!canvasRef || !graph.loaded) return;
+      if (clickTimestamp.current === -1 && graph.mouseDown) {
+        clickTimestamp.current = Date.now();
+      } else if (!graph.mouseDown && clickTimestamp.current !== -1) {
+        clickTimestamp.current = -1;
+      }
       
 
       // set up canvas
@@ -140,7 +146,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
 
-        if (graph.mouseDown && graph.heldNode != "background") {
+        if (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 50) {
           ctx.fillStyle = "pink"
           ctx.globalAlpha = 0.2
           const selectedW = 16 * graph.scale
