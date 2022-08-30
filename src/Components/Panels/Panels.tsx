@@ -281,6 +281,24 @@ export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
   )
 }
 
+function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): Immutable.Map<string, nodeState> {
+
+  const node = ns.get(nodeID)!;
+
+  node.dependencyIds.forEach((id) => {
+    const dep = ns.get(id)!;
+    if (!dep.due || (node.due && dep.due > node.due)) {
+      ns = ns.set(id, {
+        ...dep,
+        due: node.due,
+        action: "update"
+      });
+    }
+    ns = cascadeDueDate(id, ns);
+  })
+  return ns;
+}
+
 function handleInputChange(
   e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 
   selectedNode: string,
@@ -305,13 +323,26 @@ function handleInputChange(
     })
   );
 
-  input.name === "due" && setNodes(
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      due: input.value,
-      action: "update"
+  if (input.name === "due") {
+    const node = nodes.get(selectedNode)!;
+    let due = input.value;
+    node.dependentIds.forEach((id) => {
+      const dep = nodes.get(id)!;
+      if (dep.due && Date.parse(dep.due) < Date.parse(due)) {
+        due = dep.due;
+      }
     })
-  );
+    if (due != input.value) {
+      console.log("the latest this node can be due is", due);
+    }
+    setNodes(
+      cascadeDueDate(selectedNode, nodes.set(selectedNode, {
+        ...node,
+        due: input.value,
+        action: "update"
+      }))
+    );
+  }
 
   input.name === "priority" && setNodes(
     nodes.set(selectedNode, {
