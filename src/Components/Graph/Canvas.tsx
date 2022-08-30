@@ -139,6 +139,19 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
+
+        if (graph.mouseDown && graph.heldNode != "background") {
+          ctx.fillStyle = "pink"
+          ctx.globalAlpha = 0.2
+          const selectedW = 16 * graph.scale
+          const selectedH = 12 * graph.scale
+          const selectedX = x - selectedW/2
+          const selectedY = y - selectedH/2
+          ctx.fillRect(selectedX, selectedY, selectedW, selectedH)
+          ctx.globalAlpha = 1
+        }
+
+
         if (graph.scale > 5 ){
           ctx.font = graph.scale.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
