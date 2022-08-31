@@ -63,7 +63,8 @@ export function handlePointerDown(
       layerIds: Immutable.Map(),
       archive: false,
       dependencyIds: Immutable.List(),
-      dependentIds: Immutable.List()
+      dependentIds: Immutable.List(),
+      cascadeDue: true,
     }));
     // TODO set the new node as the focus
     return
