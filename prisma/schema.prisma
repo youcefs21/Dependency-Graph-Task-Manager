@@ -27,6 +27,7 @@ model Node {
   description String?      @db.Text
   size        Float        @default(1)
   due         String?
+  cascadeDue  Boolean      @default(true)
   priority    String       @default("normal")
   out_edges   Edge[]       @relation("outgoing")
   in_edges    Edge[]       @relation("incoming")

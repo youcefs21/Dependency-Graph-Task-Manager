@@ -32,7 +32,8 @@ export const nodeRouter = createRouter()
           size: true,
           x: true,
           y: true,
-          archive: true
+          archive: true,
+          cascadeDue: true,
         }
       });
     }
@@ -65,7 +66,8 @@ export const nodeRouter = createRouter()
       description: z.string().nullish(),
       nodeSize: z.number(),
       due: z.string().nullish(),
-      priority: z.string()
+      priority: z.string(),
+      cascadeDue: z.boolean()
     }),
     async resolve({ input, ctx }) {
       if (input.userId !== ctx.session?.user?.id) {
@@ -81,7 +83,8 @@ export const nodeRouter = createRouter()
           description: input.description,
           size: input.nodeSize,
           due: input.due,
-          priority: input.priority
+          priority: input.priority,
+          cascadeDue: input.cascadeDue
         },
         create: {
           id: input.nodeId,
@@ -91,7 +94,8 @@ export const nodeRouter = createRouter()
           goal: input.goal,
           archive: input.archive,
           description: input.description,
-          priority: input.priority
+          priority: input.priority,
+          cascadeDue: input.cascadeDue
         }
       });
     },

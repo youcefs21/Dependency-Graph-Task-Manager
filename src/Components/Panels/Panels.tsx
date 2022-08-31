@@ -76,7 +76,7 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
           <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
             type={'datetime-local'}
             name={'due'}
-            value={node?.due ?? ""}
+            value={!node?.cascadeDue ? node?.due ?? "" : ""}
             onInput={(e) => handleInputChange(e, selectedNodeID, G)}
           />
         </div>
@@ -287,7 +287,7 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
 
   node.dependencyIds.forEach((id) => {
     const dep = ns.get(id)!;
-    if (!dep.due || (node.due && dep.due > node.due)) {
+    if (dep.cascadeDue) {
       ns = ns.set(id, {
         ...dep,
         due: node.due,
@@ -328,7 +328,7 @@ function handleInputChange(
     let due = input.value;
     node.dependentIds.forEach((id) => {
       const dep = nodes.get(id)!;
-      if (dep.due && Date.parse(dep.due) < Date.parse(due)) {
+      if (dep.due && (Date.parse(dep.due) < Date.parse(due) || due === "")) {
         due = dep.due;
       }
     })
@@ -338,7 +338,8 @@ function handleInputChange(
     setNodes(
       cascadeDueDate(selectedNode, nodes.set(selectedNode, {
         ...node,
-        due: input.value,
+        due: due,
+        cascadeDue: input.value === "",
         action: "update"
       }))
     );

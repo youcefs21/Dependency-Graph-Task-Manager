@@ -18,7 +18,8 @@ export interface nodeState {
   layerIds: Immutable.Map<string, actionType>,
   archive: boolean,
   dependencyIds: Immutable.List<string>,
-  dependentIds: Immutable.List<string>
+  dependentIds: Immutable.List<string>,
+  cascadeDue: boolean,
 }
 
 export interface graphState {
@@ -140,7 +141,8 @@ export function useGraph(): GState {
           layerIds: layerIds,
           archive: node.archive,
           dependencyIds: Immutable.List(),
-          dependentIds: Immutable.List()
+          dependentIds: Immutable.List(),
+          cascadeDue: node.cascadeDue
         });
       });
 
@@ -442,7 +444,8 @@ export function useGraph(): GState {
           nodeSize: node.nodeSize,
           due: node.due,
           priority: node.priority,
-          archive: node.archive
+          archive: node.archive,
+          cascadeDue: node.cascadeDue,
         })
         tempNodes = tempNodes.set(key, {...node, action: "nothing"});
       }
