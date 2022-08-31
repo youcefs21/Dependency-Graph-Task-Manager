@@ -387,7 +387,8 @@ export function useGraph(): GState {
           graphId: graph.graphId,
           layerId: id,
           name: layer.name,
-          visible: layer.visible
+          visible: layer.visible,
+          userId: graph.userId,
         });
         newLayers = newLayers.set(id, {
           ...layer,
@@ -395,7 +396,8 @@ export function useGraph(): GState {
         });
       } else if (layer.action === "delete") {
         deleteLayer.mutate({
-          layerId: id
+          layerId: id,
+          userId: graph.userId,
         });
         newLayers = newLayers.delete(id);
       }
@@ -411,13 +413,15 @@ export function useGraph(): GState {
         if (action === "add") {
           addNodeLayer.mutate({
             nodeId: key,
-            layerId: layerId
+            layerId: layerId,
+            userId: graph.userId,
           });
           tempLayerIds = tempLayerIds.set(layerId, "nothing")
         } else if (action === "delete") {
           deleteNodeLayer.mutate({
             nodeId: key,
-            layerId: layerId
+            layerId: layerId,
+            userId: graph.userId,
           });
           tempLayerIds = tempLayerIds.delete(layerId)
         }
@@ -444,7 +448,8 @@ export function useGraph(): GState {
       }
       else if (node.action === "delete"){
         deleteNode.mutate({
-          nodeId: key
+          nodeId: key,
+          userId: graph.userId
         });
         tempNodes = tempNodes.delete(key);
       }
@@ -460,7 +465,7 @@ export function useGraph(): GState {
         tempEdges = edges.set(pair, {...edge, action: "nothing"})
       }
       else if (edge.action === "delete") {
-        deletePair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!})
+        deletePair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!,userId: graph.userId})
         tempEdges = edges.delete(pair)
       }
     });

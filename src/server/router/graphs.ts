@@ -1,14 +1,26 @@
 import {z} from "zod";
 import { createRouter } from "./context";
 import cuid from 'cuid';
+import { TRPCError } from "@trpc/server";
 
 export const graphsRouter = createRouter()
+  .middleware(async ({ ctx, next }) => {
+    // Any queries or mutations after this middleware will
+    // raise an error unless there is a current session
+    if (!ctx.session) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next();
+  })
   .query("getFirst", {
     input: z.object({
       userId: z.string().nullish(),
     }),
     async resolve({ input, ctx }) {
       if (input.userId === null) return;
+      if (input.userId !== ctx.session?.user?.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
       // get the first graph for the user
       let firstGraph = await ctx.prisma.graph.findFirst({
         where: {
@@ -58,6 +70,9 @@ export const graphsRouter = createRouter()
       completeLayerId: z.string(),
     }),
     async resolve({ input, ctx }) {
+      if (input.userId !== ctx.session?.user?.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
       return await ctx.prisma.graph.update({
         where: {id: input.graphid},
         data: {
@@ -75,10 +90,14 @@ export const graphsRouter = createRouter()
     input: z.object({
       layerId: z.string(),
       graphId: z.string(),
+      userId: z.string(),
       name: z.string(),
       visible: z.boolean()
     }),
     async resolve({ input, ctx }) {
+      if (input.userId !== ctx.session?.user?.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
       return await ctx.prisma.layer.upsert({
         where: {
           id: input.layerId
@@ -98,9 +117,13 @@ export const graphsRouter = createRouter()
   })
   .mutation("deleteLayer", {
     input: z.object({
+      userId: z.string(),
       layerId: z.string()
     }),
     async resolve({ input, ctx }) {
+      if (input.userId !== ctx.session?.user?.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
       return await ctx.prisma.layer.delete({
         where: {
           id: input.layerId
