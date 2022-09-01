@@ -22,7 +22,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
         <h2 className="font-semibold truncate">{title}</h2>
         <button onClick={
           () => {
-            setGraph({...graph, selectedNodes: Immutable.Set<string>()})
+            setGraph(graph => ({...graph, selectedNodes: Immutable.Set<string>()}))
             setCollapse(true)
           }
         }>close</button>
@@ -198,7 +198,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                       visible: !layer.visible, 
                       action: layer.action != "add" ? "update" : "add"
                     });
-                    setGraph({...graph, layers: newLayers})
+                    setGraph(graph => ({...graph, layers: newLayers}))
                   }} className={"bg-[#121316] hover:bg-neutral-600 py-2 w-1/4 h-full ml-1 mt-1 rounded"}>
                     {layer.visible ? "V" : "H"}
                   </button>
@@ -209,7 +209,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                         ...layer, 
                         action: "delete"
                       });
-                      setGraph({...graph, layers: newLayers})
+                      setGraph(graph => ({...graph, layers: newLayers}))
                     }}>
                     D
                   </button>
@@ -230,7 +230,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
                     visible: true,
                     action: "add"
                   });
-                  setGraph({...graph, layers: newLayers})
+                  setGraph(graph => ({...graph, layers: newLayers}))
                 }
               }>
                 + New Layer
@@ -262,7 +262,6 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 }
 
 export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
-  const {graph, setGraph} = G;
   return (
     <ConfigPanel title={"Group Config"} G={G} setCollapse={setCollapse}>
 
@@ -272,7 +271,6 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 }
 
 export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
-  const {graph, setGraph} = G;
   return (
     <ConfigPanel title={"Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
 
@@ -307,7 +305,7 @@ function handleInputChange(
   const input = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   const {nodes, setNodes, graph, setGraph} = G;
 
-  input.name === "goal" && setNodes(
+  input.name === "goal" && setNodes( nodes => 
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       goal: input.value,
@@ -315,7 +313,7 @@ function handleInputChange(
     })
   );
 
-  input.name === "description" && setNodes(
+  input.name === "description" && setNodes( nodes =>
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       description: input.value,
@@ -335,7 +333,7 @@ function handleInputChange(
     if (due != input.value) {
       console.log("the latest this node can be due is", due);
     }
-    setNodes(
+    setNodes(nodes =>
       cascadeDueDate(selectedNode, nodes.set(selectedNode, {
         ...node,
         due: due,
@@ -345,7 +343,7 @@ function handleInputChange(
     );
   }
 
-  input.name === "priority" && setNodes(
+  input.name === "priority" && setNodes(nodes =>
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       priority: input.value,
@@ -353,7 +351,7 @@ function handleInputChange(
     })
   );
 
-  input.name === "x" && setNodes(
+  input.name === "x" && setNodes(nodes =>
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       x: Number(input.value),
@@ -361,7 +359,7 @@ function handleInputChange(
     })
   );
 
-  input.name === "y" && setNodes(
+  input.name === "y" && setNodes(nodes =>
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       y: Math.floor(Number(input.value)),
@@ -369,7 +367,7 @@ function handleInputChange(
     })
   );
 
-  input.name === "archiveNode" && setNodes(
+  input.name === "archiveNode" && setNodes(nodes =>
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       archive: !nodes.get(selectedNode)!.archive,
@@ -377,17 +375,17 @@ function handleInputChange(
     })
   );
 
-  input.name === "graphName" && setGraph({
+  input.name === "graphName" && setGraph(graph => ({
     ...graph,
     graphName: input.value,
-  });
+  }));
 
-  input.name === "showArchive" && setGraph({
+  input.name === "showArchive" && setGraph(graph => ({
     ...graph,
     showArchive: !graph.showArchive
-  });
+  }));
 
-  input.name === "layerName" && setGraph({
+  input.name === "layerName" && setGraph(graph => ({
     ...graph,
     layers: graph.layers.set(selectedNode, {
       ...graph.layers.get(selectedNode)!,
@@ -395,7 +393,7 @@ function handleInputChange(
       action: "update"
     }),
     scale: graph.scale + 0.000001
-  });
+  }));
 
 
 }

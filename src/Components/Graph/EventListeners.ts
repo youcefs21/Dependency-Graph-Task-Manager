@@ -21,12 +21,14 @@ export function handleDoubleClick(
       const {width, height} = event.currentTarget.getBoundingClientRect();
       const node = nodes.get(selectedNode);
       if (node) {
-        const deltaX = graph.TopLeftX - node.x;
-        const deltaY = graph.TopLeftY - node.y;
-        setGraph({
-          ...graph,
-          TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
-          TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+        setGraph(graph => {
+          const deltaX = graph.TopLeftX - node.x;
+          const deltaY = graph.TopLeftY - node.y;
+          return {
+            ...graph,
+            TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
+            TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+          }
         });
       }
 
@@ -84,40 +86,49 @@ export function handlePointerDown(
     const t = currentTool.current
     currentTool.current = "pointer" // this has to happen straight away to avoid creating two nodes if user double clickes
     setCurrentTool("pointer")
-    let tempNodes = nodes
     const n = nodes.get(newHeldNode)!
 
-    if (t === "completeNode") // TODO what happens if you archive a node that is not saved yet
-      tempNodes = tempNodes.set(newHeldNode, {
-        ...n,
-        action: "update",
-        archive: true
-      });
-    if (t === "deleteNode" && n.action != "add") {
-      tempNodes = edgeAction("delete", newHeldNode, "all", tempNodes)
-      tempNodes = tempNodes.set(newHeldNode, {
-        ...n,
-        action: "delete"
-      });
-    }
-    if (t === "deleteNode" && n.action === "add") {
-      tempNodes = edgeAction("delete", newHeldNode, "all", tempNodes)
-      tempNodes = tempNodes.delete(newHeldNode)
+    if (t === "completeNode"){ // TODO what happens if you archive a node that is not saved yet
+      setNodes(tempNodes => {
+        const node = tempNodes.get(newHeldNode)
+        if (!node) return tempNodes
+        return tempNodes.set(newHeldNode, {
+          ...node,
+          action: "update",
+          archive: true
+        });
+      })
     }
 
-    setNodes(tempNodes)
-    setGraph({
+    if (t === "deleteNode" && n.action != "add") {
+      edgeAction("delete", newHeldNode, "all")
+      setNodes(tempNodes => {
+        const node = tempNodes.get(newHeldNode)
+        if (!node) return tempNodes
+        return tempNodes.set(newHeldNode, {
+          ...node,
+          action: "delete"
+        });
+      });
+    }
+    else if (t === "deleteNode" && n.action === "add") {
+      edgeAction("delete", newHeldNode, "all")
+      setNodes(tempNodes => tempNodes.delete(newHeldNode));
+    }
+
+    setGraph(graph => ({
       ...graph,
       mouseDown: true,
       heldNode: "nothing",
       scale: graph.scale + 0.00001,
-    })
+    }));
     return
   }
 
   let newSelectedPair = Immutable.List<string>()
-  if (["addEdge", "removeEdge"].includes(currentTool.current) && !["nothing", "background"].includes(newHeldNode) && graph.selectedPair.size < 2 && !graph.selectedPair.includes(newHeldNode)) 
+  if (["addEdge", "removeEdge"].includes(currentTool.current) && !["nothing", "background"].includes(newHeldNode) && graph.selectedPair.size < 2 && !graph.selectedPair.includes(newHeldNode)) {
     newSelectedPair = graph.selectedPair.push(newHeldNode)
+  }
 
   // if clicked and nothing is held, hold the background
   if (newHeldNode === "nothing") {
@@ -129,14 +140,14 @@ export function handlePointerDown(
     newSelectedNodes = graph.selectedNodes
   }
 
-  setGraph({
+  setGraph(graph => ({
     ...graph,
     mouseDown: true,
     heldNode: newHeldNode,
     selectedNodes: newSelectedNodes,
     selectedPair: newSelectedPair,
     selectedArea: {x1: mx, y1: my, x2: mx, y2: my}
-  })
+  }))
 
 }
 
@@ -160,12 +171,12 @@ export function handlePointerUp(
     pinchDiff.current = -1;
   }
 
-  setGraph({
+  setGraph(graph => ({
     ...graph,
     heldNode: "nothing",
     mouseDown: false,
     selectedArea: {x1: 0, y1: 0, x2: 0, y2: 0}
-  })
+  }))
 }
 
 
@@ -204,12 +215,12 @@ export function handleMove(
 
       const newScale = graph.scale - (graph.scale*delta)/200
 
-      setGraph({
+      setGraph(graph => ({
         ...graph,
         scale: newScale,
         TopLeftX: graph.TopLeftX + (event.clientX/graph.scale) - (event.clientX/newScale),
         TopLeftY: graph.TopLeftY + (event.clientY/graph.scale) - (event.clientY/newScale)
-      });
+      }));
 
     }
     pinchDiff.current = curDiff 
@@ -242,7 +253,7 @@ export function handleMove(
             }
           });
 
-          setGraph({
+          setGraph(graph => ({
             ...graph,
             selectedArea: {
               ...graph.selectedArea, 
@@ -250,37 +261,39 @@ export function handleMove(
               y2: newY2 
             },
             selectedNodes: tempSelectedNodes
-          });
+          }));
           break;
         }
 
         // if the current tool is not the pointer tool
-        setGraph({
+        setGraph(graph => ({
           ...graph,
           TopLeftX: graph.TopLeftX + movementX/graph.scale,
           TopLeftY: graph.TopLeftY + movementY/graph.scale,
-        });
+        }));
       
         break;
       case "nothing": // if nothing is held, do nothing
         break
       default: // if a node is held, move it to the mouse position
         // instead of just moving the held node, move all selectedNodes
-        let tempNodes = nodes;
-        const heldNodeState = nodes.get(graph.heldNode)!
-        nodes.forEach((node, nodeID) => {
-          if (graph.selectedNodes.has(nodeID)) {
-            const xDiff = node.x - heldNodeState.x 
-            const yDiff = node.y - heldNodeState.y
-            tempNodes = tempNodes.set(nodeID, {
-              ...node, 
-              x: Math.round(event.clientX/graph.scale + graph.TopLeftX + xDiff),
-              y: Math.round(event.clientY/graph.scale + graph.TopLeftY + yDiff),
-              action: "update"
-            })
-          }
+        setNodes(nodes => {
+          let tempNodes = nodes;
+          const heldNodeState = nodes.get(graph.heldNode)!
+          nodes.forEach((node, nodeID) => {
+            if (graph.selectedNodes.has(nodeID)) {
+              const xDiff = node.x - heldNodeState.x 
+              const yDiff = node.y - heldNodeState.y
+              tempNodes = tempNodes.set(nodeID, {
+                ...node, 
+                x: Math.round(event.clientX/graph.scale + graph.TopLeftX + xDiff),
+                y: Math.round(event.clientY/graph.scale + graph.TopLeftY + yDiff),
+                action: "update"
+              })
+            }
+          });
+          return tempNodes;
         });
-        setNodes(tempNodes)
     }
   } 
 }
@@ -291,54 +304,62 @@ export function handleWheel(event: React.WheelEvent<HTMLCanvasElement>, graph: g
   if (event.ctrlKey) {
     const newScale = graph.scale - (graph.scale*event.deltaY)/1000
 
-    setGraph({
+    setGraph(graph => ({
       ...graph,
       scale: newScale,
       TopLeftX: graph.TopLeftX + (event.clientX/graph.scale) - (event.clientX/newScale),
       TopLeftY: graph.TopLeftY + (event.clientY/graph.scale) - (event.clientY/newScale)
-    })
+    }));
 
   } else if (event.shiftKey) {
-    setGraph({
+    setGraph(graph => ({
       ...graph,
       TopLeftX: graph.TopLeftX + (event.deltaY/graph.scale),
       TopLeftY: graph.TopLeftY + (event.deltaX/graph.scale),
-    })
+    }));
   } else {
-    setGraph({
+    setGraph(graph => ({
       ...graph,
       TopLeftY: graph.TopLeftY + (event.deltaY/graph.scale),
       TopLeftX: graph.TopLeftX + (event.deltaX/graph.scale),
-    })
+    }));
   }
 
 }
 
 export function handleKeyDown(
   event: React.KeyboardEvent<HTMLCanvasElement>,
-  graph: graphState, setGraph: Dispatch<SetStateAction<graphState>>,
-  nodes: Immutable.Map<string, nodeState>, setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
+  G: GState,
   currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
-  let tempNodes = nodes
+  const { nodes, edgeAction, graph, setGraph, setNodes } = G;
 
   if (event.key === "Delete") {
 
-    graph.selectedNodes.forEach((nodeID) => {
-      tempNodes = tempNodes.set(nodeID, {
-        ...tempNodes.get(nodeID)!,
-        action: "delete"
+    setNodes(tempNodes => {
+      graph.selectedNodes.forEach((nodeID) => {
+        edgeAction("delete", nodeID, "all")
+        const node = tempNodes.get(nodeID)
+        if (!node) return
+        if (node.action != "add"){
+          tempNodes = tempNodes.set(nodeID, {
+            ...node,
+            action: "delete"
+          });
+        } else {
+          tempNodes = tempNodes.delete(nodeID);
+        }
       });
-    });
+      return tempNodes;
+    })
 
-    setGraph({
+    setGraph(graph => ({
       ...graph,
       selectedNodes: Immutable.Set<string>(),
       scale: graph.scale + 0.00001
-    })
+    }));
 
   }
-  setNodes(tempNodes)
 
 
 }

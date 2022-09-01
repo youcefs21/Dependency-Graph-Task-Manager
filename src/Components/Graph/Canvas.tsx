@@ -52,10 +52,10 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
   useEffect(() => {
     currentToolRef.current = currentTool;
-    setGraph({
+    setGraph(graph => ({
       ...graph,
       selectedPair: Immutable.List<string>()
-    })
+    }))
   }, [currentTool])
 
 
@@ -286,15 +286,15 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const n1 = graph.selectedPair.get(1)!
         if (currentToolRef.current === "addEdge"){
           // do a depth first search to check if a path from n1 to n2 already exists
-          setNodes(edgeAction("add", n1, n2, nodes))
+          edgeAction("add", n1, n2)
         } 
         else if (currentToolRef.current === "removeEdge") {
-          setNodes(edgeAction("delete", n1, n2, nodes))
+          edgeAction("delete", n1, n2)
         }
-        setGraph({
+        setGraph(graph => ({
           ...graph,
           selectedPair: Immutable.List<string>()
-        });
+        }));
         setCurrentTool("pointer")
       }
 
@@ -321,7 +321,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       }}
       onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
-      onKeyDown={(ev) => handleKeyDown(ev, graph, setGraph, nodes, setNodes, currentToolRef, setCurrentTool)}
+      onKeyDown={(ev) => handleKeyDown(ev, G, currentToolRef, setCurrentTool)}
       tabIndex={0}
       />
   </>

@@ -36,7 +36,6 @@ export interface graphState {
   userId: string,
   saveState: "saved" | "not saved" | "saving" | "save error",
   loaded: boolean,
-  ignoreChange: boolean,
   layers: Immutable.Map<string, layerState>,
   showArchive: boolean,
   completeLayerId: string,
@@ -56,7 +55,7 @@ export interface GState {
   nodes: Immutable.Map<string, nodeState>,
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
   edges: Immutable.Map<Immutable.List<string>, edgeState>,
-  edgeAction: (action: string, n1: string, n2: string, tempNodes: Immutable.Map<string, nodeState>) => Immutable.Map<string, nodeState>,
+  edgeAction: (action: string, n1: string, n2: string) => void,
   graph: graphState,
   setGraph: Dispatch<SetStateAction<graphState>>,
 }
@@ -75,7 +74,6 @@ const initialGraph: graphState = {
   userId: "root",
   saveState: "saved",
   loaded: false,
-  ignoreChange: true,
   layers: Immutable.Map<string, layerState>(),
   showArchive: false,
   completeLayerId: ""
@@ -87,15 +85,16 @@ export function useGraph(): GState {
   const [nodes, setNodes] = useState(Immutable.Map<string, nodeState>())
   const [edges, setEdges] = useState(Immutable.Map<Immutable.List<string>, edgeState>())
   const [graph, setGraph] = useState<graphState>(initialGraph);
+  const alreadyUpdated = useRef<boolean>(true);
 
   const [saveTimer, setSaveTimer] = useState<number>(10000);
 
   const mutationOptions = {
     onSuccess: () => {
-      setGraph({...graph, saveState: "saved"})
+      setGraph(graph => ({...graph, saveState: "saved"}));
     },
     onError: () => {
-      setGraph({...graph, saveState: "save error"});
+      setGraph(graph => ({...graph, saveState: "save error"}));
     },
   }
 
@@ -202,36 +201,43 @@ export function useGraph(): GState {
 
   // ============ edge handling ============
   
-  const edgeAction = (action: string, n1: string, n2: string, tempNodes: Immutable.Map<string, nodeState>) => {
+  const edgeAction = (action: string, n1: string, n2: string) => {
 
-    let tempEdges = edges;
     const p1 = Immutable.List([n1, n2])
     const p2 = Immutable.List([n2, n1])
 
     if (action === "add") {
       if (dfs(n1, n2) && !adj.current.get(n1)?.has(n2)) {
 
-        if (tempNodes.has(n1) && tempNodes.has(n2)) {
-          tempNodes = tempNodes.set(n1, {
-            ...tempNodes.get(n1)!,
-            dependencyIds: tempNodes.get(n1)!.dependencyIds.push(n2)
-          })
+        setNodes(tempNodes => {
+          if (tempNodes.has(n1) && tempNodes.has(n2)) {
+            tempNodes = tempNodes.set(n1, {
+              ...tempNodes.get(n1)!,
+              dependencyIds: tempNodes.get(n1)!.dependencyIds.push(n2)
+            })
 
-          tempNodes = tempNodes.set(n2, {
-            ...tempNodes.get(n2)!,
-            dependentIds: tempNodes.get(n2)!.dependentIds.push(n1)
-          })
-        }
+            tempNodes = tempNodes.set(n2, {
+              ...tempNodes.get(n2)!,
+              dependentIds: tempNodes.get(n2)!.dependentIds.push(n1)
+            })
+          }
+          return tempNodes
+        })
         
-        if (!tempEdges.has(p1)) {
-          tempEdges = tempEdges.set(p1, {
-            action: "add"
-          });
-        } else {
-          tempEdges = tempEdges.set(p1, {
-            action: "nothing"
-          });
-        }
+
+        setEdges(tempEdges => {
+          if (!tempEdges.has(p1)) {
+            tempEdges = tempEdges.set(p1, {
+              action: "add"
+            });
+          } else {
+            tempEdges = tempEdges.set(p1, {
+              action: "nothing"
+            });
+          }
+          return tempEdges;
+        })
+
         adj.current.get(n1) ? adj.current.get(n1)!.add(n2) : adj.current.set(n1, new Set([n2]))
           
       } else {
@@ -239,64 +245,73 @@ export function useGraph(): GState {
       }
     } else if (action === "delete") {
       
-      if (tempNodes.has(n1) && tempNodes.has(n2)) {
-        tempNodes = tempNodes.set(n1, {
-          ...tempNodes.get(n1)!,
-          dependencyIds: tempNodes.get(n1)!.dependencyIds.filter(id => id != n2),
-          dependentIds: tempNodes.get(n1)!.dependentIds.filter(id => id != n2)
-        })
-
-        tempNodes = tempNodes.set(n2, {
-          ...tempNodes.get(n2)!,
-          dependencyIds: tempNodes.get(n2)!.dependencyIds.filter(id => id != n1),
-          dependentIds: tempNodes.get(n2)!.dependentIds.filter(id => id != n1)
-        })
-
-      }
-
-      if (tempNodes.has(n1) && n2 === "all") {
-        const node = tempNodes.get(n1)!
-        // for every dependency of the deleted node, make them not depend on it
-        node.dependencyIds.forEach(id => {
-          tempEdges = tempEdges.delete(Immutable.List([id, n1]))
-          tempEdges = tempEdges.delete(Immutable.List([n1, id]))
-
-          tempNodes = tempNodes.set(id, {
-            ...tempNodes.get(id)!,
-            dependentIds: tempNodes.get(id)!.dependentIds.filter(idd => idd != n1)
+      setNodes(tempNodes => {
+        // if we're deleteing an edge between two nodes
+        if (tempNodes.has(n1) && tempNodes.has(n2)) {
+          tempNodes = tempNodes.set(n1, {
+            ...tempNodes.get(n1)!,
+            dependencyIds: tempNodes.get(n1)!.dependencyIds.filter(id => id != n2),
+            dependentIds: tempNodes.get(n1)!.dependentIds.filter(id => id != n2)
           })
-        });
-        
-        // for every dependent of the deleted node, make them not a dependecy of it
-        node.dependentIds.forEach(id => {
-          tempEdges = tempEdges.delete(Immutable.List([n1, id]))
 
-          tempNodes = tempNodes.set(id, {
-            ...tempNodes.get(id)!,
-            dependencyIds: tempNodes.get(id)!.dependencyIds.filter(idd => idd != n1)
+          tempNodes = tempNodes.set(n2, {
+            ...tempNodes.get(n2)!,
+            dependencyIds: tempNodes.get(n2)!.dependencyIds.filter(id => id != n1),
+            dependentIds: tempNodes.get(n2)!.dependentIds.filter(id => id != n1)
+          })
+        }
+        // if we're delete all edges connected to n1 (probably because n1 is being deleted)
+        else if (tempNodes.has(n1) && n2 === "all") {
+          const node = tempNodes.get(n1)!
+          // for every dependency of the deleted node, make them not depend on it
+          setEdges(tempEdges => {
+            node.dependencyIds.forEach(id => {
+              tempEdges = tempEdges.delete(Immutable.List([id, n1]))
+              tempEdges = tempEdges.delete(Immutable.List([n1, id]))
+
+              tempNodes = tempNodes.set(id, {
+                ...tempNodes.get(id)!,
+                dependentIds: tempNodes.get(id)!.dependentIds.filter(idd => idd != n1)
+              })
+            });
+            
+            // for every dependent of the deleted node, make them not a dependecy of it
+            node.dependentIds.forEach(id => {
+              tempEdges = tempEdges.delete(Immutable.List([n1, id]))
+
+              tempNodes = tempNodes.set(id, {
+                ...tempNodes.get(id)!,
+                dependencyIds: tempNodes.get(id)!.dependencyIds.filter(idd => idd != n1)
+              });
+
+            });
+            return tempEdges;
           });
+          adj.current.delete(n1)
+        }
 
-        });
-        adj.current.delete(n1)
-      }
+        return tempNodes
 
-      if (tempEdges.has(p1)) {
-        tempEdges = tempEdges.set(p1, {
-          action: "delete"
-        });
-      }
+      });
 
-      if (tempEdges.has(p2)) {
-        tempEdges = tempEdges.set(p2, {
-          action: "delete"
-        });
-      }
+      setEdges(tempEdges => {
+        if (tempEdges.has(p1)) {
+          tempEdges = tempEdges.set(p1, {
+            action: "delete"
+          });
+        }
+
+        if (tempEdges.has(p2)) {
+          tempEdges = tempEdges.set(p2, {
+            action: "delete"
+          });
+        }
+        return tempEdges;
+      });
       adj.current.get(n1)?.delete(n2)
       adj.current.get(n2)?.delete(n1)
         
     }
-    setEdges(tempEdges)
-    return tempNodes
 
   }
   
@@ -325,28 +340,26 @@ export function useGraph(): GState {
   // ============ setup timer ============
   useEffect(() => {
     const interval = setInterval(() => {
-      setSaveTimer(saveTimer + 1);
+      setSaveTimer(saveTimer => saveTimer + 1);
     }, 100);
     return () => clearInterval(interval);
-  }, [saveTimer]);
+  }, []);
 
   // ============ reset timer on change ============
   useEffect(() => {
     if (!graph.loaded)
       return
-    if (!graph.ignoreChange){
+    if (!alreadyUpdated.current){
       setSaveTimer(0)
-      setGraph({
+      setGraph(graph => ({
         ...graph,
         saveState: "not saved",
-      });
+      }));
       return;
     }
 
-    setGraph({
-      ...graph,
-      ignoreChange: false
-    });
+    alreadyUpdated.current = false;
+
   }, [graph.scale, graph.TopLeftY, graph.TopLeftX, graph.loaded, nodes, edges]);
 
 
@@ -367,8 +380,15 @@ export function useGraph(): GState {
 
   // ============ push to database ============
   useEffect(() => {
-    if (saveTimer != 100)
+    if (saveTimer != 100 || alreadyUpdated.current)
       return
+    alreadyUpdated.current = true;
+    
+
+    setGraph(graph => ({
+      ...graph,
+      saveState: "saving",
+    }))
 
     
     // update graph
@@ -382,7 +402,6 @@ export function useGraph(): GState {
     });
 
     // update layers
-    let newLayers = graph.layers
     graph.layers.forEach((layer, id) => {
       if (layer.action === "update" || layer.action === "add") {
         updateLayer.mutate({
@@ -392,25 +411,29 @@ export function useGraph(): GState {
           visible: layer.visible,
           userId: graph.userId,
         });
-        newLayers = newLayers.set(id, {
-          ...layer,
-          action: "nothing"
-        });
+        setGraph(graph => ({
+          ...graph,
+          layers: graph.layers.set(id, {
+            ...layer,
+            action: "nothing",
+          }),
+        }));
       } else if (layer.action === "delete") {
         deleteLayer.mutate({
           layerId: id,
           userId: graph.userId,
         });
-        newLayers = newLayers.delete(id);
+        setGraph(graph => ({
+          ...graph,
+          layers: graph.layers.delete(id),
+        }));
       }
     });
     
-    // update nodes 
-    let tempNodes = nodes
+    // update nodes
     nodes.forEach((node, key) => {
 
       // update nodeLayer
-      let tempLayerIds = node.layerIds
       node.layerIds.forEach((action, layerId) => {
         if (action === "add") {
           addNodeLayer.mutate({
@@ -418,19 +441,33 @@ export function useGraph(): GState {
             layerId: layerId,
             userId: graph.userId,
           });
-          tempLayerIds = tempLayerIds.set(layerId, "nothing")
+          
+          setNodes(nodes => {
+            const node = nodes.get(key)
+            if (!node) return nodes
+            return nodes.set(key, {
+              ...node,
+              layerIds: node.layerIds.set(layerId, "nothing")
+            });
+          })
+
         } else if (action === "delete") {
           deleteNodeLayer.mutate({
             nodeId: key,
             layerId: layerId,
             userId: graph.userId,
           });
-          tempLayerIds = tempLayerIds.delete(layerId)
+          
+          setNodes(nodes => {
+            const node = nodes.get(key)
+            if (!node) return nodes
+            return nodes.set(key, {
+              ...node,
+              layerIds: node.layerIds.delete(layerId)
+            });
+          })
+
         }
-      });
-      tempNodes = tempNodes.set(key, {
-        ...node, 
-        layerIds: tempLayerIds 
       });
 
       // update node
@@ -447,41 +484,36 @@ export function useGraph(): GState {
           archive: node.archive,
           cascadeDue: node.cascadeDue,
         })
-        tempNodes = tempNodes.set(key, {...node, action: "nothing"});
+        setNodes(nodes => {
+            const node = nodes.get(key)
+            if (!node) return nodes
+            return nodes.set(key, {
+            ...node, 
+            action: "nothing"
+          })
+        });
       }
       else if (node.action === "delete"){
         deleteNode.mutate({
           nodeId: key,
           userId: graph.userId
         });
-        tempNodes = tempNodes.delete(key);
+        setNodes(nodes => nodes.delete(key));
       }
     });
 
-    setNodes(tempNodes)
-
     // add and delete edges
-    let tempEdges = edges
     edges.forEach((edge, pair) => {
       if (edge.action === "add"){
         addPair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!, userId: graph.userId})
-        tempEdges = edges.set(pair, {...edge, action: "nothing"})
+        setEdges(edges => edges.set(pair, {...edge, action: "nothing"}));
       }
       else if (edge.action === "delete") {
         deletePair.mutate({node1Id: pair.get(0)!, node2Id: pair.get(1)!,userId: graph.userId})
-        tempEdges = edges.delete(pair)
+        setEdges(edges => edges.delete(pair));
       }
     });
 
-    setEdges(tempEdges)
-
-    // clear archive and delete lists
-    setGraph({
-      ...graph,
-      saveState: "saving",
-      ignoreChange: true,
-      layers: newLayers,
-    })
   }, [saveTimer]);
 
   return {nodes, setNodes, graph, setGraph, edges, edgeAction}

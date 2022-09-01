@@ -32,18 +32,18 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
                   
                   if (isSelected) {
                     if (node.layerIds.get(layerID) === "delete") {
-                      setNodes(nodes.set(nodeID, {
+                      setNodes(nodes => nodes.set(nodeID, {
                         ...node,
                         layerIds: node.layerIds.delete(layerID)
                       }))
                     } else {
-                      setNodes(nodes.set(nodeID, {
+                      setNodes(nodes => nodes.set(nodeID, {
                         ...node,
                         layerIds: node.layerIds.set(layerID, "delete")
                       }));
                     }
                   } else {
-                    setNodes(nodes.set(nodeID, {
+                    setNodes(nodes => nodes.set(nodeID, {
                       ...node, 
                       layerIds: node.layerIds.set(layerID, "add")
                     }));
@@ -75,12 +75,12 @@ export const NodeListItem = ({nodeId, G}: {nodeId: string, G: GState}) => {
         onClick={(e) => {
           const deltaX = graph.TopLeftX - node.x;
           const deltaY = graph.TopLeftY - node.y;
-          setGraph({
+          setGraph(graph => ({
             ...graph,
             selectedNodes: Immutable.Set<string>([nodeId]),
             TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
             TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
-          })
+          }))
 
         }}
         >
