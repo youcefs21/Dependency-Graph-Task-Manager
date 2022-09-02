@@ -29,11 +29,11 @@ export function isNodeVisible(node: nodeState, G: GState) {
   node.layerIds.forEach((action, layerId) => {
     if (action === "delete") return;
     inNoLayers = false;
-    if (graph.layers.get(layerId)?.visible) {
+    if (!graph.layers.get(layerId)?.visible) {
       inVisibleLayer = true
     }
   });
-  return inVisibleLayer || inNoLayers;
+  return !inVisibleLayer || inNoLayers;
 }
 
 export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: canvasProps) {
