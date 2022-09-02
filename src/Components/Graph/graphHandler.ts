@@ -173,18 +173,20 @@ export function useGraph(): GState {
 
       nodeIdPairs.data.forEach(({node1_id, node2_id}) => {
         // set up adjecency list
-        if (tempNodes.has(node1_id) && tempNodes.has(node2_id)) {
+        const node1 = tempNodes.get(node1_id)
+        const node2 = tempNodes.get(node2_id)
+        if (node1 && node2) {
           tempNodes = tempNodes.set(node1_id, {
-            ...tempNodes.get(node1_id)!,
-            dependencyIds: tempNodes.get(node1_id)!.dependencyIds.push(node2_id)
+            ...node1,
+            dependencyIds: node1.dependencyIds.push(node2_id)
           })
           tempNodes = tempNodes.set(node2_id, {
-            ...tempNodes.get(node2_id)!,
-            dependentIds: tempNodes.get(node2_id)!.dependentIds.push(node1_id)
+            ...node2,
+            dependentIds: node2.dependentIds.push(node1_id)
           })
         }
         if (adj.current.get(node1_id)) {
-          adj.current.get(node1_id)!.add(node2_id)
+          adj.current.get(node1_id)?.add(node2_id)
         } else {
           adj.current.set(node1_id, new Set(node2_id))
         }
