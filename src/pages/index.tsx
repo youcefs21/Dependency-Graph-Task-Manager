@@ -4,7 +4,8 @@ import Head from "next/head";
 import { useState } from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { useGraph } from "../Components/Graph/graphHandler";
-import { GraphConfigPanel, NodeConfigPanel, GroupConfigPanel, TreeExplorerPanel } from "../Components/Panels/Panels";
+import { NodeConfigPanel } from "../Components/Panels/NodeConfig";
+import { GraphConfigPanel, GroupConfigPanel, TreeExplorerPanel } from "../Components/Panels/Panels";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 
 

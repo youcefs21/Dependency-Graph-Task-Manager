@@ -1,11 +1,10 @@
 import cuid from "cuid";
 import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
-import { isNodeVisible } from "../Graph/Canvas";
-import { graphState, GState, nodeState } from "../Graph/graphHandler";
-import { ConfigPanelItem, NodeListItem, SelectLayers } from "./PanelElements";
+import { GState } from "../Graph/graphHandler";
+import { ConfigPanelItem } from "./PanelElements";
 
-interface configPanelProps {
+export interface configPanelProps {
   G: GState,
   title: string, 
   setCollapse: Dispatch<SetStateAction<boolean>>,
@@ -34,124 +33,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
   );
 }
 
-interface NodeConfigPanelProps {
-  G: GState,
-  selectedNodeID: string,
-  setCollapseConfig: Dispatch<SetStateAction<boolean>>
-}
 
-export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConfigPanelProps) => {
-  const {nodes, graph, setGraph} = G;
-  const node = nodes.get(selectedNodeID);
-  return (
-    <ConfigPanel title={node?.goal ?? " "} G={G} setCollapse={setCollapseConfig}>
-      <ConfigPanelItem itemHeading="Basic Node Data">
-        <div className="flex items-center">
-          <p className="w-16">Goal</p>
-          <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0"
-            type={'text'}
-            name={'goal'}
-            placeholder={"short title"}
-            value={node?.goal ?? ""} 
-            maxLength={35}
-            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
-          />
-        </div>
-        <div className="py-2">
-          <p>Description</p>
-          <textarea className="bg-[#393939] rounded my-2 p-1 caret-white outline-0"
-            cols={27}
-            rows={5}
-            name={'description'}
-            placeholder={"long description"}
-            value={node?.description ?? ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
-          />
-        </div>
-      </ConfigPanelItem>
-
-      <ConfigPanelItem itemHeading="Properties">
-        <div className="flex items-center text-xs">
-          <p className="w-16">Due</p>
-          <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
-            type={'datetime-local'}
-            name={'due'}
-            value={!node?.cascadeDue ? node?.due ?? "" : ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
-          />
-        </div>
-
-        <div className="flex items-center text-xs">
-          <p className="w-16 my-3">Priority</p>
-          <select className={"bg-[#393939] rounded p-1 outline-0 mx-2 w-full"}
-            name="priority" 
-            value={node?.priority ?? ""} 
-            onChange={(e) => handleInputChange(e, selectedNodeID, G)}
-          >
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="normal">Normal</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
-
-        <div className="flex items-center text-xs">
-          <p className="w-16 mr-1 my-3">Position</p>
-          
-          <div className="bg-[#393939] text-[#3AB9D4] p-1 rounded-l">x: </div>
-          <input className="bg-[#393939] p-1 mr-2 caret-white outline-0 w-1/4 rounded-r"
-            type={'number'}
-            name={'x'}
-            value={node?.x ?? ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
-          />
-
-          <div className="bg-[#393939] p-1 text-[#3AB9D4] rounded-l">y: </div>
-          <input className="bg-[#393939] p-1 caret-white outline-0 w-1/4 rounded-r"
-            type={'number'}
-            name={'y'}
-            value={node?.y ?? ""}
-            onInput={(e) => handleInputChange(e, selectedNodeID, G)}
-          />
-
-        </div>
-      </ConfigPanelItem>
-
-
-      <ConfigPanelItem itemHeading="Connections">
-        <h3>Dependent Nodes (do after)</h3>
-        <ul>
-          {node?.dependentIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
-        </ul>
-
-        <h3>Node Dependencies (do before)</h3>
-        <ul>
-          {node?.dependencyIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
-        </ul>
-
-      </ConfigPanelItem>
-      
-      <ConfigPanelItem itemHeading="Select Layers">
-        <SelectLayers G={G} nodeID={selectedNodeID} />
-        <div className="flex items-center">
-          <input className="m-2" 
-            type={'checkbox'} 
-            name={'archiveNode'} 
-            checked={node?.archive ?? false} 
-            onChange={(e) => handleInputChange(e, selectedNodeID, G)} 
-          />
-          <p className="text-xs">Archive Node</p>
-        </div>
-      </ConfigPanelItem>
-
-      <ConfigPanelItem itemHeading="Apearance">
-        <div></div>
-      </ConfigPanelItem>
-    
-    </ConfigPanel>
-  )  
-
-}
 
 interface GenericPanelProps {
   G: GState,
@@ -279,24 +161,6 @@ export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
   )
 }
 
-function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): Immutable.Map<string, nodeState> {
-
-  const node = ns.get(nodeID)!;
-
-  node.dependencyIds.forEach((id) => {
-    const dep = ns.get(id);
-    if (!dep) return;
-    if (dep.cascadeDue) {
-      ns = ns.set(id, {
-        ...dep,
-        due: node.due,
-        action: "update"
-      });
-    }
-    ns = cascadeDueDate(id, ns);
-  })
-  return ns;
-}
 
 function handleInputChange(
   e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 
@@ -304,77 +168,7 @@ function handleInputChange(
   G: GState
 ) {
   const input = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-  const {nodes, setNodes, graph, setGraph} = G;
-
-  input.name === "goal" && setNodes( nodes => 
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      goal: input.value,
-      action: "update"
-    })
-  );
-
-  input.name === "description" && setNodes( nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      description: input.value,
-      action: "update"
-    })
-  );
-
-  if (input.name === "due") {
-    const node = nodes.get(selectedNode)!;
-    let due = input.value;
-    node.dependentIds.forEach((id) => {
-      const dep = nodes.get(id)!;
-      if (dep.due && (Date.parse(dep.due) < Date.parse(due) || due === "")) {
-        due = dep.due;
-      }
-    })
-    if (due != input.value) {
-      console.log("the latest this node can be due is", due);
-    }
-    setNodes(nodes =>
-      cascadeDueDate(selectedNode, nodes.set(selectedNode, {
-        ...node,
-        due: due,
-        cascadeDue: input.value === "",
-        action: "update"
-      }))
-    );
-  }
-
-  input.name === "priority" && setNodes(nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      priority: input.value,
-      action: "update"
-    })
-  );
-
-  input.name === "x" && setNodes(nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      x: Number(input.value),
-      action: "update"
-    })
-  );
-
-  input.name === "y" && setNodes(nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      y: Math.floor(Number(input.value)),
-      action: "update"
-    })
-  );
-
-  input.name === "archiveNode" && setNodes(nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      archive: !nodes.get(selectedNode)!.archive,
-      action: "update"
-    })
-  );
+  const {setGraph} = G;
 
   input.name === "graphName" && setGraph(graph => ({
     ...graph,
