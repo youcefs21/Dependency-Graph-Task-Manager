@@ -210,17 +210,18 @@ export function useGraph(): GState {
 
     if (action === "add") {
       if (dfs(n1, n2) && !adj.current.get(n1)?.has(n2)) {
-
         setNodes(tempNodes => {
-          if (tempNodes.has(n1) && tempNodes.has(n2)) {
+          const node1 = tempNodes.get(n1)
+          const node2 = tempNodes.get(n2)
+          if (node1 && node2) {
             tempNodes = tempNodes.set(n1, {
-              ...tempNodes.get(n1)!,
-              dependencyIds: tempNodes.get(n1)!.dependencyIds.push(n2)
+              ...node1,
+              dependencyIds: node1.dependencyIds.push(n2)
             })
 
             tempNodes = tempNodes.set(n2, {
-              ...tempNodes.get(n2)!,
-              dependentIds: tempNodes.get(n2)!.dependentIds.push(n1)
+              ...node2,
+              dependentIds: node2.dependentIds.push(n1)
             })
           }
           return tempNodes
@@ -240,7 +241,7 @@ export function useGraph(): GState {
           return tempEdges;
         })
 
-        adj.current.get(n1) ? adj.current.get(n1)!.add(n2) : adj.current.set(n1, new Set([n2]))
+        adj.current.get(n1) ? adj.current.get(n1)?.add(n2) : adj.current.set(n1, new Set([n2]))
           
       } else {
         console.log("connection failed, would create a cycle")
@@ -249,44 +250,49 @@ export function useGraph(): GState {
       
       setNodes(tempNodes => {
         // if we're deleteing an edge between two nodes
-        if (tempNodes.has(n1) && tempNodes.has(n2)) {
+        const node1 = tempNodes.get(n1)
+        const node2 = tempNodes.get(n2)
+        if (node1 && node2) {
           tempNodes = tempNodes.set(n1, {
-            ...tempNodes.get(n1)!,
-            dependencyIds: tempNodes.get(n1)!.dependencyIds.filter(id => id != n2),
-            dependentIds: tempNodes.get(n1)!.dependentIds.filter(id => id != n2)
+            ...node1,
+            dependencyIds: node1.dependencyIds.filter(id => id != n2),
+            dependentIds: node1.dependentIds.filter(id => id != n2)
           })
 
           tempNodes = tempNodes.set(n2, {
-            ...tempNodes.get(n2)!,
-            dependencyIds: tempNodes.get(n2)!.dependencyIds.filter(id => id != n1),
-            dependentIds: tempNodes.get(n2)!.dependentIds.filter(id => id != n1)
+            ...node2,
+            dependencyIds: node2.dependencyIds.filter(id => id != n1),
+            dependentIds: node2.dependentIds.filter(id => id != n1)
           })
         }
         // if we're delete all edges connected to n1 (probably because n1 is being deleted)
-        else if (tempNodes.has(n1) && n2 === "all") {
-          const node = tempNodes.get(n1)!
+        else if (node1 && n2 === "all") {
           // for every dependency of the deleted node, make them not depend on it
           setEdges(tempEdges => {
-            node.dependencyIds.forEach(id => {
+            node1.dependencyIds.forEach(id => {
               tempEdges = tempEdges.delete(Immutable.List([id, n1]))
               tempEdges = tempEdges.delete(Immutable.List([n1, id]))
-
+              const node = tempNodes.get(id)
+              if (!node) return
               tempNodes = tempNodes.set(id, {
-                ...tempNodes.get(id)!,
-                dependentIds: tempNodes.get(id)!.dependentIds.filter(idd => idd != n1)
+                ...node,
+                dependentIds: node.dependentIds.filter(idd => idd != n1)
               })
             });
             
             // for every dependent of the deleted node, make them not a dependecy of it
-            node.dependentIds.forEach(id => {
+            node1.dependentIds.forEach(id => {
               tempEdges = tempEdges.delete(Immutable.List([n1, id]))
 
-              tempNodes = tempNodes.set(id, {
-                ...tempNodes.get(id)!,
-                dependencyIds: tempNodes.get(id)!.dependencyIds.filter(idd => idd != n1)
-              });
+              const node = tempNodes.get(id)
+              if (!node) return
 
+              tempNodes = tempNodes.set(id, {
+                ...node,
+                dependencyIds: node.dependencyIds.filter(idd => idd != n1)
+              });
             });
+
             return tempEdges;
           });
           adj.current.delete(n1)
@@ -328,7 +334,7 @@ export function useGraph(): GState {
       if (!adj.current.get(n)) 
         return true
       var valid = true
-      adj.current.get(n)!.forEach((next) => {
+      adj.current.get(n)?.forEach((next) => {
         if (!visited.has(next) && !isValidConnection(next)) {
           valid = false
           return

@@ -284,7 +284,8 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
   const node = ns.get(nodeID)!;
 
   node.dependencyIds.forEach((id) => {
-    const dep = ns.get(id)!;
+    const dep = ns.get(id);
+    if (!dep) return;
     if (dep.cascadeDue) {
       ns = ns.set(id, {
         ...dep,
