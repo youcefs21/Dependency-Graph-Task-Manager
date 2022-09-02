@@ -135,12 +135,40 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
       }
       // function that draws the nodes
-      const createNode = (node: nodeState, color: string, nodeID: string) => {
+      const createNode = (node: nodeState, isSelected: boolean, nodeID: string) => {
+        const isComplete = node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete"
         const pos = {x: node.x, y: node.y}
         const label = node.goal
         const datetime = node.due ? Date.parse(node.due) : undefined
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
+
+        let selectFill = "pink"
+        let color = "#cbd5e1"
+        switch (node.priority) {
+          case "critical":
+            color = "red"
+            selectFill = "red"
+            break;
+          case "high":
+            color = "orange"
+            selectFill = "#FFD067"
+            break;
+          case "normal":
+            color = "lightblue"
+            selectFill = "lightblue"
+            break;
+          case "low":
+            selectFill = "#cbd5e1"
+            break;
+        }
+        
+        if (isComplete) {
+          color = "#99ff99"
+        } else if (isSelected) {
+          color = "#f472b6"
+        } 
+
         ctx.fillStyle = color;
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
@@ -149,7 +177,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
         if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 100)) {
           ctx.beginPath()
-          ctx.fillStyle = "pink"
+          ctx.fillStyle = selectFill
           ctx.globalAlpha = 0.2
           const selectedW = 16 * graph.scale
           const selectedH = 12 * graph.scale
@@ -242,17 +270,17 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       setCursor("default")
       nodes.forEach((node, id) => {
         if (!isNodeVisible(node, G)) return;
-        const isComplete = node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete"
 
-        let color = isComplete ? "#99ff99" : "#cbd5e1"
         if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
-          color = isComplete ? "#f4a2b6" : "#f472b6"
+          createNode(node, true, id)
+          return
         }
         if (graph.selectedNodes.has(id)){
-          color = isComplete ? "#f4a2b6" : "#f472b6"
+          createNode(node, true, id)
+          return
         }
-        createNode(node, color, id)
+        createNode(node, false, id)
       });
 
       // draw selected area
