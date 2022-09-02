@@ -31,7 +31,7 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
                   if (!node) return;
                   
                   if (isSelected) {
-                    if (node.layerIds.get(layerID) === "delete") {
+                    if (node.layerIds.get(layerID) === "add") {
                       setNodes(nodes => nodes.set(nodeID, {
                         ...node,
                         layerIds: node.layerIds.delete(layerID)
@@ -43,10 +43,17 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
                       }));
                     }
                   } else {
-                    setNodes(nodes => nodes.set(nodeID, {
-                      ...node, 
-                      layerIds: node.layerIds.set(layerID, "add")
-                    }));
+                    if (node.layerIds.get(layerID) === "delete") {
+                      setNodes(nodes => nodes.set(nodeID, {
+                        ...node,
+                        layerIds: node.layerIds.set(layerID, "nothing")
+                      }))
+                    } else {
+                      setNodes(nodes => nodes.set(nodeID, {
+                        ...node, 
+                        layerIds: node.layerIds.set(layerID, "add")
+                      }));
+                    }
                   }
                 }}>
                 {layer.name}
