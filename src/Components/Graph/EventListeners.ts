@@ -1,3 +1,4 @@
+import assert from "assert";
 import cuid from "cuid";
 import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
@@ -11,11 +12,18 @@ export function handleDoubleClick(
   currentTool: MutableRefObject<toolStates>, setCollapseConfig: Dispatch<SetStateAction<boolean>>
 ) {
   const {graph, setGraph, nodes} = G;
+  const mx = event.clientX/graph.scale + graph.TopLeftX 
+  const my = event.clientY/graph.scale + graph.TopLeftY 
 
   if (currentTool.current === "pointer"){
     setCollapseConfig(false);
 
-    const selectedNode = graph.selectedNodes.first()
+    let selectedNode = graph.heldNode;
+    nodes.forEach((node, id) => {
+      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && isNodeVisible(node, G)) {
+        selectedNode = id
+      }
+    });
     if (selectedNode) {
       // get the width and height of the screen
       const {width, height} = event.currentTarget.getBoundingClientRect();
@@ -28,6 +36,8 @@ export function handleDoubleClick(
             ...graph,
             TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
             TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+            selectedNodes: Immutable.Set([selectedNode]),
+            treeFocus: selectedNode,
           }
         });
       }
@@ -67,6 +77,7 @@ export function handlePointerDown(
       dependencyIds: Immutable.List(),
       dependentIds: Immutable.List(),
       cascadeDue: true,
+      treeCollapse: false,
     }));
     // TODO set the new node as the focus
     return

@@ -20,6 +20,7 @@ export interface nodeState {
   dependencyIds: Immutable.List<string>,
   dependentIds: Immutable.List<string>,
   cascadeDue: boolean,
+  treeCollapse: boolean,
 }
 
 export interface graphState {
@@ -39,6 +40,7 @@ export interface graphState {
   layers: Immutable.Map<string, layerState>,
   showArchive: boolean,
   completeLayerId: string,
+  treeFocus: string,
 }
 
 export interface edgeState {
@@ -76,7 +78,8 @@ const initialGraph: graphState = {
   loaded: false,
   layers: Immutable.Map<string, layerState>(),
   showArchive: false,
-  completeLayerId: ""
+  completeLayerId: "",
+  treeFocus: "root",
 }
 
 export function useGraph(): GState {
@@ -141,7 +144,8 @@ export function useGraph(): GState {
           archive: node.archive,
           dependencyIds: Immutable.List(),
           dependentIds: Immutable.List(),
-          cascadeDue: node.cascadeDue
+          cascadeDue: node.cascadeDue,
+          treeCollapse: false,
         });
       });
 

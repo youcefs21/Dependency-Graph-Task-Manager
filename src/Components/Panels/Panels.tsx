@@ -154,8 +154,7 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 }
 
 const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
-  const [collapse, setCollapse] = useState<boolean>(true);
-  const {nodes} = G;
+  const {nodes, setNodes, setGraph} = G;
   const node = nodes.get(nodeId);
 
   if (!node) return null;
@@ -170,24 +169,28 @@ const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
 
   return (
       <li className="pl-3">
-        <div className="flex items-center hover:bg-slate-600 py-1 pr-6 ml-[-11.5px] rounded w-fit">
+        <div className="flex items-center hover:bg-slate-600 py-1 ml-[-11.5px] rounded w-fit">
           { node.dependencyIds.size > 0 &&
-            <button onClick={() => setCollapse(!collapse) } className="p-2">
-              <div className={collapse ? "-rotate-90" : ""}>
+            <button onClick={() => setNodes((nodes) => {
+              const node = nodes.get(nodeId);
+              if (!node) return nodes;
+              return nodes.set(nodeId, {...node, treeCollapse: !node.treeCollapse})
+            }) } className="p-2">
+              <div className={node.treeCollapse ? "-rotate-90" : ""}>
                 <svg width="9" height="7" viewBox="0 0 9 7" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M4.5 7L0.602886 0.25L8.39711 0.25L4.5 7Z" fill="#D9D9D9"/>
                 </svg>
               </div>
             </button>
           }
-          <div className="ml-3">
+          <button className={`pr-6 text-left ${node.dependencyIds.size > 0 ? "ml-3" : "ml-9"}`} onDoubleClick={() => setGraph((graph) => ({...graph, treeFocus: nodeId}))}>
             {delta &&
               <p className="text-[12px] font-bold font-mono" style={{color: color}}>{parseDeltaTime(delta)}</p>
             }
             <p>{node.goal}</p>
-          </div>
+          </button>
         </div>
-        { !collapse &&
+        { !node.treeCollapse &&
         <ListContainer G={G} nodeId={nodeId} />
         }
       </li>
@@ -214,17 +217,27 @@ const ListContainer = ({G, nodeId}: {G: GState, nodeId: string}) => {
 }
 
 export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
-  const {nodes} = G;
+  const {nodes, graph, setGraph} = G;
   const rootNodes: string[] = []
 
-  nodes.forEach((node, nodeId) => {
-    if (node.dependentIds.size === 0){
-      rootNodes.push(nodeId)
-    }
-  })
+  if (graph.treeFocus === "root") {
+    nodes.forEach((node, nodeId) => {
+      if (node.dependentIds.size === 0){
+        rootNodes.push(nodeId)
+      }
+    })
+  } else {
+    rootNodes.push(graph.treeFocus)
+  }
   return (
     <ConfigPanel title={"Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
       <div className="whitespace-nowrap w-fit">
+        {graph.treeFocus !== "root" &&
+          <button className="bg-[#2A2B34] hover:bg-slate-700 p-2 ml-1 mt-1 rounded"
+            onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
+            <p className="text-center text-xs">Back to Root</p>
+          </button>
+        }
         <ul className="pl-1 text-xs">
         {
           rootNodes.map(nodeId => {
