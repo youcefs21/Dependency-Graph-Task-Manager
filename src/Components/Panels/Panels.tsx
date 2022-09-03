@@ -26,7 +26,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
           }
         }>close</button>
       </div>
-      <div className="divide-y p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-5/6 shadow-white">
+      <div className="divide-y p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-5/6 corner">
         {children}
       </div>
     </div>
@@ -152,10 +152,61 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
   )
 }
 
+const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
+  const {nodes} = G;
+  const node = nodes.get(nodeId);
+
+  if (!node) return null;
+
+  return (
+    <>
+      <li className="pl-3">
+        <div className="hover:bg-pink-400 px-2 py-1 rounded w-fit">
+        {node.goal}
+        </div>
+        <ListContainer G={G} nodeId={nodeId} />
+      </li>
+    </>
+  )
+}
+
+const ListContainer = ({G, nodeId}: {G: GState, nodeId: string}) => {
+  const {nodes} = G;
+  const node = nodes.get(nodeId);
+
+  if (!node) return null;
+
+  return (
+    <div className="border-l-2 border-slate-800">
+      {node.dependencyIds.map((id) => {
+        return (
+          <ListElement G={G} nodeId={id} />
+        )
+      })}
+    </div>
+  )
+}
+
 export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
+  const {nodes} = G;
+  const rootNodes: string[] = []
+
+  nodes.forEach((node, nodeId) => {
+    if (node.dependentIds.size === 0){
+      rootNodes.push(nodeId)
+    }
+  })
   return (
     <ConfigPanel title={"Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
-
+      <div className="whitespace-nowrap w-fit">
+        <ul className="pl-1 text-xs">
+        {
+          rootNodes.map(nodeId => {
+            return <ListElement key={nodeId} G={G} nodeId={nodeId} />
+        })
+        }
+        </ul>
+      </div>
 
     </ConfigPanel>
   )

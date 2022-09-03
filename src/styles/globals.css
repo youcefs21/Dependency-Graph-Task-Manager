@@ -4,3 +4,7 @@
 body {
     background-color: #0f172a;
 }
+
+.corner::-webkit-scrollbar-corner { 
+    background:#18181b;
+}
