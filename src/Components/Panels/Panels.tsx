@@ -1,6 +1,7 @@
 import cuid from "cuid";
 import Immutable from "immutable";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
+import { isNodeVisible, parseDeltaTime } from "../Graph/Canvas";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanelItem } from "./PanelElements";
 
@@ -153,20 +154,43 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 }
 
 const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
+  const [collapse, setCollapse] = useState<boolean>(true);
   const {nodes} = G;
   const node = nodes.get(nodeId);
 
   if (!node) return null;
 
+  const datetime = node.due ? Date.parse(node.due) : undefined
+  let delta = undefined
+  let color = undefined
+  if (datetime) {
+    delta = datetime - Date.now()
+    color = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
+  }
+
   return (
-    <>
       <li className="pl-3">
-        <div className="hover:bg-pink-400 px-2 py-1 rounded w-fit">
-        {node.goal}
+        <div className="flex items-center hover:bg-slate-600 py-1 pr-6 ml-[-11.5px] rounded w-fit">
+          { node.dependencyIds.size > 0 &&
+            <button onClick={() => setCollapse(!collapse) } className="p-2">
+              <div className={collapse ? "-rotate-90" : ""}>
+                <svg width="9" height="7" viewBox="0 0 9 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.5 7L0.602886 0.25L8.39711 0.25L4.5 7Z" fill="#D9D9D9"/>
+                </svg>
+              </div>
+            </button>
+          }
+          <div className="ml-3">
+            {delta &&
+              <p className="text-[12px] font-bold font-mono" style={{color: color}}>{parseDeltaTime(delta)}</p>
+            }
+            <p>{node.goal}</p>
+          </div>
         </div>
+        { !collapse &&
         <ListContainer G={G} nodeId={nodeId} />
+        }
       </li>
-    </>
   )
 }
 
@@ -177,8 +201,10 @@ const ListContainer = ({G, nodeId}: {G: GState, nodeId: string}) => {
   if (!node) return null;
 
   return (
-    <div className="border-l-2 border-slate-800">
+    <div className="border-l-2 border-slate-700">
       {node.dependencyIds.map((id) => {
+        const n = nodes.get(id);
+        if (!n || !isNodeVisible(n, G)) return null;
         return (
           <ListElement G={G} nodeId={id} />
         )
@@ -202,6 +228,8 @@ export const TreeExplorerPanel = ({G, setCollapse} : GenericPanelProps) => {
         <ul className="pl-1 text-xs">
         {
           rootNodes.map(nodeId => {
+            const n = nodes.get(nodeId);
+            if (!n || !isNodeVisible(n, G)) return null;
             return <ListElement key={nodeId} G={G} nodeId={nodeId} />
         })
         }

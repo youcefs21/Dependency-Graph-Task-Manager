@@ -35,6 +35,19 @@ export function isNodeVisible(node: nodeState, G: GState) {
   });
   return !inVisibleLayer || inNoLayers;
 }
+export const parseDeltaTime = (d: number) => {
+  if (d < 0) return "00:00:00"
+  d = Math.floor(d/1000);
+  const s = d%60;
+  d = Math.floor(d/60)
+  const m = d%60;
+  d = Math.floor(d/60)
+  const h = d%24;
+  d = Math.floor(d/24)
+
+  return d.toString().padStart(2, "0") + ":" + h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0")
+
+}
 
 export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -120,19 +133,6 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.moveTo(0, i*graph.scale)
         ctx.lineTo(width, i*graph.scale)
         ctx.stroke()
-      }
-      const parseDeltaTime = (d: number) => {
-        if (d < 0) return "00:00:00"
-        d = Math.floor(d/1000);
-        const s = d%60;
-        d = Math.floor(d/60)
-        const m = d%60;
-        d = Math.floor(d/60)
-        const h = d%24;
-        d = Math.floor(d/24)
-
-        return d.toString().padStart(2, "0") + ":" + h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0")
-
       }
       // function that draws the nodes
       const createNode = (node: nodeState, isSelected: boolean, nodeID: string) => {
