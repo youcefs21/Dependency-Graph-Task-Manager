@@ -1,17 +1,36 @@
-import assert from "assert";
 import cuid from "cuid";
 import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { isNodeVisible } from "./Canvas";
+import { isNodeVisible, useWindowDimensions } from "./Canvas";
 import { graphState, GState, nodeState } from "./graphHandler";
+
+
+
+export function focusNode(G: GState, selectedNode: string, width: number, height: number) {
+  const {nodes, setGraph} = G;
+  const node = nodes.get(selectedNode);
+  if (node) {
+    setGraph(graph => {
+      const deltaX = graph.TopLeftX - node.x;
+      const deltaY = graph.TopLeftY - node.y;
+      return {
+        ...graph,
+        TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
+        TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+        selectedNodes: Immutable.Set([selectedNode]),
+        treeFocus: selectedNode,
+      }
+    });
+  }
+}
 
 export function handleDoubleClick(
   event: React.MouseEvent<HTMLCanvasElement>,
   G: GState,
   currentTool: MutableRefObject<toolStates>, setCollapseConfig: Dispatch<SetStateAction<boolean>>
 ) {
-  const {graph, setGraph, nodes} = G;
+  const {graph, nodes} = G;
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
 
@@ -25,23 +44,8 @@ export function handleDoubleClick(
       }
     });
     if (selectedNode) {
-      // get the width and height of the screen
       const {width, height} = event.currentTarget.getBoundingClientRect();
-      const node = nodes.get(selectedNode);
-      if (node) {
-        setGraph(graph => {
-          const deltaX = graph.TopLeftX - node.x;
-          const deltaY = graph.TopLeftY - node.y;
-          return {
-            ...graph,
-            TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
-            TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
-            selectedNodes: Immutable.Set([selectedNode]),
-            treeFocus: selectedNode,
-          }
-        });
-      }
-
+      focusNode(G, selectedNode, width, height);
     }
   }
 }

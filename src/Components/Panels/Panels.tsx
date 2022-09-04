@@ -1,7 +1,8 @@
 import cuid from "cuid";
 import Immutable from "immutable";
 import { Dispatch, SetStateAction, useState } from "react";
-import { isNodeVisible, parseDeltaTime } from "../Graph/Canvas";
+import { isNodeVisible, parseDeltaTime, useWindowDimensions } from "../Graph/Canvas";
+import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanelItem } from "./PanelElements";
 
@@ -156,6 +157,7 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
   const {nodes, setNodes, setGraph} = G;
   const node = nodes.get(nodeId);
+  const {width, height} = useWindowDimensions();
 
   if (!node) return null;
 
@@ -188,7 +190,10 @@ const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
               </div>
             </button>
           }
-          <button className={`pr-6 text-left ${visibleDependencies.size > 0 ? "ml-3" : "ml-9"}`} onDoubleClick={() => setGraph((graph) => ({...graph, treeFocus: nodeId}))}>
+          <button 
+            className={`pr-6 text-left ${visibleDependencies.size > 0 ? "ml-3" : "ml-9"}`} 
+            onClick={() => focusNode(G, nodeId, width, height)}
+            >
             {delta &&
               <p className="text-[12px] font-bold font-mono" style={{color: color}}>{parseDeltaTime(delta)}</p>
             }
@@ -274,7 +279,7 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   }
   const title = nodes.get(graph.treeFocus)?.goal ?? ""
   return (
-    <ConfigPanel title={"Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
+    <ConfigPanel title={onlyLeafs ? "Leaf Explorer" : "Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
       <div className="whitespace-nowrap w-fit">
       <div className="sticky -top-4 -mt-4 pt-4 pb-2 bg-[#222326]">
         {graph.treeFocus !== "root" &&

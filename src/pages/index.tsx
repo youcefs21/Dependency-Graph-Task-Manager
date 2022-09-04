@@ -51,7 +51,10 @@ const Home: NextPage = () => {
       </div>
 
       <div className="text-white bg-black p-2 rounded-lg absolute left-5 top-5">
-        <button onClick={() => setCollapseExplorer(false)} className={"text-white"}>
+        <button onClick={() => {
+          setCollapseExplorer(false)
+          setLeafOnly(false)
+        }} className={"text-white"}>
           Tree Explorer
         </button>
       </div>
