@@ -16,6 +16,7 @@ const Home: NextPage = () => {
   const selectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
   const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
+  const [leafOnly, setLeafOnly] = useState<boolean>(false)
   const auth = useSession()
 
   if (auth.status === "unauthenticated") {
@@ -55,6 +56,15 @@ const Home: NextPage = () => {
         </button>
       </div>
       
+      <div className="text-white bg-black p-2 rounded-lg absolute left-5 top-18">
+        <button onClick={() => {
+          setCollapseExplorer(false)
+          setLeafOnly(true)
+          }} className={"text-white"}>
+          Leaf Explorer
+        </button>
+      </div>
+      
       { !collapseConfig && selectedNode != "nothing" && 
         <NodeConfigPanel G={G} selectedNodeID={selectedNode} setCollapseConfig={setCollapseConfig}/>
       }
@@ -68,7 +78,7 @@ const Home: NextPage = () => {
       }
       
       { !collapseExplorer &&
-        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer}/>
+        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer} onlyLeafs={leafOnly}/>
       }
 
     </>
