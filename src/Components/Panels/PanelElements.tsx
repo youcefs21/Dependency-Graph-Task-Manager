@@ -1,4 +1,3 @@
-import Immutable from "immutable";
 import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler"
@@ -7,8 +6,8 @@ import { GState } from "../Graph/graphHandler"
 export const ConfigPanelItem = ({itemHeading, children}: {itemHeading: string, children: JSX.Element | JSX.Element[]}) => {
   return (
     <div className="p-2">
-      <h3>{itemHeading}</h3>
-      <div className="text-sm text-[#BDBDBD] pl-3">
+      <h3 className="text-sm">{itemHeading}</h3>
+      <div className="text-xs text-[#BDBDBD] pl-3">
         {children}
       </div>
     </div>
@@ -25,9 +24,9 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
         if (layer.action === "delete") return null;
         return (
           <li key={layerID} 
-          className={`my-2 rounded ${!isSelected ? 'bg-[#2A2B34] hover:bg-slate-700' : 'bg-blue-500 text-white'}`}>
+          className={`my-1 rounded ${!isSelected ? 'bg-[#2A2B34] hover:bg-slate-700' : 'bg-blue-500 text-white'}`}>
             <div className="flex justify-between items-center">
-              <button className="w-full h-full px-4 py-2" 
+              <button className="w-full h-full text-xs py-1" 
                 onClick={() => {
                   if (!node) return;
                   
@@ -77,9 +76,9 @@ export const NodeListItem = ({nodeId, G}: {nodeId: string, G: GState}) => {
   if (!node) return null;
   if (!isNodeVisible(node, G)) return null;
   return (
-    <li key={nodeId} className={`my-2 rounded bg-[#2A2B34] hover:bg-slate-700`}>
+    <li key={nodeId} className={`mb-1 rounded bg-[#2A2B34] hover:bg-slate-700`}>
       <div className="flex justify-between items-center">
-        <button className="w-full h-full px-4 py-2" onClick={(e) => focusNode(G, nodeId, width, height)}>
+        <button className="w-full h-full text-xs py-1" onClick={(e) => focusNode(G, nodeId, width, height)}>
           {node?.goal ?? " "}
         </button>
       </div>

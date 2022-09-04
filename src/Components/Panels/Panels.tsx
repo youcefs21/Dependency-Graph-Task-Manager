@@ -64,42 +64,44 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
 
       <ConfigPanelItem itemHeading="Layers">
         <ul>
-          {Array.from(graph.layers.map((layer, index) => {
+          {
+          Array.from(graph.layers.map((layer, index) => {
             if (layer.action === "delete") return null;
             return (
               <li key={index}>
-                <div className="flex justify-between items-center">
-                  <input className={"border-0 outline-0 bg-[#2A2B34] hover:bg-slate-700 px-4 py-2 w-full rounded"}
+                <div className="grid grid-cols-7 gap-1 my-1">
+                  
+                  <input className={"border-0 outline-0 bg-[#2A2B34] hover:bg-slate-700 pl-3 py-1 col-span-5 rounded"}
                     type={'text'}
                     name={'layerName'}
                     value={layer.name}
                     onInput={(e) => handleInputChange(e, index, G)}
                   />
                   
-                  <button onClick={() => {
-                    const newLayers = graph.layers.set(index, {
+                  <button onClick={() => setGraph(graph => ({
+                    ...graph, 
+                    layers: graph.layers.set(index, {
                       ...layer, 
                       visible: !layer.visible, 
                       action: layer.action != "add" ? "update" : "add"
-                    });
-                    setGraph(graph => ({...graph, layers: newLayers}))
-                  }} className={"bg-[#121316] hover:bg-neutral-600 py-2 w-1/4 h-full ml-1 mt-1 rounded"}>
+                    })
+                  }))} 
+                  className={"bg-[#121316] hover:bg-neutral-600 p-1 rounded"}>
                     {layer.visible ? "V" : "H"}
                   </button>
-                  { graph.completeLayerId != index &&
-                  <button className="bg-[#121316] hover:bg-rose-700 py-2 w-1/4 h-full ml-1 mt-1 rounded"
-                    onClick={() => {
-                      const newLayers = graph.layers.set(index, {
-                        ...layer, 
-                        action: "delete"
-                      });
-                      setGraph(graph => ({...graph, layers: newLayers}))
-                    }}>
-                    D
-                  </button>
-                  }
-                  { graph.completeLayerId === index &&
-                    <div className="w-1/4 ml-1"></div>
+
+                  {
+                    graph.completeLayerId != index &&
+                    <button className="bg-[#121316] hover:bg-rose-700 p-1 rounded"
+                      onClick={() => {
+                        const newLayers = graph.layers.set(index, {
+                          ...layer, 
+                          action: "delete"
+                        });
+                        setGraph(graph => ({...graph, layers: newLayers}))
+                      }}>
+                      D
+                    </button>
                   }
                 </div>
               </li>
@@ -107,7 +109,7 @@ export const GraphConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
           }).values())}
           <li className="my-2 rounded bg-[#2A2B34] hover:bg-slate-700">
             <div className="flex justify-center items-center select-none">
-              <button className="w-full h-full px-4 py-2" onClick={
+              <button className="w-full h-full py-1" onClick={
                 () => {
                   const newLayers = graph.layers.set(cuid(), {
                     name: "New Layer",

@@ -16,7 +16,7 @@ const BasicNodeInfoSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: strin
     <ConfigPanelItem itemHeading="Basic Node Info">
       <div className="flex items-center">
         <p className="w-16">Goal</p>
-        <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0"
+        <input className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 w-56"
           type={'text'}
           name={'goal'}
           placeholder={"short title"}
@@ -27,9 +27,9 @@ const BasicNodeInfoSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: strin
       </div>
       <div className="py-2">
         <p>Description</p>
-        <textarea className="bg-[#393939] rounded my-2 p-1 caret-white outline-0"
-          cols={27}
-          rows={5}
+        <textarea className="bg-[#393939] rounded my-2 p-1 caret-white outline-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 corner resize-none"
+          cols={32}
+          rows={8}
           name={'description'}
           placeholder={"long description"}
           value={node?.description ?? ""}
@@ -101,12 +101,12 @@ const NodeConnectionsSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: str
 
   return (
     <ConfigPanelItem itemHeading="Connections">
-      <h3>Dependent Nodes (do after)</h3>
+      <h3 className="mt-2">Dependent Nodes (do after)</h3>
       <ul>
         {node?.dependentIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
 
-      <h3>Node Dependencies (do before)</h3>
+      <h3 className="mt-2">Node Dependencies (do before)</h3>
       <ul>
         {node?.dependencyIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
