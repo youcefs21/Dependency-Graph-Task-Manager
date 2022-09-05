@@ -57,7 +57,7 @@ export interface GState {
   nodes: Immutable.Map<string, nodeState>,
   setNodes: Dispatch<SetStateAction<Immutable.Map<string, nodeState>>>,
   edges: Immutable.Map<Immutable.List<string>, edgeState>,
-  edgeAction: (action: string, n1: string, n2: string) => void,
+  edgeAction: (action: "add" | "delete", n1: string, n2: string) => void,
   graph: graphState,
   setGraph: Dispatch<SetStateAction<graphState>>,
 }
@@ -227,6 +227,8 @@ export function useGraph(): GState {
               ...node2,
               dependentIds: node2.dependentIds.push(n1)
             })
+          } else {
+            console.log("node not found")
           }
           return tempNodes
         })

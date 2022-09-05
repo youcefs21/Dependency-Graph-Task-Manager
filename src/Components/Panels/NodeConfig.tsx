@@ -1,12 +1,37 @@
+import cuid from "cuid";
+import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
+import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
+import { focusNode } from "../Graph/EventListeners";
 import { GState, nodeState } from "../Graph/graphHandler";
-import { ConfigPanelItem, NodeListItem, SelectLayers } from "./PanelElements";
+import { ConfigPanelItem, SelectLayers } from "./PanelElements";
 import { ConfigPanel } from "./Panels";
 
 interface NodeConfigPanelProps {
   G: GState,
   selectedNodeID: string,
   setCollapseConfig: Dispatch<SetStateAction<boolean>>
+}
+
+
+const NodeListItem = ({nodeId, G}: {nodeId: string, G: GState}) => {
+
+  const {nodes} = G;
+  const {width, height} = useWindowDimensions();
+
+  const node = nodes.get(nodeId);
+  if (!node) return null;
+  if (!isNodeVisible(node, G)) return null;
+  return (
+    <li key={nodeId} className={`mb-1 rounded bg-[#2A2B34] hover:bg-slate-700`}>
+      <div className="flex justify-between items-center">
+        <button className="w-full h-full text-xs py-1" onClick={(e) => focusNode(G, nodeId, width, height)}>
+          {node?.goal ?? " "}
+        </button>
+      </div>
+    </li>
+  )
+  
 }
 
 const BasicNodeInfoSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: string}) => {
@@ -95,9 +120,58 @@ const NodePropertiesSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: stri
   )
 }
 
+const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: boolean, relatedNodeId: string}) => {
+
+  const {nodes, setNodes, edgeAction} = G;
+  const node = nodes.get(relatedNodeId);
+  if (!node) return null;
+
+  return (
+    <div className="flex">
+      <button className="my-1 mr-1 p-1 rounded bg-[#2A2B34] hover:bg-slate-700 w-full"
+        onClick={() => {
+
+          const newId = cuid();
+          setNodes((nodes) => {
+            return nodes.set(newId, {
+              x: node.x + 16,
+              y: node.y + (parent ? 12 : -12),
+              goal: "insert goal here",
+              description: null,
+              action: "add",
+              nodeSize: 1,
+              due: null,
+              priority: "normal",
+              layerIds: Immutable.Map(),
+              archive: false,
+              dependencyIds: Immutable.List(),
+              dependentIds: Immutable.List(),
+              cascadeDue: true,
+              treeCollapse: false,
+            })
+          })
+          if (parent) {
+            edgeAction("add", relatedNodeId, newId)
+          }
+          else {
+            edgeAction("add", newId, relatedNodeId)
+          }
+
+        }}
+      >
+        + New Node
+      </button>
+      <button className="my-1 ml-1 p-1 rounded bg-[#2A2B34] hover:bg-slate-700 w-full">
+        + Existing Node
+      </button>
+    </div>
+  )
+}
+
 const NodeConnectionsSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: string}) => {
-  const {nodes} = G;
+  const { nodes } = G;
   const node = nodes.get(selectedNodeID);
+  if (!node) return null;
 
   return (
     <ConfigPanelItem itemHeading="Connections">
@@ -106,10 +180,13 @@ const NodeConnectionsSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: str
         {node?.dependentIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
 
+      <NewConnectionsButtons G={G} parent={false} relatedNodeId={selectedNodeID} />
+
       <h3 className="mt-2">Node Dependencies (do before)</h3>
       <ul>
         {node?.dependencyIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
+      <NewConnectionsButtons G={G} parent={true} relatedNodeId={selectedNodeID} />
 
     </ConfigPanelItem>
   )

@@ -66,23 +66,3 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
   )
 }
 
-
-export const NodeListItem = ({nodeId, G}: {nodeId: string, G: GState}) => {
-
-  const {nodes} = G;
-  const {width, height} = useWindowDimensions();
-
-  const node = nodes.get(nodeId);
-  if (!node) return null;
-  if (!isNodeVisible(node, G)) return null;
-  return (
-    <li key={nodeId} className={`mb-1 rounded bg-[#2A2B34] hover:bg-slate-700`}>
-      <div className="flex justify-between items-center">
-        <button className="w-full h-full text-xs py-1" onClick={(e) => focusNode(G, nodeId, width, height)}>
-          {node?.goal ?? " "}
-        </button>
-      </div>
-    </li>
-  )
-  
-}
