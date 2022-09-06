@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import {useMousePos, useWindowDimensions} from "../Graph/Canvas";
 import { graphState } from "../Graph/graphHandler";
 import { AddEdgeIcon, RemoveEdgeIcon, AddNodeIcon, DeleteNodeIcon, Seperator, CompleteNodeIcon, MoveIcon, PointerIcon} from "./ToolbarIcons";
@@ -84,12 +84,12 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
 }
 
 
-export const hintText = (t: string, selectedCount: number) => {
+export const hintText = (t: string, isParentEmpty: boolean) => {
   switch(t) {
     case "addEdge":
-      return <>Select the node you want to <span className={"text-green-500"}>connect {selectedCount === 0 ? "from" : "to"}</span> </>
+      return <>Select the node you want to <span className={"text-green-500"}>connect {isParentEmpty ? "from" : "to"}</span> </>
     case "removeEdge":
-      return <>select the <span className="text-red-500">{selectedCount === 0 ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
+      return <>select the <span className="text-red-500">{isParentEmpty ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
     case "addNode":
       return <>click anywhere on the screen to <span className="text-green-500">create</span> a node there</>
     case "deleteNode":

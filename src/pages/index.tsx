@@ -44,7 +44,7 @@ const Home: NextPage = () => {
       <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
       <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        {hintText(currentTool, graph.selectedPair.size)}
+        {hintText(currentTool, graph.edgeActionState.parents.isEmpty())}
       </p>
       <div className="text-white bg-black p-2 rounded-lg absolute right-5 top-5">
         <button onClick={() => setCollapseConfig(false)} className={"text-white"}>

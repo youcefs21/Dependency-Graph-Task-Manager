@@ -140,9 +140,26 @@ export function handlePointerDown(
     return
   }
 
-  let newSelectedPair = Immutable.List<string>()
-  if (["addEdge", "removeEdge"].includes(currentTool.current) && !["nothing", "background"].includes(newHeldNode) && graph.selectedPair.size < 2 && !graph.selectedPair.includes(newHeldNode)) {
-    newSelectedPair = graph.selectedPair.push(newHeldNode)
+  const EAS = graph.edgeActionState;
+  if (currentTool.current === EAS.action && !["nothing", "background"].includes(newHeldNode)) {
+
+    if (EAS.parents.isEmpty() && !EAS.children.has(newHeldNode)) {
+      setGraph(graph => ({
+        ...graph,
+        edgeActionState: {
+          ...graph.edgeActionState,
+          parents: graph.edgeActionState.parents.add(newHeldNode)
+        },
+      }))
+    } else if (EAS.children.isEmpty() && !EAS.parents.has(newHeldNode)) {
+      setGraph(graph => ({
+        ...graph,
+        edgeActionState: {
+          ...graph.edgeActionState,
+          children: graph.edgeActionState.children.add(newHeldNode)
+        },
+      }))
+    }
   }
 
   // if clicked and nothing is held, hold the background
@@ -160,7 +177,6 @@ export function handlePointerDown(
     mouseDown: true,
     heldNode: newHeldNode,
     selectedNodes: newSelectedNodes,
-    selectedPair: newSelectedPair,
     selectedArea: {x1: mx, y1: my, x2: mx, y2: my}
   }))
 

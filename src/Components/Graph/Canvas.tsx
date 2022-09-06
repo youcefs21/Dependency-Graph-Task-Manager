@@ -67,7 +67,11 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
     currentToolRef.current = currentTool;
     setGraph(graph => ({
       ...graph,
-      selectedPair: Immutable.List<string>()
+      edgeActionState: {
+        parents: Immutable.Set(),
+        children: Immutable.Set(),
+        action: currentTool === "addEdge" || currentTool === "removeEdge" ? currentTool : "nothing",
+      },
     }))
   }, [currentTool])
 
@@ -309,19 +313,31 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         } 
       }
 
-      if (graph.selectedPair.size === 2) {
-        const n2 = graph.selectedPair.get(0)!
-        const n1 = graph.selectedPair.get(1)!
-        if (currentToolRef.current === "addEdge"){
+      if (!graph.edgeActionState.parents.isEmpty() && !graph.edgeActionState.children.isEmpty()) {
+        const parents = graph.edgeActionState.parents
+        const children = graph.edgeActionState.children
+        if (graph.edgeActionState.action === "addEdge") {
           // do a depth first search to check if a path from n1 to n2 already exists
-          edgeAction("add", n1, n2)
+          parents.forEach((n1) => {
+            children.forEach((n2) => {
+              edgeAction("add", n1, n2)
+            })
+          });
         } 
-        else if (currentToolRef.current === "removeEdge") {
-          edgeAction("delete", n1, n2)
+        else if (graph.edgeActionState.action === "removeEdge") {
+          parents.forEach((n1) => {
+            children.forEach((n2) => {
+              edgeAction("delete", n1, n2)
+            })
+          });
         }
         setGraph(graph => ({
           ...graph,
-          selectedPair: Immutable.List<string>()
+          edgeActionState: {
+            parents: Immutable.Set(),
+            children: Immutable.Set(),
+            action: "nothing",
+          }
         }));
         setCurrentTool("pointer")
       }
