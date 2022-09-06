@@ -3,7 +3,7 @@ import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { isNodeVisible, useWindowDimensions } from "./Canvas";
-import { graphState, GState, nodeState } from "./graphHandler";
+import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
 
 
 
@@ -68,20 +68,9 @@ export function handlePointerDown(
     setCurrentTool("pointer")
     const newNodeID = cuid();
     setNodes(nodes.set(newNodeID, {
+      ...defaultNode,
       x: Math.round(mx),
       y: Math.round(my),
-      goal: "insert goal here",
-      description: null,
-      action: "add",
-      nodeSize: 1,
-      due: null,
-      priority: "normal",
-      layerIds: Immutable.Map(),
-      archive: false,
-      dependencyIds: Immutable.List(),
-      dependentIds: Immutable.List(),
-      cascadeDue: true,
-      treeCollapse: false,
     }));
     // TODO set the new node as the focus
     return

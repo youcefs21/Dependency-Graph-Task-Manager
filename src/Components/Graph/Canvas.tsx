@@ -1,8 +1,9 @@
+import assert from "assert";
 import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { handleDoubleClick, handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
-import { edgeState, graphState, GState, nodeState } from "./graphHandler";
+import { GState, nodeState } from "./graphHandler";
 
 
 interface vec2 {
@@ -35,6 +36,52 @@ export function isNodeVisible(node: nodeState, G: GState) {
   });
   return !inVisibleLayer || inNoLayers;
 }
+
+export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) {
+  const {nodes, graph} = G;
+  const node = nodes.get(nodeId);
+  assert(node !== undefined);
+  const isComplete = node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete"
+  const isSelected = graph.selectedNodes.has(nodeId) || isHovered;
+
+  let selectFill = "pink"
+  let color = "#cbd5e1"
+  switch (node.priority) {
+    case "critical":
+      color = "red"
+      selectFill = "red"
+      break;
+    case "high":
+      color = "orange"
+      selectFill = "#FFD067"
+      break;
+    case "normal":
+      color = "lightblue"
+      selectFill = "lightblue"
+      break;
+    case "low":
+      selectFill = "#cbd5e1"
+      break;
+  }
+
+  if (node.nodeColor !== "default") {
+    color = node.nodeColor;
+  }
+  
+  if (isComplete) {
+    color = "#99ff99"
+  } else if (isSelected) {
+    color = "#f472b6"
+  } 
+
+  return {
+    color,
+    selectFill,
+  }
+  
+
+}
+
 export const parseDeltaTime = (d: number) => {
   if (d < 0) return "00:00:00"
   d = Math.floor(d/1000);
@@ -48,6 +95,7 @@ export const parseDeltaTime = (d: number) => {
   return d.toString().padStart(2, "0") + ":" + h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0")
 
 }
+
 
 export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: canvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -140,39 +188,13 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       }
       // function that draws the nodes
       const createNode = (node: nodeState, isSelected: boolean, nodeID: string) => {
-        const isComplete = node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete"
         const pos = {x: node.x, y: node.y}
         const label = node.goal
         const datetime = node.due ? Date.parse(node.due) : undefined
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
 
-        let selectFill = "pink"
-        let color = "#cbd5e1"
-        switch (node.priority) {
-          case "critical":
-            color = "red"
-            selectFill = "red"
-            break;
-          case "high":
-            color = "orange"
-            selectFill = "#FFD067"
-            break;
-          case "normal":
-            color = "lightblue"
-            selectFill = "lightblue"
-            break;
-          case "low":
-            selectFill = "#cbd5e1"
-            break;
-        }
-        
-        if (isComplete) {
-          color = "#99ff99"
-        } else if (isSelected) {
-          color = "#f472b6"
-        } 
-
+        const {color, selectFill} = getNodeApearance(G, nodeID, isSelected)
         ctx.fillStyle = color;
         ctx.beginPath()
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);

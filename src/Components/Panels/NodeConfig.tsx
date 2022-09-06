@@ -3,7 +3,7 @@ import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
-import { GState, nodeState } from "../Graph/graphHandler";
+import { defaultNode, GState, nodeState } from "../Graph/graphHandler";
 import { ConfigPanelItem, SelectLayers } from "./PanelElements";
 import { ConfigPanel } from "./Panels";
 
@@ -132,24 +132,12 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
     <div className="flex">
       <button className="my-1 mr-1 p-1 rounded bg-[#2A2B34] hover:bg-slate-700 w-full"
         onClick={() => {
-
           const newId = cuid();
           setNodes((nodes) => {
             return nodes.set(newId, {
+              ...defaultNode, 
               x: node.x + 16,
               y: node.y + (parent ? 12 : -12),
-              goal: "insert goal here",
-              description: null,
-              action: "add",
-              nodeSize: 1,
-              due: null,
-              priority: "normal",
-              layerIds: Immutable.Map(),
-              archive: false,
-              dependencyIds: Immutable.List(),
-              dependentIds: Immutable.List(),
-              cascadeDue: true,
-              treeCollapse: false,
             })
           })
           if (parent) {
@@ -158,7 +146,6 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
           else {
             edgeAction("add", newId, relatedNodeId)
           }
-
         }}
       >
         + New Node

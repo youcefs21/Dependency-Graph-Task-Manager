@@ -13,6 +13,7 @@ export interface nodeState {
   description: string | null,
   action: actionType,
   nodeSize: number,
+  nodeColor: string | "default",
   due: string | null,
   priority: "critical" | "high" | "normal" | "low" | string,
   layerIds: Immutable.Map<string, actionType>,
@@ -82,6 +83,24 @@ const initialGraph: graphState = {
   treeFocus: "root",
 }
 
+export const defaultNode: nodeState = {
+  x: 0,
+  y: 0,
+  goal: "insert goal here",
+  description: null,
+  action: "add",
+  nodeSize: 1,
+  nodeColor: "default",
+  due: null,
+  priority: "normal",
+  layerIds: Immutable.Map(),
+  archive: false,
+  dependencyIds: Immutable.List(),
+  dependentIds: Immutable.List(),
+  cascadeDue: true,
+  treeCollapse: false,
+}
+
 export function useGraph(): GState {
   const session = useSession();
 
@@ -138,6 +157,7 @@ export function useGraph(): GState {
           description: node.description,
           action: "nothing",
           nodeSize: node.size,
+          nodeColor: "default",
           due: node.due,
           priority: node.priority,
           layerIds: layerIds,
