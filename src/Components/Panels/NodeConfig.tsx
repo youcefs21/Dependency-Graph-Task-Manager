@@ -122,9 +122,11 @@ const NodePropertiesSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: stri
 
 const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: boolean, relatedNodeId: string}) => {
 
-  const {nodes, setNodes, edgeAction} = G;
+  const {nodes, setNodes, edgeAction, setGraph, graph} = G;
   const node = nodes.get(relatedNodeId);
   if (!node) return null;
+
+  const isAddingEdge = parent ? !graph.edgeActionState.parents.isEmpty() : !graph.edgeActionState.children.isEmpty()
 
   return (
     <div className="flex">
@@ -161,7 +163,33 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
       >
         + New Node
       </button>
-      <button className="my-1 ml-1 p-1 rounded bg-[#2A2B34] hover:bg-slate-700 w-full">
+      <button className={`my-1 ml-1 p-1 rounded ${ isAddingEdge ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-[#2A2B34] hover:bg-slate-700"} w-full`}
+        onClick={() => {
+          if (isAddingEdge) return;
+          setGraph((graph) => {
+            if (parent) {
+              return {
+                ...graph,
+                edgeActionState: {
+                  ...graph.edgeActionState,
+                  parents: graph.edgeActionState.parents.add(relatedNodeId),
+                  action: "addEdge"
+                }
+              }
+            } else {
+              return {
+                ...graph,
+                edgeActionState: {
+                  ...graph.edgeActionState,
+                  children: graph.edgeActionState.children.add(relatedNodeId),
+                  action: "addEdge"
+                }
+              }
+            }
+          })
+          
+        }}
+      >
         + Existing Node
       </button>
     </div>

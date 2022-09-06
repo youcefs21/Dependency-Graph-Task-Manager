@@ -141,7 +141,7 @@ export function handlePointerDown(
   }
 
   const EAS = graph.edgeActionState;
-  if (currentTool.current === EAS.action && !["nothing", "background"].includes(newHeldNode)) {
+  if (EAS.action !== "nothing" && !["nothing", "background"].includes(newHeldNode)) {
 
     if (EAS.parents.isEmpty() && !EAS.children.has(newHeldNode)) {
       setGraph(graph => ({
@@ -196,6 +196,31 @@ export function handlePointerUp(
       evCache.current.splice(i,1);
       break;
     }
+  }
+
+  const EAS = graph.edgeActionState;
+  if (EAS.action !== "nothing") {
+
+    graph.selectedNodes.forEach((nodeId) => {
+      if (EAS.parents.isEmpty() && !EAS.children.has(nodeId)) {
+        setGraph(graph => ({
+          ...graph,
+          edgeActionState: {
+            ...graph.edgeActionState,
+            parents: graph.edgeActionState.parents.add(nodeId)
+          },
+        }))
+      } else if (EAS.children.isEmpty() && !EAS.parents.has(nodeId)) {
+        setGraph(graph => ({
+          ...graph,
+          edgeActionState: {
+            ...graph.edgeActionState,
+            children: graph.edgeActionState.children.add(nodeId)
+          },
+        }))
+      }
+    })
+
   }
 
   if (evCache.current.length < 2) {
