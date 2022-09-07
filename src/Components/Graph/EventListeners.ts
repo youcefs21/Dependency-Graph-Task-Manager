@@ -6,6 +6,7 @@ import { isNodeVisible, useWindowDimensions } from "./Canvas";
 import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
 
 
+const heldKeys: Set<string> = new Set();
 
 export function focusNode(G: GState, selectedNode: string, width: number, height: number) {
   const {nodes, setGraph} = G;
@@ -379,6 +380,10 @@ export function handleKeyDown(
 ) {
   const { nodes, edgeAction, graph, setGraph, setNodes } = G;
 
+  if (!heldKeys.has(event.key)) {
+    heldKeys.add(event.key)
+  }
+
   if (event.key === "Delete") {
 
     setNodes(tempNodes => {
@@ -404,11 +409,40 @@ export function handleKeyDown(
       scale: graph.scale + 0.00001
     }));
 
-  }
-
+  } 
 
 }
 
+export function movementShortcuts(G: GState) {
+  const { setGraph } = G;
+  if (heldKeys.has("ArrowLeft")) {
+    setGraph(graph => ({
+      ...graph,
+      TopLeftX: graph.TopLeftX - 10/graph.scale,
+    }));
+  } if (heldKeys.has("ArrowRight")) {
+    setGraph(graph => ({
+      ...graph,
+      TopLeftX: graph.TopLeftX + 10/graph.scale,
+    }));
+  } if (heldKeys.has("ArrowUp")) {
+    setGraph(graph => ({
+      ...graph,
+      TopLeftY: graph.TopLeftY - 10/graph.scale,
+    }));
+  } if (heldKeys.has("ArrowDown")) {
+    setGraph(graph => ({
+      ...graph,
+      TopLeftY: graph.TopLeftY + 10/graph.scale,
+    }));
+  }
+}
+
+export function handleKeyUp(
+  event: React.KeyboardEvent<HTMLCanvasElement>,
+) {
+  heldKeys.delete(event.key)
+}
 
 
 

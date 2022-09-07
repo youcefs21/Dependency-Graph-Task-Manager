@@ -2,7 +2,7 @@ import assert from "assert";
 import Immutable from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { handleDoubleClick, handleKeyDown, handleMove, handlePointerDown, handlePointerUp, handleWheel } from "./EventListeners";
+import { handleDoubleClick, handleKeyDown, handleKeyUp, handleMove, handlePointerDown, handlePointerUp, handleWheel, movementShortcuts } from "./EventListeners";
 import { GState, nodeState } from "./graphHandler";
 
 
@@ -129,7 +129,8 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   useEffect(() => {
     const interval = setInterval(() => {
       setDashOffset(dashOffset => dashOffset + 0.1);
-    }, 40);
+      movementShortcuts(G)
+    }, 20);
     return () => clearInterval(interval);
   }, []);
 
@@ -388,6 +389,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
       onKeyDown={(ev) => handleKeyDown(ev, G, currentToolRef, setCurrentTool)}
+      onKeyUp={handleKeyUp}
       tabIndex={0}
       />
   </>
