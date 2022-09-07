@@ -5,8 +5,7 @@ import { useState } from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { useGraph } from "../Components/Graph/graphHandler";
 import { GraphConfigPanel } from "../Components/Panels/GraphConfig";
-import { NodeConfigPanel } from "../Components/Panels/NodeConfig";
-import { GroupConfigPanel } from "../Components/Panels/Panels";
+import { GroupConfigPanel, NodeConfigPanel } from "../Components/Panels/NodeConfig";
 import { TreeExplorerPanel } from "../Components/Panels/TreePanel";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 

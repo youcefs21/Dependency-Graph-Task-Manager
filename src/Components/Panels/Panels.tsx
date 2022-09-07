@@ -39,11 +39,3 @@ export interface GenericPanelProps {
 }
   
 
-export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
-  return (
-    <ConfigPanel title={"Group Config"} G={G} setCollapse={setCollapse}>
-
-
-    </ConfigPanel>
-  )
-}

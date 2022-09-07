@@ -5,7 +5,7 @@ import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
 import { defaultNode, GState, nodeState } from "../Graph/graphHandler";
 import { ConfigPanelItem, SelectLayers } from "./PanelElements";
-import { ConfigPanel } from "./Panels";
+import { ConfigPanel, GenericPanelProps } from "./Panels";
 
 interface NodeConfigPanelProps {
   G: GState,
@@ -208,8 +208,17 @@ const NodeConnectionsSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: str
 }
 
 const NodeLayersSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: string}) => {
-  const {nodes} = G;
-  const node = nodes.get(selectedNodeID);
+  const {nodes, graph} = G;
+  let isArchive = true
+  if (selectedNodeID === "group") {
+    graph.selectedNodes.forEach((id) => {
+      if (!nodes.get(id)?.archive) isArchive = false;
+    })
+  } else {
+    const node = nodes.get(selectedNodeID);
+    if (!node) return null;
+    isArchive = node.archive
+  }
 
   return (
     <ConfigPanelItem itemHeading="Select Layers">
@@ -218,8 +227,8 @@ const NodeLayersSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: string})
         <input className="m-2" 
           type={'checkbox'} 
           name={'archiveNode'} 
-          checked={node?.archive ?? false} 
-          onChange={(e) => handleInputChange(e, selectedNodeID, G)} 
+          checked={isArchive} 
+          onChange={(e) => handleArchive(e, selectedNodeID, G, isArchive)} 
         />
         <p className="text-xs">Archive Node</p>
       </div>
@@ -255,6 +264,15 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
 
 }
 
+export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
+  return (
+    <ConfigPanel title={"Group Config"} G={G} setCollapse={setCollapse}>
+
+      <NodeLayersSec G={G} selectedNodeID={"group"} />
+
+    </ConfigPanel>
+  )
+}
 
 function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): Immutable.Map<string, nodeState> {
 
@@ -275,6 +293,37 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
   return ns;
 }
 
+
+function handleArchive(
+  e: React.FormEvent<HTMLInputElement>,
+  selectedNode: string,
+  G: GState,
+  isArchived: boolean
+) {
+  const input = e.target as HTMLInputElement;
+  const {setNodes, graph} = G;
+
+  input.name === "archiveNode" && setNodes((nodes) => {
+      if (selectedNode === "group") {
+        graph.selectedNodes.forEach((id) => {
+          nodes = nodes.set(id, {
+            ...nodes.get(id)!,
+            archive: !isArchived,
+            action: "update"
+          })
+        })
+        return nodes;
+      } else {
+        return nodes.set(selectedNode, {
+          ...nodes.get(selectedNode)!,
+          archive: !nodes.get(selectedNode)!.archive,
+          action: "update"
+        })
+      }
+    }
+  );
+
+}
 
 function handleInputChange(
   e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 
@@ -346,13 +395,6 @@ function handleInputChange(
     })
   );
 
-  input.name === "archiveNode" && setNodes(nodes =>
-    nodes.set(selectedNode, {
-      ...nodes.get(selectedNode)!,
-      archive: !nodes.get(selectedNode)!.archive,
-      action: "update"
-    })
-  );
 
 
 }
