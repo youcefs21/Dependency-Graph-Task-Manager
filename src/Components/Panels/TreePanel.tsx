@@ -25,35 +25,35 @@ const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
   })
 
   return (
-      <li className="pl-3">
-        <div className="flex items-center hover:bg-slate-600 py-1 ml-[-11.5px] rounded w-fit">
-          { visibleDependencies.size > 0 &&
-            <button onClick={() => setNodes((nodes) => {
-              const node = nodes.get(nodeId);
-              if (!node) return nodes;
-              return nodes.set(nodeId, {...node, treeCollapse: !node.treeCollapse})
-            }) } className="p-2">
-              <div className={node.treeCollapse ? "-rotate-90" : ""}>
-                <svg width="9" height="7" viewBox="0 0 9 7" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4.5 7L0.602886 0.25L8.39711 0.25L4.5 7Z" fill="#D9D9D9"/>
-                </svg>
-              </div>
-            </button>
-          }
-          <button 
-            className={`pr-6 text-left ${visibleDependencies.size > 0 ? "ml-3" : "ml-9"}`} 
-            onClick={() => focusNode(G, nodeId, width, height)}
-            >
-            {delta &&
-              <p className="text-[12px] font-bold font-mono" style={{color: color}}>{parseDeltaTime(delta)}</p>
-            }
-            <p>{node.goal}</p>
+    <li className="pl-3">
+      <div className="flex items-center hover:bg-slate-600 py-1 ml-[-11.5px] rounded w-fit">
+        { visibleDependencies.size > 0 &&
+          <button onClick={() => setNodes((nodes) => {
+            const node = nodes.get(nodeId);
+            if (!node) return nodes;
+            return nodes.set(nodeId, {...node, treeCollapse: !node.treeCollapse})
+          }) } className="p-2">
+            <div className={node.treeCollapse ? "-rotate-90" : ""}>
+              <svg width="9" height="7" viewBox="0 0 9 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.5 7L0.602886 0.25L8.39711 0.25L4.5 7Z" fill="#D9D9D9"/>
+              </svg>
+            </div>
           </button>
-        </div>
-        { !node.treeCollapse &&
-        <ListContainer G={G} nodeId={nodeId} />
         }
-      </li>
+        <button 
+          className={`pr-6 text-left ${visibleDependencies.size > 0 ? "ml-3" : "ml-9"}`} 
+          onClick={() => focusNode(G, nodeId, width, height)}
+          >
+          {delta &&
+            <p className="text-[12px] font-bold font-mono" style={{color: color}}>{parseDeltaTime(delta)}</p>
+          }
+          <p>{node.goal}</p>
+        </button>
+      </div>
+      { !node.treeCollapse &&
+      <ListContainer G={G} nodeId={nodeId} />
+      }
+    </li>
   )
 }
 
@@ -127,6 +127,16 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   else {
     rootNodes.push(graph.treeFocus)
   }
+
+
+  rootNodes.sort((a, b) => {
+    const nodeBDue = nodes.get(b)?.due;
+    const nodeADue = nodes.get(a)?.due;
+    if (!nodeADue) return Infinity;
+    if (!nodeBDue) return -Infinity;
+    return Date.parse(nodeADue) - Date.parse(nodeBDue);
+  })
+
   const title = nodes.get(graph.treeFocus)?.goal ?? ""
   return (
     <ConfigPanel title={onlyLeafs ? "Leaf Explorer" : "Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
