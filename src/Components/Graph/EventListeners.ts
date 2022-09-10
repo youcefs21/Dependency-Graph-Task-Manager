@@ -105,7 +105,7 @@ export function handlePointerDown(
         return tempNodes.set(newHeldNode, {
           ...node,
           action: "update",
-          archive: true
+          layerIds: node.layerIds.set(graph.completeLayerId, "add")
         });
       })
     }
