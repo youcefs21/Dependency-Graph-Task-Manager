@@ -5,6 +5,12 @@ import {useSession} from "next-auth/react";
 
 
 export type actionType = "nothing" | "add" | "delete" | "update"
+export type animationType  = null | {
+  animation: "pan",
+  start: number,
+  target: {x: number, y: number},
+  origin: {x: number, y: number},
+}
 
 export interface nodeState {
   goal: string,
@@ -12,6 +18,7 @@ export interface nodeState {
   y: number,
   description: string | null,
   action: actionType,
+  animation: animationType,
   nodeSize: number,
   nodeColor: string | "default",
   due: string | null,
@@ -42,6 +49,7 @@ export interface graphState {
   showArchive: boolean,
   completeLayerId: string,
   treeFocus: string,
+  animation: animationType,
 }
 
 export interface edgeState {
@@ -81,6 +89,7 @@ const initialGraph: graphState = {
   showArchive: false,
   completeLayerId: "",
   treeFocus: "root",
+  animation: null
 }
 
 export const defaultNode: nodeState = {
@@ -89,6 +98,7 @@ export const defaultNode: nodeState = {
   goal: "insert goal here",
   description: null,
   action: "add",
+  animation: null,
   nodeSize: 1,
   nodeColor: "default",
   due: null,
@@ -156,6 +166,7 @@ export function useGraph(): GState {
           goal: node.goal,
           description: node.description,
           action: "nothing",
+          animation: null,
           nodeSize: node.size,
           nodeColor: "default",
           due: node.due,

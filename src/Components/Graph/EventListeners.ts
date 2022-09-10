@@ -17,8 +17,18 @@ export function focusNode(G: GState, selectedNode: string, width: number, height
       const deltaY = graph.TopLeftY - node.y;
       return {
         ...graph,
-        TopLeftX: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
-        TopLeftY: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+        animation: {
+          animation: "pan",
+          start: 0,
+          target: {
+            x: graph.TopLeftX - deltaX - (width / (2 * graph.scale)),
+            y: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
+          },
+          origin: {
+            x: graph.TopLeftX - (width / (2 * graph.scale)),
+            y: graph.TopLeftY - (height / (2 * graph.scale)),
+          }
+        },
         selectedNodes: Immutable.Set([selectedNode]),
         treeFocus: selectedNode,
       }

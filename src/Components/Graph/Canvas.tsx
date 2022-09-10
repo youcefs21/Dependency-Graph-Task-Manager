@@ -130,6 +130,23 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
     const interval = setInterval(() => {
       setDashOffset(dashOffset => dashOffset + 0.1);
       movementShortcuts(G)
+      setGraph(graph => {
+        if (graph.animation?.animation === "pan") {
+          const {x, y} = graph.animation.target;
+          if (Math.abs(x - graph.TopLeftX) < 1 && Math.abs(y - graph.TopLeftY) < 1) {
+            return {
+              ...graph,
+              animation: null,
+            }
+          }
+          return {
+            ...graph,
+            TopLeftX: graph.TopLeftX + (x - graph.TopLeftX) * 0.1,
+            TopLeftY: graph.TopLeftY + (y - graph.TopLeftY) * 0.1,
+          }
+        }
+        return graph;
+      })
     }, 20);
     return () => clearInterval(interval);
   }, []);
