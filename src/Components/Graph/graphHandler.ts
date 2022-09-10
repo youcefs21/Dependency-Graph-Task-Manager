@@ -7,9 +7,7 @@ import {useSession} from "next-auth/react";
 export type actionType = "nothing" | "add" | "delete" | "update"
 export type animationType  = null | {
   animation: "pan",
-  start: number,
   target: {x: number, y: number},
-  origin: {x: number, y: number},
 }
 
 export interface nodeState {

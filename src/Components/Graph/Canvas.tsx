@@ -7,8 +7,8 @@ import { GState, nodeState } from "./graphHandler";
 
 
 interface vec2 {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 
