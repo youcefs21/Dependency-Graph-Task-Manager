@@ -1,10 +1,10 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { isNodeVisible, parseDeltaTime, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanel } from "./Panels";
 
-const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
+const ListElement = ({G, nodeId, search}: {G: GState, nodeId: string, search: string}) => {
   const {nodes, setNodes, setGraph} = G;
   const node = nodes.get(nodeId);
   const {width, height} = useWindowDimensions();
@@ -21,8 +21,16 @@ const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
   const visibleDependencies = node.dependencyIds.filter((id) => {
     const n = nodes.get(id);
     if (!n) return false;
+    if (!n.goal.toLowerCase().includes(search.toLowerCase())) return false;
     return isNodeVisible(n, G);
   })
+
+
+  if (!node.goal.toLowerCase().includes(search.toLowerCase())) {
+    return (<>
+      {visibleDependencies.map((id) => <ListElement G={G} nodeId={id} search={search} />)}
+    </>)
+  }
 
   return (
     <li className="pl-3">
@@ -51,13 +59,13 @@ const ListElement = ({G, nodeId}: {G: GState, nodeId: string}) => {
         </button>
       </div>
       { !node.treeCollapse &&
-      <ListContainer G={G} nodeId={nodeId} />
+      <ListContainer G={G} nodeId={nodeId} search={search} />
       }
     </li>
   )
 }
 
-const ListContainer = ({G, nodeId}: {G: GState, nodeId: string}) => {
+const ListContainer = ({G, nodeId, search}: {G: GState, nodeId: string, search: string}) => {
   const {nodes} = G;
   const node = nodes.get(nodeId);
 
@@ -69,7 +77,7 @@ const ListContainer = ({G, nodeId}: {G: GState, nodeId: string}) => {
         const n = nodes.get(id);
         if (!n || !isNodeVisible(n, G)) return null;
         return (
-          <ListElement G={G} nodeId={id} key={id} />
+          <ListElement G={G} nodeId={id} key={id} search={search} />
         )
       })}
     </ul>
@@ -84,6 +92,7 @@ interface TreePanelProps {
 
 export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) => {
   const {nodes, graph, setGraph} = G;
+  const [search, setSearch] = useState("");
   const rootNodes: string[] = []
   const visitedNodes: Set<string> = new Set();
 
@@ -96,8 +105,8 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
       return isNodeVisible(n, G);
     })
     if (visibleDependencies.size === 0  && !visitedNodes.has(nodeId)) {
-      rootNodes.push(nodeId);
       visitedNodes.add(nodeId);
+      if (node.goal.toLowerCase().includes(search.toLowerCase())) rootNodes.push(nodeId);
     } else {
       node.dependencyIds.forEach(leafFinder)
     }
@@ -141,23 +150,31 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   return (
     <ConfigPanel title={onlyLeafs ? "Leaf Explorer" : "Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
       <div className="whitespace-nowrap w-fit">
-      <div className="sticky -top-4 -mt-4 pt-4 pb-2 bg-[#222326]">
-        {graph.treeFocus !== "root" &&
-        <>
-          <p className="text-xs">{title}</p>
-          <button className="bg-[#2A2B34] hover:bg-slate-700 p-2 ml-1 mt-1 rounded"
-            onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
-            <p className="text-center text-xs">Back to Root</p>
-          </button>
-        </>
-        }
-      </div>
+        <div className="sticky -top-4 -mt-4 pt-4 pb-2 bg-[#222326] flex">
+          <div>
+            <input 
+            className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
+            type={"text"}
+            placeholder={"Search"}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            ></input>
+          </div>
+          {graph.treeFocus !== "root" &&
+          <>
+            <button className="bg-[#2A2B34] hover:bg-slate-700 p-2 ml-1 mt-1 rounded"
+              onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
+              <p className="text-center text-xs">Back to Root</p>
+            </button>
+          </>
+          }
+        </div>
         <ul className="pl-1 text-xs">
         {
           rootNodes.map(nodeId => {
             const n = nodes.get(nodeId);
             if (!n || !isNodeVisible(n, G)) return null;
-            return <ListElement key={nodeId} G={G} nodeId={nodeId} />
+            return <ListElement key={nodeId} G={G} nodeId={nodeId} search={search} />
         })
         }
         </ul>
