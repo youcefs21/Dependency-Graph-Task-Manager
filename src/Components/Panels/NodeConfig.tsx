@@ -3,7 +3,7 @@ import Immutable from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
-import { defaultNode, GState, nodeState } from "../Graph/graphHandler";
+import { defaultNode, graphState, GState, nodeState } from "../Graph/graphHandler";
 import { ConfigPanelItem, SelectLayers } from "./PanelElements";
 import { ConfigPanel, GenericPanelProps } from "./Panels";
 
@@ -120,11 +120,50 @@ const NodePropertiesSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: stri
   )
 }
 
+const CreateNewNode = (graph: graphState, relatedNodeId: string, parent: boolean): graphState => {
+  if (parent) {
+    return {
+      ...graph,
+      edgeActionState: {
+        ...graph.edgeActionState,
+        parents: graph.edgeActionState.parents.add(relatedNodeId),
+        action: "addEdge"
+      }
+    }
+  } else {
+    return {
+      ...graph,
+      edgeActionState: {
+        ...graph.edgeActionState,
+        children: graph.edgeActionState.children.add(relatedNodeId),
+        action: "addEdge"
+      }
+    }
+  }
+}
 const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: boolean, relatedNodeId: string}) => {
 
   const {nodes, setNodes, edgeAction, setGraph, graph} = G;
   const node = nodes.get(relatedNodeId);
-  if (!node) return null;
+  let x = 0;
+  let y = 0;
+  if (relatedNodeId === "group") {
+    // x should be the average of all the nodes in the group
+    // y should be the highest of all the nodes in the group
+    graph.selectedNodes.forEach((nodeId) => {
+      const node = nodes.get(nodeId);
+      if (node) {
+        x += node.x;
+        y = Math.max(y, node.y);
+      }
+    })
+    x = Math.floor(x / graph.selectedNodes.size);
+
+  } else {
+    if (!node) return null;
+    x = node.x;
+    y = node.y;
+  }
 
   const isAddingEdge = parent ? !graph.edgeActionState.parents.isEmpty() : !graph.edgeActionState.children.isEmpty()
 
@@ -136,15 +175,27 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
           setNodes((nodes) => {
             return nodes.set(newId, {
               ...defaultNode, 
-              x: node.x + 16,
-              y: node.y + (parent ? 12 : -12),
+              x: x + 16,
+              y: y + (parent ? 12 : -12),
             })
           })
           if (parent) {
-            edgeAction("add", relatedNodeId, newId)
+            if (relatedNodeId === "group") {
+              graph.selectedNodes.forEach((nodeId) => {
+                edgeAction("add", nodeId, newId);
+              })
+            } else {
+              edgeAction("add", relatedNodeId, newId)
+            }
           }
           else {
-            edgeAction("add", newId, relatedNodeId)
+            if (relatedNodeId === "group") {
+              graph.selectedNodes.forEach((nodeId) => {
+                edgeAction("add", newId, nodeId);
+              })
+            } else {
+              edgeAction("add", newId, relatedNodeId)
+            }
           }
         }}
       >
@@ -154,27 +205,15 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
         onClick={() => {
           if (isAddingEdge) return;
           setGraph((graph) => {
-            if (parent) {
-              return {
-                ...graph,
-                edgeActionState: {
-                  ...graph.edgeActionState,
-                  parents: graph.edgeActionState.parents.add(relatedNodeId),
-                  action: "addEdge"
-                }
-              }
+            if (relatedNodeId === "group") {
+              graph.selectedNodes.forEach((nodeId) => {
+                graph = CreateNewNode(graph, nodeId, parent);
+              })
+              return graph;
             } else {
-              return {
-                ...graph,
-                edgeActionState: {
-                  ...graph.edgeActionState,
-                  children: graph.edgeActionState.children.add(relatedNodeId),
-                  action: "addEdge"
-                }
-              }
+              return CreateNewNode(graph, relatedNodeId, parent);
             }
           })
-          
         }}
       >
         + Existing Node
@@ -184,22 +223,56 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
 }
 
 const NodeConnectionsSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: string}) => {
-  const { nodes } = G;
+  const { nodes, graph } = G;
   const node = nodes.get(selectedNodeID);
-  if (!node) return null;
+  let dependentIds: string[] = []
+  let dependencyIds: string[] = []
+  if (selectedNodeID === "group") {
+    const commonDependentIds = new Set<string>()
+    const commonDependencyIds = new Set<string>()
+    let first = true
+    graph.selectedNodes.forEach((id) => {
+      const node = nodes.get(id);
+      if (!node) return;
+      if (first) {
+        node.dependentIds.forEach((id) => commonDependentIds.add(id))
+        node.dependencyIds.forEach((id) => commonDependencyIds.add(id))
+        first = false
+      } else {
+        node.dependentIds.forEach((id) => {
+          if (!commonDependentIds.has(id)) {
+            commonDependentIds.delete(id)
+          }
+        })
+        node.dependencyIds.forEach((id) => {
+          if (!commonDependencyIds.has(id)) {
+            commonDependencyIds.delete(id)
+          }
+        })
+      }
+
+    })
+
+    dependentIds = Array.from(commonDependentIds)
+
+  } else {
+    if (!node) return null;
+    dependentIds = node.dependentIds.toArray();
+    dependencyIds = node.dependencyIds.toArray();
+  }
 
   return (
     <ConfigPanelItem itemHeading="Connections">
       <h3 className="mt-2">Dependent Nodes (do after)</h3>
       <ul>
-        {node?.dependentIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
+        {dependentIds.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
 
       <NewConnectionsButtons G={G} parent={false} relatedNodeId={selectedNodeID} />
 
       <h3 className="mt-2">Node Dependencies (do before)</h3>
       <ul>
-        {node?.dependencyIds?.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
+        {dependencyIds.map((id) => (<NodeListItem key={id} nodeId={id} G={G} />))}
       </ul>
       <NewConnectionsButtons G={G} parent={true} relatedNodeId={selectedNodeID} />
 
@@ -268,6 +341,7 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
   return (
     <ConfigPanel title={"Group Config"} G={G} setCollapse={setCollapse}>
 
+      <NodeConnectionsSec G={G} selectedNodeID={"group"} />
       <NodeLayersSec G={G} selectedNodeID={"group"} />
 
     </ConfigPanel>
