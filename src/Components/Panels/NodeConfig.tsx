@@ -355,12 +355,36 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
   node.dependencyIds.forEach((id) => {
     const dep = ns.get(id);
     if (!dep) return;
+
+    // check all of the dependents of the dependency
+    let minDue = Infinity;
+    let minDueString = "";
+    dep.dependentIds.forEach((deptId) => {
+      const dept = ns.get(deptId);
+      if (!dept?.due) return;
+      const due = Date.parse(dept.due);
+      if (due < minDue) {
+        minDue = due;
+        minDueString = dept.due;
+      }
+    })
+
+    console.log("min due", minDueString)
+
     if (dep.cascadeDue) {
-      ns = ns.set(id, {
-        ...dep,
-        due: node.due,
-        action: "update"
-      });
+      if (node.due && Date.parse(node.due) <= minDue) {
+        ns = ns.set(id, {
+          ...dep,
+          due: node.due,
+          action: "update"
+        });
+      } else {
+        ns = ns.set(id, {
+          ...dep,
+          due: minDueString,
+          action: "update"
+        });
+      }
     }
     ns = cascadeDueDate(id, ns);
   })
