@@ -190,20 +190,22 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
       
       // DRAW the grid
-      ctx.lineWidth = graph.scale/50
-      ctx.strokeStyle = "rgb(12 74 110)";
-      ctx.setLineDash([])
-      for (let i = -(graph.TopLeftX % 1) ; i < width/graph.scale; i++) {
-        ctx.beginPath()
-        ctx.moveTo(i*graph.scale, 0)
-        ctx.lineTo(i*graph.scale, height)
-        ctx.stroke()
-      }
-      for (let i =  -(graph.TopLeftY % 1); i < height/graph.scale; i++){
-        ctx.beginPath()
-        ctx.moveTo(0, i*graph.scale)
-        ctx.lineTo(width, i*graph.scale)
-        ctx.stroke()
+      if (graph.scale > 5) {
+        ctx.lineWidth = graph.scale/50
+        ctx.strokeStyle = "rgb(12 74 110)";
+        ctx.setLineDash([])
+        for (let i = -(graph.TopLeftX % 1) ; i < width/graph.scale; i++) {
+          ctx.beginPath()
+          ctx.moveTo(i*graph.scale, 0)
+          ctx.lineTo(i*graph.scale, height)
+          ctx.stroke()
+        }
+        for (let i =  -(graph.TopLeftY % 1); i < height/graph.scale; i++){
+          ctx.beginPath()
+          ctx.moveTo(0, i*graph.scale)
+          ctx.lineTo(width, i*graph.scale)
+          ctx.stroke()
+        }
       }
       // function that draws the nodes
       const createNode = (node: nodeState, isSelected: boolean, nodeID: string) => {
