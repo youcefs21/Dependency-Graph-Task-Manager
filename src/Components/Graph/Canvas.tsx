@@ -406,7 +406,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}
       onKeyDown={(ev) => handleKeyDown(ev, G, currentToolRef, setCurrentTool)}
-      onKeyUp={handleKeyUp}
+      onKeyUp={(ev) => handleKeyUp(ev, currentToolRef, setCurrentTool)}
       tabIndex={0}
       />
   </>

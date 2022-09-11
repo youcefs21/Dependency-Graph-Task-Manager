@@ -414,7 +414,10 @@ export function handleKeyDown(
       scale: graph.scale + 0.00001
     }));
 
-  } 
+  } else if (event.key === " ") {
+    setCurrentTool("move")
+    currentTool.current = "move"
+  }
 
 }
 
@@ -445,8 +448,13 @@ export function movementShortcuts(G: GState) {
 
 export function handleKeyUp(
   event: React.KeyboardEvent<HTMLCanvasElement>,
+  currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
   heldKeys.delete(event.key)
+  if (event.key === " ") {
+    setCurrentTool("pointer")
+    currentTool.current = "pointer"
+  }
 }
 
 
