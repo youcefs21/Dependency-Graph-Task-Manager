@@ -105,6 +105,10 @@ export function handlePointerDown(
         return tempNodes.set(newHeldNode, {
           ...node,
           action: "update",
+          animation: {
+            animation: "complete",
+            startTime: Date.now(),
+          },
           layerIds: node.layerIds.set(graph.completeLayerId, "add")
         });
       })

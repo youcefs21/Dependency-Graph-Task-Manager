@@ -218,6 +218,40 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
         ctx.closePath()
+        if (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete") {
+          const ax = x - graph.scale/16
+          const ay = y 
+          let p2 = 1
+          let point1 = {x: ax, y: ay + graph.scale/2}
+          let point2 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
+          if (node.animation?.animation === "complete") {
+            // draw a green checkmark on the node
+            // start at (x - graph.scale/2, y)
+            // go to (x, y + graph.scale/2)
+            // then (x + graph.scale/2, y - graph.scale/2)
+            const delta = Date.now() - node.animation.startTime;
+            if (delta > 1000) {
+              setNodes(nodes => nodes.set(nodeID, {...node, animation: null}))
+            }
+            const p1 = Math.min(delta/200, 1);
+            p2 = Math.max(Math.min(delta/200 - 1, 1), 0);
+            point1 = {x: ax - (1-p1)*(graph.scale/2), y: ay + p1*(graph.scale/2)}
+            point2 = {x: ax + p2*(graph.scale/2), y: ay - (p2-0.5)*(graph.scale/1.5)}
+          } 
+
+          ctx.strokeStyle = "green";
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath()
+          ctx.moveTo(ax - graph.scale/3, ay)
+
+          ctx.lineTo(point1.x, point1.y)
+          
+          if(p2 > 0) ctx.lineTo(point2.x, point2.y)
+          
+          ctx.stroke()
+          ctx.closePath()
+        }
 
         if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 100)) {
           ctx.beginPath()

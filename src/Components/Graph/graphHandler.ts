@@ -5,9 +5,13 @@ import {useSession} from "next-auth/react";
 
 
 export type actionType = "nothing" | "add" | "delete" | "update"
-export type animationType  = null | {
+export type graphAnimationType  = null | {
   animation: "pan",
   target: {x: number, y: number},
+}
+export type nodeAnimationType = null | {
+  animation: "complete",
+  startTime: number,
 }
 
 export interface nodeState {
@@ -16,7 +20,7 @@ export interface nodeState {
   y: number,
   description: string | null,
   action: actionType,
-  animation: animationType,
+  animation: nodeAnimationType,
   nodeSize: number,
   nodeColor: string | "default",
   due: string | null,
@@ -47,7 +51,7 @@ export interface graphState {
   showArchive: boolean,
   completeLayerId: string,
   treeFocus: string,
-  animation: animationType,
+  animation: graphAnimationType,
 }
 
 export interface edgeState {
