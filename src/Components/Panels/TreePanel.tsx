@@ -4,8 +4,11 @@ import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanel } from "./Panels";
 
+let visitedNodes = new Set<string>();
+
 const ListElement = ({G, nodeId, search}: {G: GState, nodeId: string, search: string}) => {
-  const {nodes, setNodes, setGraph} = G;
+  visitedNodes.add(nodeId);
+  const {nodes, setNodes} = G;
   const node = nodes.get(nodeId);
   const {width, height} = useWindowDimensions();
 
@@ -21,14 +24,16 @@ const ListElement = ({G, nodeId, search}: {G: GState, nodeId: string, search: st
   const visibleDependencies = node.dependencyIds.filter((id) => {
     const n = nodes.get(id);
     if (!n) return false;
-    if (!n.goal.toLowerCase().includes(search.toLowerCase())) return false;
     return isNodeVisible(n, G);
   })
 
 
   if (!node.goal.toLowerCase().includes(search.toLowerCase())) {
     return (<>
-      {visibleDependencies.map((id) => <ListElement G={G} nodeId={id} search={search} />)}
+      {visibleDependencies.map((id) => {
+        if (visitedNodes.has(id)) return null;
+        return <ListElement G={G} nodeId={id} search={search} />
+      })}
     </>)
   }
 
@@ -94,7 +99,7 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   const {nodes, graph, setGraph} = G;
   const [search, setSearch] = useState("");
   const rootNodes: string[] = []
-  const visitedNodes: Set<string> = new Set();
+  visitedNodes = new Set();
 
   function leafFinder(nodeId: string) {
     const node = nodes.get(nodeId);
