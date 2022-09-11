@@ -220,34 +220,30 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.closePath()
         if (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete") {
           const ax = x - graph.scale/16
-          const ay = y 
+          const ay = y
+          const ancor1 = {x: ax - graph.scale/3, y: ay}
+          const ancor2 = {x: ax, y: ay + graph.scale/2}
+          const ancor3 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
+          let p1 = 1
           let p2 = 1
-          let point1 = {x: ax, y: ay + graph.scale/2}
-          let point2 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
           if (node.animation?.animation === "complete") {
-            // draw a green checkmark on the node
-            // start at (x - graph.scale/2, y)
-            // go to (x, y + graph.scale/2)
-            // then (x + graph.scale/2, y - graph.scale/2)
             const delta = Date.now() - node.animation.startTime;
-            if (delta > 1000) {
+            if (delta > 200) {
               setNodes(nodes => nodes.set(nodeID, {...node, animation: null}))
             }
-            const p1 = Math.min(delta/200, 1);
-            p2 = Math.max(Math.min(delta/200 - 1, 1), 0);
-            point1 = {x: ax - (1-p1)*(graph.scale/2), y: ay + p1*(graph.scale/2)}
-            point2 = {x: ax + p2*(graph.scale/2), y: ay - (p2-0.5)*(graph.scale/1.5)}
+            p1 = Math.min(delta/100, 1);
+            p2 = Math.max(Math.min(delta/100 - 1, 1), 0);
           } 
 
           ctx.strokeStyle = "green";
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
           ctx.beginPath()
-          ctx.moveTo(ax - graph.scale/3, ay)
+          ctx.moveTo(ancor1.x, ancor1.y)
 
-          ctx.lineTo(point1.x, point1.y)
+          ctx.lineTo((1-p1)*ancor1.x + p1*ancor2.x, (1-p1)*ancor1.y + p1*ancor2.y)
           
-          if(p2 > 0) ctx.lineTo(point2.x, point2.y)
+          if(p2 > 0) ctx.lineTo((1-p2)*ancor2.x + p2*ancor3.x, (1-p2)*ancor2.y + p2*ancor3.y)
           
           ctx.stroke()
           ctx.closePath()
