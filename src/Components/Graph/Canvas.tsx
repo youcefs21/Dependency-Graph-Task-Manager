@@ -22,6 +22,7 @@ interface canvasProps {
 export function isNodeVisible(node: nodeState, G: GState) {
   const {graph} = G;
 
+  if (node.animation?.animation === "complete") return true;
   if (node.action === "delete") return false;
   if (!graph.showArchive && node.archive) return false;
 
@@ -218,36 +219,6 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
         ctx.fill()
         ctx.closePath()
-        if (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete") {
-          const ax = x - graph.scale/16
-          const ay = y
-          const ancor1 = {x: ax - graph.scale/3, y: ay}
-          const ancor2 = {x: ax, y: ay + graph.scale/2}
-          const ancor3 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
-          let p1 = 1
-          let p2 = 1
-          if (node.animation?.animation === "complete") {
-            const delta = Date.now() - node.animation.startTime;
-            if (delta > 200) {
-              setNodes(nodes => nodes.set(nodeID, {...node, animation: null}))
-            }
-            p1 = Math.min(delta/100, 1);
-            p2 = Math.max(Math.min(delta/100 - 1, 1), 0);
-          } 
-
-          ctx.strokeStyle = "green";
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          ctx.beginPath()
-          ctx.moveTo(ancor1.x, ancor1.y)
-
-          ctx.lineTo((1-p1)*ancor1.x + p1*ancor2.x, (1-p1)*ancor1.y + p1*ancor2.y)
-          
-          if(p2 > 0) ctx.lineTo((1-p2)*ancor2.x + p2*ancor3.x, (1-p2)*ancor2.y + p2*ancor3.y)
-          
-          ctx.stroke()
-          ctx.closePath()
-        }
 
         if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 100)) {
           ctx.beginPath()
@@ -268,6 +239,36 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
 
         if (graph.scale > 5 ){
+          if (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete") {
+            const ax = x - graph.scale/16
+            const ay = y
+            const ancor1 = {x: ax - graph.scale/3, y: ay}
+            const ancor2 = {x: ax, y: ay + graph.scale/2}
+            const ancor3 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
+            let p1 = 1
+            let p2 = 1
+            if (node.animation?.animation === "complete") {
+              const delta = Date.now() - node.animation.startTime;
+              if (delta > 200) {
+                setNodes(nodes => nodes.set(nodeID, {...node, animation: null}))
+              }
+              p1 = Math.min(delta/100, 1);
+              p2 = Math.max(Math.min(delta/100 - 1, 1), 0);
+            } 
+
+            ctx.strokeStyle = "green";
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath()
+            ctx.moveTo(ancor1.x, ancor1.y)
+
+            ctx.lineTo((1-p1)*ancor1.x + p1*ancor2.x, (1-p1)*ancor1.y + p1*ancor2.y)
+            
+            if(p2 > 0) ctx.lineTo((1-p2)*ancor2.x + p2*ancor3.x, (1-p2)*ancor2.y + p2*ancor3.y)
+            
+            ctx.stroke()
+            ctx.closePath()
+          }
           ctx.font = graph.scale.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"

@@ -67,19 +67,21 @@ function unselectLayer(G: GState, layerID: string, nodeID: string) {
 }
 
 function selectLayer(G: GState, layerID: string, nodeID: string) {
-  const {nodes, setNodes} = G;
+  const {nodes, setNodes, graph} = G;
   const node = nodes.get(nodeID);
   // should return if node is null or layerID is already in node.layerIds
   if (!node || node.layerIds.has(layerID)) return;
   if (node.layerIds.get(layerID) === "delete") {
     setNodes(nodes => nodes.set(nodeID, {
       ...node,
-      layerIds: node.layerIds.set(layerID, "nothing")
+      layerIds: node.layerIds.set(layerID, "nothing"),
+      animation: layerID === graph.completeLayerId ? {animation: "complete", startTime: Date.now()} : node.animation
     }))
   } else {
     setNodes(nodes => nodes.set(nodeID, {
       ...node, 
-      layerIds: node.layerIds.set(layerID, "add")
+      layerIds: node.layerIds.set(layerID, "add"),
+      animation: layerID === graph.completeLayerId ? {animation: "complete", startTime: Date.now()} : node.animation
     }));
   }
 }
