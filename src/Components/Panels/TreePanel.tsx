@@ -1,4 +1,3 @@
-import cuid from "cuid";
 import Immutable from "immutable";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { isNodeVisible, parseDeltaTime, useWindowDimensions } from "../Graph/Canvas";
@@ -7,6 +6,8 @@ import { GState } from "../Graph/graphHandler";
 import { ConfigPanel } from "./Panels";
 
 type NodeIdTree = [string, Immutable.List<NodeIdTree>]
+// I can store the cords of each node in the tree in a map{nodeID: [l1,l2,...ln]}, and then only change nodes that changed
+// that's a latter optimization
 
 const ListElement = ({G, nodeIdTree, search}: {G: GState, nodeIdTree: NodeIdTree, search: string}) => {
   const {nodes, setNodes} = G;

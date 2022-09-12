@@ -12,6 +12,10 @@ export function focusNode(G: GState, selectedNode: string, width: number, height
   const {nodes, setGraph} = G;
   const node = nodes.get(selectedNode);
   if (node) {
+    const visibleDependencies = node.dependencyIds.filter((dep) => {
+      const depNode = nodes.get(dep);
+      return depNode && isNodeVisible(depNode, G);
+    });
     setGraph(graph => {
       const deltaX = graph.TopLeftX - node.x;
       const deltaY = graph.TopLeftY - node.y;
@@ -25,7 +29,7 @@ export function focusNode(G: GState, selectedNode: string, width: number, height
           },
         },
         selectedNodes: Immutable.Set([selectedNode]),
-        treeFocus: selectedNode,
+        treeFocus: !visibleDependencies.isEmpty() ? selectedNode : graph.treeFocus,
       }
     });
   }
