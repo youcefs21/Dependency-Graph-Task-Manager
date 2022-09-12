@@ -1,14 +1,16 @@
+import cuid from "cuid";
 import Immutable from "immutable";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { isNodeVisible, parseDeltaTime, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanel } from "./Panels";
 
-type NodeIdTree = Immutable.Map<string, NodeIdTree> 
+type NodeIdTree = [string, Immutable.List<NodeIdTree>]
 
-const ListElement = ({G, nodeIdTree, search, nodeId}: {G: GState, nodeIdTree: NodeIdTree, search: string, nodeId: string}) => {
+const ListElement = ({G, nodeIdTree, search}: {G: GState, nodeIdTree: NodeIdTree, search: string}) => {
   const {nodes, setNodes} = G;
+  const [nodeId, nodeTree] = nodeIdTree;
   const node = nodes.get(nodeId);
   const {width, height} = useWindowDimensions();
 
@@ -26,7 +28,7 @@ const ListElement = ({G, nodeIdTree, search, nodeId}: {G: GState, nodeIdTree: No
   return (
     <li className="pl-3">
       <div className="flex items-center hover:bg-slate-600 py-1 ml-[-11.5px] rounded w-fit">
-        { nodeIdTree.size > 0 &&
+        { nodeTree.size > 0 &&
           <button onClick={() => setNodes((nodes) => {
             const node = nodes.get(nodeId);
             if (!node) return nodes;
@@ -40,7 +42,7 @@ const ListElement = ({G, nodeIdTree, search, nodeId}: {G: GState, nodeIdTree: No
           </button>
         }
         <button 
-          className={`pr-6 text-left ${nodeIdTree.size > 0 ? "ml-3" : "ml-9"}`} 
+          className={`pr-6 text-left ${nodeTree.size > 0 ? "ml-3" : "ml-9"}`} 
           onClick={() => focusNode(G, nodeId, width, height)}
           >
           {delta &&
@@ -58,17 +60,17 @@ const ListElement = ({G, nodeIdTree, search, nodeId}: {G: GState, nodeIdTree: No
 
 const ListContainer = ({G, nodeIdTree, search}: {G: GState, nodeIdTree: NodeIdTree, search: string}) => {
   const {nodes} = G;
+  const [nodeId, nodeTree] = nodeIdTree;
 
   return (
     <ul className="border-l-2 border-slate-700">
-      {Array.from(nodeIdTree.map((nodeIdTree, nodeId) => {
-        if (!nodeIdTree) return null;
-        const node = nodes.get(nodeId);
+      {nodeTree.map(([childId, childTree], index) => {
+        const node = nodes.get(childId);
         if (!node) return null;
         return (
-          <ListElement G={G} nodeIdTree={nodeIdTree} search={search} nodeId={nodeId} />
+          <ListElement G={G} nodeIdTree={[childId, childTree]} search={search} key={index} />
         )
-      }).values())}
+      })}
     </ul>
   )
 }
@@ -82,54 +84,66 @@ interface TreePanelProps {
 export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) => {
   const {nodes, graph, setGraph} = G;
   const [search, setSearch] = useState("");
-  const visitedNodes = new Set<string>();
-  let tree: NodeIdTree = Immutable.Map()
+  let tree = Immutable.List<NodeIdTree>()
   const visited = new Set<string>();
   let leafs: string[] = [];
 
   function fillTree(nodeId: string): NodeIdTree {
     const node = nodes.get(nodeId);
-    let out = Immutable.Map<string, NodeIdTree>();
-    if (!node) return out
-    out = out.set(nodeId, Immutable.Map());
+    let out = Immutable.List<NodeIdTree>();
+    let visitedNodes = new Set<string>();
+    if (!node) return [nodeId, out]
     node.dependencyIds.forEach((id) => {
       const n = nodes.get(id);
       if (!n) return;
       if (!isNodeVisible(n, G)) return
-      let child = fillTree(id);
-      if (child.has("flatten")) {
-        out = out.concat(child.get("flatten")!);
-        child = child.delete("flatten");
-      } 
-      out = out.set(nodeId, out.get(nodeId)!.concat(child));
+      let [childId, childTree] = fillTree(id);
+      if (childId === "flatten") {
+        childTree.forEach(([childId2, childTree2]) => {
+          if (!visitedNodes.has(childId2)) {
+            visitedNodes.add(childId2)
+            out = out.push([childId2, childTree2])
+          }
+        })
+     } else {
+      if (!visitedNodes.has(childId)){
+        out = out.push([childId, childTree])
+        visited.add(childId)
+      }
+     }
     })
     if (!node.goal.toLowerCase().includes(search.toLowerCase())) {
-      out = out.set("flatten", out.get(nodeId)!);
-      return out.delete(nodeId);
+      return ["flatten", out]
     }
     if (!visited.has(nodeId) && node.dependencyIds.size === 0) {
       leafs.push(nodeId);
       visited.add(nodeId);
     }
-    return out
+    return [nodeId, out]
   }
 
-
-
-
   if (graph.treeFocus === "root") {
+    let visitedNodes = new Set<string>()
     nodes.forEach((node, nodeId) => {
       if (node.dependentIds.size === 0){
-        const child = fillTree(nodeId);
-        if (child.has("flatten")) {
-          tree = tree.concat(child.get("flatten")!);
+        const [childId, childTree] = fillTree(nodeId);
+        if (childId === "flatten") {
+          childTree.forEach(([childId2, childTree2]) => {
+            if (!visitedNodes.has(childId2)) {
+              tree = tree.push([childId2, childTree2])
+              visitedNodes.add(childId2)
+            }
+          })
         } else {
-          tree = tree.concat(child);
+          if (!visitedNodes.has(childId)){
+            tree = tree.push([childId, childTree]);
+            visitedNodes.add(childId);
+          }
         }
       }
     })
   } else {
-    tree = tree.concat(fillTree(graph.treeFocus));
+    tree = tree.push(fillTree(graph.treeFocus));
   }
 
 
@@ -166,13 +180,13 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
             if (!nodeBDue) return -Infinity;
             return Date.parse(nodeADue) - Date.parse(nodeBDue);
           }).map((nodeId) => {
-            return <ListElement G={G} nodeIdTree={Immutable.Map()} search={search} nodeId={nodeId} />
+            return <ListElement G={G} nodeIdTree={[nodeId, Immutable.List()]} search={search} key={nodeId} />
           })
         }
         {!onlyLeafs &&
-          Array.from(tree.map((nodeIdTree, nodeId) => {
-            return <ListElement G={G} nodeIdTree={nodeIdTree} search={search} nodeId={nodeId} key={nodeId} />
-          }).values())
+          tree.map(([nodeId, nodeIdTree]) => {
+            return <ListElement G={G} nodeIdTree={[nodeId, nodeIdTree]} search={search} key={nodeId + "a"} />
+          })
         }
         </ul>
       </div>
