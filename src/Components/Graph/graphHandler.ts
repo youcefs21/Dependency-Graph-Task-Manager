@@ -9,6 +9,7 @@ export type graphAnimationType  = null | {
   animation: "pan",
   target: {x: number, y: number},
 }
+
 export type nodeAnimationType = null | {
   animation: "complete",
   startTime: number,

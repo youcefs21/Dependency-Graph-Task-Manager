@@ -214,6 +214,13 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const datetime = node.due ? Date.parse(node.due) : undefined
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
+        let alpha = 1;
+        if (node.animation?.animation === "complete" && !graph.layers.get(graph.completeLayerId)?.visible) {
+          const delta = Date.now() - node.animation.startTime;
+          alpha = delta > 200 ? 2 - delta/400 : 1;
+          alpha = alpha < 0 ? 0 : alpha;
+          ctx.globalAlpha = alpha;
+        }
 
         const {color, selectFill} = getNodeApearance(G, nodeID, isSelected)
         ctx.fillStyle = color;
@@ -222,10 +229,10 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.fill()
         ctx.closePath()
 
-        if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 100)) {
+        if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 200)) {
           ctx.beginPath()
           ctx.fillStyle = selectFill
-          ctx.globalAlpha = 0.2
+          ctx.globalAlpha = 0.2*alpha;
           const selectedW = 16 * graph.scale
           const selectedH = 12 * graph.scale
           const selectedX = x - selectedW/2
@@ -233,10 +240,10 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           ctx.rect(selectedX, selectedY, selectedW, selectedH)
           ctx.strokeStyle = "black"
           ctx.fill()
-          ctx.globalAlpha = 0.1
+          ctx.globalAlpha = 0.1*alpha;
           ctx.stroke();
           ctx.closePath()
-          ctx.globalAlpha = 1
+          ctx.globalAlpha = alpha;
         }
 
 
@@ -251,7 +258,8 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             let p2 = 1
             if (node.animation?.animation === "complete") {
               const delta = Date.now() - node.animation.startTime;
-              if (delta > 200) {
+              // only fade if complete layer is not visible
+              if (delta >= 800) {
                 setNodes(nodes => nodes.set(nodeID, {...node, animation: null}))
               }
               p1 = Math.min(delta/100, 1);
@@ -286,15 +294,27 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           ctx.textBaseline = "middle"
           ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
         }
+        ctx.globalAlpha = 1;
       }
       // function that draws the arrows
-      const createArrow = (pos1: vec2, pos2: vec2, color: string, bitPos: number, bitR: number) => {
+      const createArrow = (node1: nodeState, node2: nodeState, color: string, bitPos: number, bitR: number) => {
         // pos1 and pos2 are real positions, turn them into screen cords:
         // pos1 is the parent, pos2 is the child
-        const x1 = (pos1.x - graph.TopLeftX)*graph.scale
-        const x2 = (pos2.x - graph.TopLeftX)*graph.scale
-        const y1 = (pos1.y - graph.TopLeftY)*graph.scale
-        const y2 = (pos2.y - graph.TopLeftY)*graph.scale
+        let alpha = 1;
+        if (node1.animation?.animation === "complete" && !graph.layers.get(graph.completeLayerId)?.visible) {
+          const delta = Date.now() - node1.animation.startTime;
+          alpha = delta > 200 ? 2 - delta/400 : 1;
+        }
+        if (node2.animation?.animation === "complete" && !graph.layers.get(graph.completeLayerId)?.visible) {
+          const delta = Date.now() - node2.animation.startTime;
+          alpha = delta > 200 ? 2 - delta/400 : 1;
+        }
+        alpha = alpha < 0 ? 0 : alpha;
+        ctx.globalAlpha = alpha;
+        const x1 = (node1.x - graph.TopLeftX)*graph.scale
+        const x2 = (node2.x - graph.TopLeftX)*graph.scale
+        const y1 = (node1.y - graph.TopLeftY)*graph.scale
+        const y2 = (node2.y - graph.TopLeftY)*graph.scale
 
         const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2) 
         if (len === 0) return;
@@ -318,6 +338,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.moveTo(x2, y2)
         ctx.lineTo(x1, y1)
         ctx.stroke()
+        ctx.globalAlpha = 1;
       }
 
 
@@ -339,7 +360,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         }
 
         if (edge.action != "delete") {
-          createArrow({x: node1.x, y: node1.y}, {x: node2.x, y: node2.y}, color, 0, endsSize)
+          createArrow(node1, node2, color, 0, endsSize)
         }
       });
       

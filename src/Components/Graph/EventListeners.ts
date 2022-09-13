@@ -2,7 +2,7 @@ import cuid from "cuid";
 import Immutable from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { isNodeVisible, useWindowDimensions } from "./Canvas";
+import { isNodeVisible } from "./Canvas";
 import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
 
 
