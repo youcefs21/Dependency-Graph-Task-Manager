@@ -376,13 +376,13 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
         ns = ns.set(id, {
           ...dep,
           due: node.due,
-          action: "update"
+          action: dep.action === "add" ? "add" : "update",
         });
       } else {
         ns = ns.set(id, {
           ...dep,
           due: minDueString,
-          action: "update"
+          action: dep.action === "add" ? "add" : "update",
         });
       }
     }
@@ -407,7 +407,7 @@ function handleArchive(
           nodes = nodes.set(id, {
             ...nodes.get(id)!,
             archive: !isArchived,
-            action: "update"
+            action: nodes.get(id)?.action === "add" ? "add" : "update",
           })
         })
         return nodes;
@@ -415,7 +415,7 @@ function handleArchive(
         return nodes.set(selectedNode, {
           ...nodes.get(selectedNode)!,
           archive: !nodes.get(selectedNode)!.archive,
-          action: "update"
+          action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
         })
       }
     }
@@ -435,7 +435,7 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       goal: input.value,
-      action: "update"
+      action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
     })
   );
 
@@ -443,7 +443,7 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       description: input.value,
-      action: "update"
+      action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
     })
   );
 
@@ -464,7 +464,7 @@ function handleInputChange(
         ...node,
         due: due,
         cascadeDue: input.value === "",
-        action: "update"
+        action: node.action === "add" ? "add" : "update",
       }))
     );
   }
@@ -473,7 +473,7 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       priority: input.value,
-      action: "update"
+      action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
     })
   );
 
@@ -481,7 +481,7 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       x: Number(input.value),
-      action: "update"
+      action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
     })
   );
 
@@ -489,10 +489,8 @@ function handleInputChange(
     nodes.set(selectedNode, {
       ...nodes.get(selectedNode)!,
       y: Math.floor(Number(input.value)),
-      action: "update"
+      action: nodes.get(selectedNode)?.action === "add" ? "add" : "update",
     })
   );
-
-
 
 }

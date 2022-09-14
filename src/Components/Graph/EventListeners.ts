@@ -108,7 +108,7 @@ export function handlePointerDown(
         if (!node) return tempNodes
         return tempNodes.set(newHeldNode, {
           ...node,
-          action: "update",
+          action: node.action === "add" ? "add" : "update",
           animation: {
             animation: "complete",
             startTime: Date.now(),
@@ -347,7 +347,7 @@ export function handleMove(
                 ...node, 
                 x: Math.round(event.clientX/graph.scale + graph.TopLeftX + xDiff),
                 y: Math.round(event.clientY/graph.scale + graph.TopLeftY + yDiff),
-                action: "update"
+                action: node.action === "add" ? "add" : "update",
               })
             }
           });

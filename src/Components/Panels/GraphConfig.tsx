@@ -149,7 +149,7 @@ function handleInputChange(
     layers: graph.layers.set(selectedNode, {
       ...graph.layers.get(selectedNode)!,
       name: input.value,
-      action: "update"
+      action: graph.layers.get(selectedNode)?.action === "add" ? "add" : "update",
     }),
     scale: graph.scale + 0.000001
   }));
