@@ -185,8 +185,15 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
       const mx = fmx/graph.scale + graph.TopLeftX 
       const my = fmy/graph.scale + graph.TopLeftY
-      //console.log("mx: ", mx, "my: ", my)
-      const ctx = mainCanvas.getContext('2d')!
+
+      let ratio = window.devicePixelRatio || 1;
+      mainCanvas.width = width * ratio;
+      mainCanvas.height = height * ratio;
+      mainCanvas.style.width = width + "px";
+      mainCanvas.style.height = height + "px";
+      const ctx = mainCanvas.getContext('2d')!;
+      ctx.scale(ratio, ratio);
+
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
       
       // DRAW the grid
