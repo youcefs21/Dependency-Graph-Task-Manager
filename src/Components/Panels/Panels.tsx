@@ -24,7 +24,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
           }
         }>close</button>
       </div>
-      <div className="divide-y p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-5/6 corner">
+      <div className="p-4 overflow-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-5/6 corner">
         {children}
       </div>
     </div>

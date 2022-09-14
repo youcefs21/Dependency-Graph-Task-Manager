@@ -88,6 +88,7 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   let tree = Immutable.List<NodeIdTree>()
   const visited = new Set<string>();
   let leafs: string[] = [];
+  const {width, height} = useWindowDimensions();
 
   function fillTree(nodeId: string): NodeIdTree {
     const node = nodes.get(nodeId);
@@ -156,26 +157,30 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   const title = nodes.get(graph.treeFocus)?.goal ?? ""
   return (
     <ConfigPanel title={onlyLeafs ? "Leaf Explorer" : "Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
-      <div className="whitespace-nowrap w-fit">
-        <div className="sticky -top-4 -mt-4 pt-4 pb-2 bg-[#222326] flex">
-          <div>
-            <input 
-            className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
-            type={"text"}
-            placeholder={"Search"}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            ></input>
-          </div>
-          {graph.treeFocus !== "root" &&
-          <>
-            <button className="bg-[#2A2B34] hover:bg-slate-700 p-2 ml-1 mt-1 rounded"
-              onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
-              <p className="text-center text-xs">Back to Root</p>
-            </button>
-          </>
-          }
+      <div className="sticky -top-4 -left-4 -mx-4 -mt-4 p-4 bg-[#222326] flex">
+        <div>
+          <input 
+          className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
+          type={"text"}
+          placeholder={"Search"}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          ></input>
         </div>
+        {graph.treeFocus !== "root" &&
+        <button className="bg-[#2A2B34] hover:bg-slate-700 px-2 m-2 rounded ml-1 mr-0"
+          onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
+          <p className="text-center text-xs">Back</p>
+        </button>
+        }
+        {onlyLeafs &&
+        <button className="bg-[#2A2B34] hover:bg-slate-700 px-2 m-2 rounded ml-1 mr-0"
+          onClick={() => focusNode(G, leafs[Math.floor(Math.random()*leafs.length)]!, width, height)}>
+          <p className="text-center text-xs">Random</p>
+        </button>
+        }
+      </div>
+      <div className="whitespace-nowrap w-fit">
         <ul className="pl-1 text-xs">
         { onlyLeafs &&
           leafs.sort((a, b) => {
