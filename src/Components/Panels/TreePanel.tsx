@@ -97,7 +97,6 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
     node.dependencyIds.forEach((id) => {
       const n = nodes.get(id);
       if (!n) return;
-      if (!isNodeVisible(n, G)) return
       let [childId, childTree] = fillTree(id);
       if (childId === "flatten") {
         childTree.forEach(([childId2, childTree2]) => {
@@ -113,10 +112,15 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
       }
      }
     })
-    if (!node.goal.toLowerCase().includes(search.toLowerCase())) {
+    const visibleDependencies = node.dependencyIds.filter((id) => {
+      const n = nodes.get(id);
+      if (!n) return false;
+      return isNodeVisible(n, G)
+    })
+    if (!node.goal.toLowerCase().includes(search.toLowerCase()) || !isNodeVisible(node, G)) {
       return ["flatten", out]
     }
-    if (!visited.has(nodeId) && node.dependencyIds.size === 0) {
+    else if (!visited.has(nodeId) && visibleDependencies.size === 0) {
       leafs.push(nodeId);
       visited.add(nodeId);
     }
