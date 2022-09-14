@@ -217,10 +217,10 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         let alpha = 1;
         if (node.animation?.animation === "complete" && !graph.layers.get(graph.completeLayerId)?.visible) {
           const delta = Date.now() - node.animation.startTime;
-          alpha = delta > 200 ? 2 - delta/400 : 1;
+          alpha = delta > 400 ? 2 - delta/400 : 1;
           alpha = alpha < 0 ? 0 : alpha;
-          ctx.globalAlpha = alpha;
         }
+        ctx.globalAlpha = alpha;
 
         const {color, selectFill} = getNodeApearance(G, nodeID, isSelected)
         ctx.fillStyle = color;
@@ -256,6 +256,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             const ancor3 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
             let p1 = 1
             let p2 = 1
+            ctx.lineWidth = 1 + graph.scale/5;
             if (node.animation?.animation === "complete") {
               const delta = Date.now() - node.animation.startTime;
               // only fade if complete layer is not visible
@@ -294,7 +295,6 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           ctx.textBaseline = "middle"
           ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
         }
-        ctx.globalAlpha = 1;
       }
       // function that draws the arrows
       const createArrow = (node1: nodeState, node2: nodeState, color: string, bitPos: number, bitR: number) => {
@@ -307,7 +307,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         }
         if (node2.animation?.animation === "complete" && !graph.layers.get(graph.completeLayerId)?.visible) {
           const delta = Date.now() - node2.animation.startTime;
-          alpha = delta > 200 ? 2 - delta/400 : 1;
+          alpha = delta > 400 ? 2 - delta/400 : 1;
         }
         alpha = alpha < 0 ? 0 : alpha;
         ctx.globalAlpha = alpha;
@@ -322,7 +322,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const r = (bitR*graph.scale)/len;
         
         ctx.lineWidth = 1 + graph.scale/5;
-        ctx.lineDashOffset = -dashOffset*graph.scale;
+        // ctx.lineDashOffset = -dashOffset*graph.scale;
         
         const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
         gradient.addColorStop(Math.min(Math.max(prog-r, 0), 1), color);
@@ -338,7 +338,6 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.moveTo(x2, y2)
         ctx.lineTo(x1, y1)
         ctx.stroke()
-        ctx.globalAlpha = 1;
       }
 
 
