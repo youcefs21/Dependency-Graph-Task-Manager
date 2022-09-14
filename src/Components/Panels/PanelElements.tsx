@@ -1,15 +1,26 @@
-import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
-import { focusNode } from "../Graph/EventListeners";
+import { useState } from "react";
 import { GState, nodeState } from "../Graph/graphHandler"
 
 
 export const ConfigPanelItem = ({itemHeading, children}: {itemHeading: string, children: JSX.Element | JSX.Element[]}) => {
+  const [collapse, setCollapse] = useState<boolean>(false);
   return (
     <div className="p-2">
-      <h3 className="text-sm">{itemHeading}</h3>
-      <div className="text-xs text-[#BDBDBD] pl-3">
-        {children}
+      <div className="flex items-center">
+        <button className="p-3" onClick={() => setCollapse((collapse) => !collapse)}>
+          <div className={collapse ? "-rotate-90" : ""}>
+            <svg width="9" height="7" viewBox="0 0 9 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 7L0.602886 0.25L8.39711 0.25L4.5 7Z" fill="#D9D9D9"/>
+            </svg>
+          </div>
+        </button>
+        <h3 className="text-sm">{itemHeading}</h3>
       </div>
+      {!collapse &&
+        <div className="text-xs text-[#BDBDBD] pl-3">
+          {children}
+        </div>
+      }
     </div>
   )
 }
