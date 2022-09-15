@@ -31,7 +31,9 @@ const GraphLayersSec = ({G}: {G: GState}) => {
     <ConfigPanelItem itemHeading="Layers">
       <ul>
         {
-        Array.from(graph.layers.map((layer, index) => {
+        graph.indexedLayerIds.map((layerId, index) => {
+          const layer = graph.layers.get(layerId);
+          if (!layer) return null;
           if (layer.action === "delete") return null;
           return (
             <li key={index}>
@@ -41,12 +43,12 @@ const GraphLayersSec = ({G}: {G: GState}) => {
                   type={'text'}
                   name={'layerName'}
                   value={layer.name}
-                  onInput={(e) => handleInputChange(e, index, G)}
+                  onInput={(e) => handleInputChange(e, layerId, G)}
                 />
                 
                 <button onClick={() => setGraph(graph => ({
                   ...graph, 
-                  layers: graph.layers.set(index, {
+                  layers: graph.layers.set(layerId, {
                     ...layer, 
                     visible: !layer.visible, 
                     action: layer.action != "add" ? "update" : "add"
@@ -57,14 +59,17 @@ const GraphLayersSec = ({G}: {G: GState}) => {
                 </button>
 
                 {
-                  graph.completeLayerId != index &&
+                  graph.completeLayerId != layerId &&
                   <button className="bg-[#121316] hover:bg-rose-700 p-1 rounded"
                     onClick={() => {
-                      const newLayers = graph.layers.set(index, {
-                        ...layer, 
-                        action: "delete"
-                      });
-                      setGraph(graph => ({...graph, layers: newLayers}))
+                      setGraph(graph => ({
+                        ...graph, 
+                        layers: graph.layers.set(layerId, {
+                          ...layer, 
+                          action: "delete"
+                        }),
+                        indexedLayerIds: graph.indexedLayerIds.remove(index)
+                      }))
                     }}>
                     D
                   </button>
@@ -72,17 +77,21 @@ const GraphLayersSec = ({G}: {G: GState}) => {
               </div>
             </li>
           )
-        }).values())}
+        })}
         <li className="my-2 rounded bg-[#2A2B34] hover:bg-slate-700">
           <div className="flex justify-center items-center select-none">
             <button className="w-full h-full py-1" onClick={
               () => {
-                const newLayers = graph.layers.set(cuid(), {
-                  name: "New Layer",
-                  visible: true,
-                  action: "add"
-                });
-                setGraph(graph => ({...graph, layers: newLayers}))
+                const newLayerId = cuid();
+                setGraph(graph => ({
+                  ...graph,
+                  layers: graph.layers.set(newLayerId, {
+                    name: "New Layer",
+                    visible: true,
+                    action: "add"
+                  }),
+                  indexedLayerIds: graph.indexedLayerIds.push(newLayerId)
+                }))
               }
             }>
               + New Layer
@@ -150,8 +159,7 @@ function handleInputChange(
       ...graph.layers.get(selectedNode)!,
       name: input.value,
       action: graph.layers.get(selectedNode)?.action === "add" ? "add" : "update",
-    }),
-    scale: graph.scale + 0.000001
+    })
   }));
 
 

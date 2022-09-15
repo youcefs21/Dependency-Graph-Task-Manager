@@ -49,6 +49,7 @@ export interface graphState {
   saveState: "saved" | "not saved" | "saving" | "save error",
   loaded: boolean,
   layers: Immutable.Map<string, layerState>,
+  indexedLayerIds: Immutable.List<string>,
   showArchive: boolean,
   completeLayerId: string,
   treeFocus: string,
@@ -89,6 +90,7 @@ const initialGraph: graphState = {
   saveState: "saved",
   loaded: false,
   layers: Immutable.Map<string, layerState>(),
+  indexedLayerIds: Immutable.List<string>(),
   showArchive: false,
   completeLayerId: "",
   treeFocus: "root",
@@ -185,6 +187,7 @@ export function useGraph(): GState {
 
 
       let layers = graph.layers
+      let indexedLayerIds = graph.indexedLayerIds
 
       graphInit.data.layers.forEach((edge) => {
         layers = layers.set(edge.id, {
@@ -192,6 +195,7 @@ export function useGraph(): GState {
           visible: edge.visible,
           action: "nothing"
         })
+        indexedLayerIds = indexedLayerIds.push(edge.id)
       })
       
       setGraph({
@@ -204,7 +208,8 @@ export function useGraph(): GState {
         scale: graphInit.data.scale,
         loaded: true,
         layers: layers,
-        completeLayerId: graphInit.data.completeLayerId ?? layers.keySeq().first()
+        indexedLayerIds: indexedLayerIds,
+        completeLayerId: graphInit.data.completeLayerId ?? indexedLayerIds.get(0),
       });
 
       let tempEdges = edges
@@ -408,7 +413,7 @@ export function useGraph(): GState {
 
     alreadyUpdated.current = false;
 
-  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, graph.loaded, nodes, edges]);
+  }, [graph.scale, graph.TopLeftY, graph.TopLeftX, graph.loaded, graph.layers, nodes, edges]);
 
 
   // ============ trigger save if page is unloading ============

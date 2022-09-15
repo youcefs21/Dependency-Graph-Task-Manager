@@ -30,7 +30,9 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
   const node = nodes.get(nodeID);
   return (
     <ul>
-      {Array.from(graph.layers.map((layer, layerID) => {
+      {graph.indexedLayerIds.map((layerID, index) => {
+        const layer = graph.layers.get(layerID);
+        if (!layer) return null;
         let isSelected = true;
         if (nodeID === "group") {
           graph.selectedNodes.forEach((id) => {
@@ -53,7 +55,7 @@ export const SelectLayers = ({G, nodeID} : {G: GState, nodeID: string}) => {
             </div>
           </li>
         )
-      }).values())}
+      })}
     </ul>
   )
 }

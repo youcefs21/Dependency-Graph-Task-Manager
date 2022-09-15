@@ -425,6 +425,23 @@ export function handleKeyDown(
   } else if (event.key === " ") {
     setCurrentTool("move")
     currentTool.current = "move"
+  } else if (event.key.match(/^[1-9]$/)) {
+    const index = parseInt(event.key) - 1
+    if (index < graph.indexedLayerIds.size) {
+      setGraph(graph => {
+        const layerId = graph.indexedLayerIds.get(index)
+        if (!layerId) return graph
+        const layer = graph.layers.get(layerId)
+        if (!layer) return graph
+        return {
+          ...graph,
+          layers: graph.layers.set(layerId, {
+            ...layer,
+            visible: !layer.visible
+          })
+        }
+      });
+    }
   }
 
 }
