@@ -68,6 +68,7 @@ export const graphsRouter = createRouter()
         y: z.number()
       }),
       completeLayerId: z.string(),
+      showArchive: z.boolean()
     }),
     async resolve({ input, ctx }) {
       if (input.userId !== ctx.session?.user?.id) {
@@ -81,7 +82,8 @@ export const graphsRouter = createRouter()
           x: input.pos.x,
           y: input.pos.y,
           scale: input.scale,
-          completeLayerId: input.completeLayerId
+          completeLayerId: input.completeLayerId,
+          showArchive: input.showArchive
         }
       });
     },

@@ -210,6 +210,7 @@ export function useGraph(): GState {
         layers: layers,
         indexedLayerIds: indexedLayerIds,
         completeLayerId: graphInit.data.completeLayerId ?? indexedLayerIds.get(0),
+        showArchive: graphInit.data.showArchive,
       });
 
       let tempEdges = edges
@@ -451,7 +452,8 @@ export function useGraph(): GState {
       userId: graph.userId,
       scale: graph.scale, 
       pos: {x: graph.TopLeftX, y: graph.TopLeftY},
-      completeLayerId: graph.completeLayerId
+      completeLayerId: graph.completeLayerId,
+      showArchive: graph.showArchive,
     });
 
     // update layers

@@ -57,6 +57,7 @@ model Graph {
   completeLayer   Layer   @relation("completing", fields: [completeLayerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   layers          Layer[] @relation("normal")
+  showArchive     Boolean @default(false)
 }
 
 model Layer {
