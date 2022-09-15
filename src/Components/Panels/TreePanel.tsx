@@ -125,6 +125,13 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
       leafs.push(nodeId);
       visited.add(nodeId);
     }
+    out = out.sort((a, b) => {
+      const nodeBDue = nodes.get(b[0])?.due;
+      const nodeADue = nodes.get(a[0])?.due;
+      if (!nodeADue) return Infinity;
+      if (!nodeBDue) return -Infinity;
+      return Date.parse(nodeADue) - Date.parse(nodeBDue);
+    })
     return [nodeId, out]
   }
 
