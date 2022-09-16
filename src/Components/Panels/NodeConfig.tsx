@@ -369,7 +369,6 @@ function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): I
       }
     })
 
-    console.log("min due", minDueString)
 
     if (dep.cascadeDue) {
       if (node.due && Date.parse(node.due) <= minDue) {
@@ -456,8 +455,21 @@ function handleInputChange(
         due = dep.due;
       }
     })
-    if (due != input.value) {
-      console.log("the latest this node can be due is", due);
+    if (due != input.value && input.value !== "") {
+      setGraph(graph => {
+        return {
+          ...graph,
+          toolbarMsg: <span className="text-red-500">The latest this node can be due is {due}</span>
+        }
+      });
+      setTimeout(() => {
+        setGraph(graph => {
+          return {
+            ...graph,
+            toolbarMsg: null
+          }
+        });
+      }, 3000);
     }
     setNodes(nodes =>
       cascadeDueDate(selectedNode, nodes.set(selectedNode, {

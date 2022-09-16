@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Immutable from "immutable";
 import { trpc } from "../../utils/trpc";
 import {useSession} from "next-auth/react";
@@ -54,6 +54,7 @@ export interface graphState {
   completeLayerId: string,
   treeFocus: string,
   animation: graphAnimationType,
+  toolbarMsg: JSX.Element | null,
 }
 
 export interface edgeState {
@@ -94,7 +95,8 @@ const initialGraph: graphState = {
   showArchive: false,
   completeLayerId: "",
   treeFocus: "root",
-  animation: null
+  animation: null,
+  toolbarMsg: null,
 }
 
 export const defaultNode: nodeState = {
@@ -290,7 +292,16 @@ export function useGraph(): GState {
         adj.current.get(n1) ? adj.current.get(n1)?.add(n2) : adj.current.set(n1, new Set([n2]))
           
       } else {
-        console.log("connection failed, would create a cycle")
+        setGraph(tempGraph => ({
+          ...tempGraph,
+          toolbarMsg: <span className="text-red-500">Failed to create connection, cycles are not allowed</span>
+        }))
+        setTimeout(() => {
+          setGraph(tempGraph => ({
+            ...tempGraph,
+            toolbarMsg: null
+          }))
+        }, 5000)
       }
     } else if (action === "delete") {
       
@@ -441,8 +452,9 @@ export function useGraph(): GState {
 
     setGraph(graph => ({
       ...graph,
-      saveState: "saving",
+      saveState: "saving"
     }))
+
 
     
     // update graph

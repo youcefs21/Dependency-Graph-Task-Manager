@@ -42,9 +42,16 @@ const Home: NextPage = () => {
       
       <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
-      <p className="relative text-white w-1/2 m-auto text-center my-7 font-mono">
-        {hintText(currentTool, graph.edgeActionState.parents.isEmpty())}
-      </p>
+      <div className="absolute text-white w-full text-center my-7 font-mono pointer-events-none flex items-center flex-col gap-2 ">
+        <p className="mx-5 max-w-3xl">
+          {hintText(currentTool, graph.edgeActionState.parents.isEmpty())}
+        </p>
+        { graph.toolbarMsg &&
+        <p className="mx-5 max-w-3xl">
+          {graph.toolbarMsg}
+        </p>
+        }
+      </div>
       <div className="text-white bg-black p-2 rounded-lg absolute right-5 top-5">
         <button onClick={() => setCollapseConfig(false)} className={"text-white"}>
           Config Panel
