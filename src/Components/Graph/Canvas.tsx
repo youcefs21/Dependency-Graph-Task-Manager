@@ -219,6 +219,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const pos = {x: node.x, y: node.y}
         const label = node.goal
         const datetime = node.due ? Date.parse(node.due) : undefined
+        const nodeSize = node.nodeSize * graph.scale
         const x = (pos.x - graph.TopLeftX)*graph.scale
         const y = (pos.y - graph.TopLeftY)*graph.scale
         let alpha = 1;
@@ -232,7 +233,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const {color, selectFill} = getNodeApearance(G, nodeID, isSelected)
         ctx.fillStyle = color;
         ctx.beginPath()
-        ctx.arc(x, y, graph.scale, 0, Math.PI * 2);
+        ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
         ctx.fill()
         ctx.closePath()
 
@@ -240,8 +241,8 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           ctx.beginPath()
           ctx.fillStyle = selectFill
           ctx.globalAlpha = 0.2*alpha;
-          const selectedW = 16 * graph.scale
-          const selectedH = 12 * graph.scale
+          const selectedW = Math.round(node.nodeSize*8) * graph.scale * 2;
+          const selectedH = Math.round(node.nodeSize*6) * graph.scale * 2;
           const selectedX = x - selectedW/2
           const selectedY = y - selectedH/2
           ctx.rect(selectedX, selectedY, selectedW, selectedH)
@@ -254,16 +255,16 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         }
 
 
-        if (graph.scale > 5 ){
+        if (nodeSize > 5 ){
           if (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete") {
-            const ax = x - graph.scale/16
+            const ax = x - nodeSize/16
             const ay = y
-            const ancor1 = {x: ax - graph.scale/3, y: ay}
-            const ancor2 = {x: ax, y: ay + graph.scale/2}
-            const ancor3 = {x: ax + graph.scale/2, y: ay - graph.scale/3}
+            const ancor1 = {x: ax - nodeSize/3, y: ay}
+            const ancor2 = {x: ax, y: ay + nodeSize/2}
+            const ancor3 = {x: ax + nodeSize/2, y: ay - nodeSize/3}
             let p1 = 1
             let p2 = 1
-            ctx.lineWidth = 1 + graph.scale/5;
+            ctx.lineWidth = 1 + nodeSize/5;
             if (node.animation?.animation === "complete") {
               const delta = Date.now() - node.animation.startTime;
               // only fade if complete layer is not visible
@@ -287,20 +288,20 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             ctx.stroke()
             ctx.closePath()
           }
-          ctx.font = graph.scale.toString() + 'px sans-serif';
+          ctx.font = nodeSize.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(label, x, y + graph.scale*2);
+          ctx.fillText(label, x, y + nodeSize*2);
           
           if (!datetime || (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete")) return;
           
           const delta = datetime - Date.now()
-          ctx.font = "bold " + (0.75*graph.scale).toString() + 'px monospace';
+          ctx.font = "bold " + (0.75*nodeSize).toString() + 'px monospace';
           ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(parseDeltaTime(delta), x, y - graph.scale*2);
+          ctx.fillText(parseDeltaTime(delta), x, y - nodeSize*2);
         }
       }
       // function that draws the arrows
