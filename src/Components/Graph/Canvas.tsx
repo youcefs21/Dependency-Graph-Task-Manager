@@ -376,7 +376,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       nodes.forEach((node, id) => {
         if (!isNodeVisible(node, G)) return;
 
-        if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && !["move", "addNode"].includes(currentToolRef.current)) {
+        if (Math.abs(node.x - mx) < node.nodeSize*1.25 && Math.abs(node.y - my) < node.nodeSize*1.25 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
           createNode(node, true, id)
           return

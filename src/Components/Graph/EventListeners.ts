@@ -49,7 +49,7 @@ export function handleDoubleClick(
 
     let selectedNode = graph.heldNode;
     nodes.forEach((node, id) => {
-      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && isNodeVisible(node, G)) {
+      if (Math.abs(node.x - mx) < node.nodeSize*1.25 && Math.abs(node.y - my) < node.nodeSize*1.25 && isNodeVisible(node, G)) {
         selectedNode = id
       }
     });
@@ -82,7 +82,8 @@ export function handlePointerDown(
       x: Math.round(mx),
       y: Math.round(my),
     }));
-    // TODO set the new node as the focus
+    const {width, height} = event.currentTarget.getBoundingClientRect();
+    focusNode(G, newNodeID, width, height);
     return
   }
   
@@ -90,7 +91,7 @@ export function handlePointerDown(
   let newHeldNode = graph.heldNode;
   if (currentTool.current != "move"){
     nodes.forEach((node, id) => {
-      if (Math.abs(node.x - mx) < 1 && Math.abs(node.y - my) < 1 && isNodeVisible(node, G)) {
+      if (Math.abs(node.x - mx) < node.nodeSize*1.25 && Math.abs(node.y - my) < node.nodeSize*1.25 && isNodeVisible(node, G)) {
         newHeldNode = id
       }
     });
@@ -146,20 +147,20 @@ export function handlePointerDown(
   const EAS = graph.edgeActionState;
   if (EAS.action !== "nothing" && !["nothing", "background"].includes(newHeldNode)) {
 
-    if (EAS.parents.isEmpty() && !EAS.children.has(newHeldNode)) {
-      setGraph(graph => ({
-        ...graph,
-        edgeActionState: {
-          ...graph.edgeActionState,
-          parents: graph.edgeActionState.parents.add(newHeldNode)
-        },
-      }))
-    } else if (EAS.children.isEmpty() && !EAS.parents.has(newHeldNode)) {
+    if (EAS.children.isEmpty() && !EAS.parents.has(newHeldNode)) {
       setGraph(graph => ({
         ...graph,
         edgeActionState: {
           ...graph.edgeActionState,
           children: graph.edgeActionState.children.add(newHeldNode)
+        },
+      }))
+    } else if (EAS.parents.isEmpty() && !EAS.children.has(newHeldNode)) {
+      setGraph(graph => ({
+        ...graph,
+        edgeActionState: {
+          ...graph.edgeActionState,
+          parents: graph.edgeActionState.parents.add(newHeldNode)
         },
       }))
     }

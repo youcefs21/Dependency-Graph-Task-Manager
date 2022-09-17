@@ -290,6 +290,21 @@ export function useGraph(): GState {
         })
 
         adj.current.get(n1) ? adj.current.get(n1)?.add(n2) : adj.current.set(n1, new Set([n2]))
+
+        // cascade due date
+        setNodes(tempNodes => {
+          const node1 = tempNodes.get(n1)
+          const node2 = tempNodes.get(n2)
+          if (node1 && node2) {
+            if (node1.cascadeDue && node1.due && node2.due !== node1.due) {
+              tempNodes = tempNodes.set(n2, {
+                ...node2,
+                due: node1.due,
+              })
+            }
+          }
+          return tempNodes
+        })
           
       } else {
         setGraph(tempGraph => ({
@@ -375,6 +390,33 @@ export function useGraph(): GState {
       });
       adj.current.get(n1)?.delete(n2)
       adj.current.get(n2)?.delete(n1)
+
+      // cascade due date
+      const updateDue = (node: nodeState | undefined, tempNodes: Immutable.Map<string, nodeState>, nodeId: string) => {
+        if (node && node.cascadeDue) {
+          let newDue: string | null = null;
+          node.dependentIds.forEach(id => {
+            const depNode = tempNodes.get(id)
+            if (!depNode) return
+            if (depNode.due && (!newDue || Date.parse(depNode.due) > Date.parse(newDue))) {
+              newDue = depNode.due
+            }
+          });
+          tempNodes = tempNodes.set(nodeId, {
+            ...node,
+            due: newDue
+          });
+        }
+        return tempNodes
+      }
+      setNodes(tempNodes => {
+        const node1 = tempNodes.get(n1)
+        const node2 = tempNodes.get(n2)
+        tempNodes = updateDue(node1, tempNodes, n1)
+        tempNodes = updateDue(node2, tempNodes, n2)
+        return tempNodes
+      });
+
         
     }
 
