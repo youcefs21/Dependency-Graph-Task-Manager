@@ -79,16 +79,56 @@ const ListContainer = ({G, nodeIdTree, search}: {G: GState, nodeIdTree: NodeIdTr
 interface TreePanelProps {
   G: GState,
   setCollapse: Dispatch<SetStateAction<boolean>>,
-  onlyLeafs: boolean
 }
 
-export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) => {
+
+const DiceIcon = () => {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_214_92)">
+      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#D9D9D9"/>
+      <rect x="3" y="11" width="2" height="2" rx="1" fill="#D9D9D9"/>
+      <rect x="7" y="7" width="2" height="2" rx="1" fill="#D9D9D9"/>
+      <rect x="11" y="3" width="2" height="2" rx="1" fill="#D9D9D9"/>
+      </g>
+      <defs>
+      <clipPath id="clip0_214_92">
+      <rect width="16" height="16" fill="white"/>
+      </clipPath>
+      </defs>
+    </svg>
+  )
+}
+
+
+const TreeIcon = () => {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_213_85)">
+      <rect x="0.5" y="0.5" width="7" height="3" stroke="#D9D9D9"/>
+      <rect x="8.5" y="6.5" width="7" height="3" stroke="#D9D9D9"/>
+      <rect x="8.5" y="12.5" width="7" height="3" stroke="#D9D9D9"/>
+      <line x1="3.5" y1="4" x2="3.5" y2="14" stroke="#D9D9D9"/>
+      <line x1="3" y1="7.5" x2="8" y2="7.5" stroke="#D9D9D9"/>
+      <line x1="3" y1="13.5" x2="8" y2="13.5" stroke="#D9D9D9"/>
+      </g>
+      <defs>
+      <clipPath id="clip0_213_85">
+      <rect width="16" height="16" fill="white"/>
+      </clipPath>
+      </defs>
+    </svg>
+  )
+}
+
+export const TreeExplorerPanel = ({G, setCollapse} : TreePanelProps) => {
   const {nodes, graph, setGraph} = G;
   const [search, setSearch] = useState("");
   let tree = imt.List<NodeIdTree>()
   const visited = new Set<string>();
   let leafs: string[] = [];
   const {width, height} = useWindowDimensions();
+  const [onlyLeafs, setOnlyLeafs] = useState<boolean>(false);
 
   function fillTree(nodeId: string): NodeIdTree {
     const node = nodes.get(nodeId);
@@ -164,28 +204,41 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
   const title = nodes.get(graph.treeFocus)?.goal ?? ""
   return (
     <ConfigPanel title={onlyLeafs ? "Leaf Explorer" : "Tree Explorer"} G={G} setCollapse={setCollapse} direction="left">
-      <div className="sticky -top-4 -left-4 -mx-4 -mt-4 p-4 bg-[#222326] flex">
-        <div>
-          <input 
-          className="bg-[#393939] rounded m-2 p-1 caret-white outline-0 text-xs"
-          type={"text"}
-          placeholder={"Search"}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          ></input>
-        </div>
+      <div className="sticky -top-4 -left-4 -mx-4 -mt-4 p-4 bg-[#222326]">
         {graph.treeFocus !== "root" &&
         <button className="bg-[#2A2B34] hover:bg-slate-700 px-2 m-2 rounded ml-1 mr-0"
           onClick={() => setGraph(graph => ({...graph, treeFocus: "root"}))}>
           <p className="text-center text-xs">Back</p>
         </button>
         }
-        {onlyLeafs &&
-        <button className="bg-[#2A2B34] hover:bg-slate-700 px-2 m-2 rounded ml-1 mr-0"
-          onClick={() => focusNode(G, leafs[Math.floor(Math.random()*leafs.length)]!, width, height)}>
-          <p className="text-center text-xs">Random</p>
-        </button>
-        }
+        <div className="flex gap-2 items-center">
+          <div>
+            <input 
+            className="bg-[#393939] rounded py-1 px-3 caret-white outline-0 text-xs w-48"
+            type={"text"}
+            placeholder={"Search"}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            ></input>
+          </div>
+          <button 
+            className={`w-fit h-fit p-1 rounded-md ${onlyLeafs ? 'bg-[#2A2B34] hover:bg-neutral-700' : 'bg-blue-500'} `} 
+            onClick={() => setOnlyLeafs((onlyLeafs) => !onlyLeafs)}
+          >
+            <div className="w-[16px] h-[16px]">
+              <TreeIcon />
+            </div>
+          </button>
+          {onlyLeafs &&
+          <button className="w-fit h-fit bg-[#2A2B34] hover:bg-slate-700 p-1 rounded"
+            onClick={() => focusNode(G, leafs[Math.floor(Math.random()*leafs.length)]!, width, height)}
+            >
+              <div className="w-[16px] h-[16px]">
+                <DiceIcon />
+              </div>
+          </button>
+          }
+        </div>
       </div>
       <div className="whitespace-nowrap w-fit">
         <ul className="pl-1 text-xs">

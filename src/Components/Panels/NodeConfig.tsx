@@ -330,7 +330,6 @@ export const NodeConfigPanel = ({G, selectedNodeID, setCollapseConfig}: NodeConf
       <NodePropertiesSec G={G} selectedNodeID={selectedNodeID} />
       <NodeConnectionsSec G={G} selectedNodeID={selectedNodeID} />
       <NodeLayersSec G={G} selectedNodeID={selectedNodeID} />
-      <NodeApearanceSec G={G} selectedNodeID={selectedNodeID} />
     
     </ConfigPanel>
   )  

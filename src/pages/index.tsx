@@ -17,7 +17,6 @@ const Home: NextPage = () => {
   const selectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
   const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
-  const [leafOnly, setLeafOnly] = useState<boolean>(false)
   const auth = useSession()
 
   if (auth.status === "unauthenticated") {
@@ -58,23 +57,17 @@ const Home: NextPage = () => {
         </button>
       </div>
 
-      <div className="text-white bg-black p-2 rounded-lg absolute left-5 top-5">
-        <button onClick={() => {
-          setCollapseExplorer(false)
-          setLeafOnly(false)
-        }} className={"text-white"}>
-          Tree Explorer
-        </button>
-      </div>
-      
-      <div className="text-white bg-black p-2 rounded-lg absolute left-5 top-18">
-        <button onClick={() => {
-          setCollapseExplorer(false)
-          setLeafOnly(true)
-          }} className={"text-white"}>
-          Leaf Explorer
-        </button>
-      </div>
+      <button onClick={() => {
+        setCollapseExplorer((explorer) => !explorer)
+      }} className="w-fit h-fit p-2 absolute hover:bg-neutral-700 rounded left-5 top-5">
+        <div className="w-[14px] h-[12px]">
+          <svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="14" height="2" rx="1" fill="#D9D9D9"/>
+            <rect y="5" width="14" height="2" rx="1" fill="#D9D9D9"/>
+            <rect y="10" width="14" height="2" rx="1" fill="#D9D9D9"/>
+          </svg>
+        </div>
+      </button>
       
       { !collapseConfig && selectedNode != "nothing" && 
         <NodeConfigPanel G={G} selectedNodeID={selectedNode} setCollapseConfig={setCollapseConfig}/>
@@ -89,7 +82,7 @@ const Home: NextPage = () => {
       }
       
       { !collapseExplorer &&
-        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer} onlyLeafs={leafOnly}/>
+        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer}/>
       }
 
     </>
