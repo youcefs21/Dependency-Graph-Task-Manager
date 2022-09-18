@@ -1,11 +1,11 @@
-import Immutable from "immutable";
+import imt from "immutable";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { isNodeVisible, parseDeltaTime, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
 import { GState } from "../Graph/graphHandler";
 import { ConfigPanel } from "./Panels";
 
-type NodeIdTree = [string, Immutable.List<NodeIdTree>]
+type NodeIdTree = [string, imt.List<NodeIdTree>]
 // I can store the cords of each node in the tree in a map{nodeID: [l1,l2,...ln]}, and then only change nodes that changed
 // that's a latter optimization
 
@@ -85,14 +85,14 @@ interface TreePanelProps {
 export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) => {
   const {nodes, graph, setGraph} = G;
   const [search, setSearch] = useState("");
-  let tree = Immutable.List<NodeIdTree>()
+  let tree = imt.List<NodeIdTree>()
   const visited = new Set<string>();
   let leafs: string[] = [];
   const {width, height} = useWindowDimensions();
 
   function fillTree(nodeId: string): NodeIdTree {
     const node = nodes.get(nodeId);
-    let out = Immutable.List<NodeIdTree>();
+    let out = imt.List<NodeIdTree>();
     let visitedNodes = new Set<string>();
     if (!node) return [nodeId, out]
     node.dependencyIds.forEach((id) => {
@@ -197,7 +197,7 @@ export const TreeExplorerPanel = ({G, setCollapse, onlyLeafs} : TreePanelProps) 
             if (!nodeBDue) return -Infinity;
             return Date.parse(nodeADue) - Date.parse(nodeBDue);
           }).map((nodeId) => {
-            return <ListElement G={G} nodeIdTree={[nodeId, Immutable.List()]} search={search} key={nodeId} />
+            return <ListElement G={G} nodeIdTree={[nodeId, imt.List()]} search={search} key={nodeId} />
           })
         }
         {!onlyLeafs &&

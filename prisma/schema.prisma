@@ -17,33 +17,20 @@ generator js {
 }
 
 model Node {
-  id          String       @id @default(cuid())
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal        String       @default("insert goal here")
-  archive     Boolean      @default(false)
-  x           Int          @default(0)
-  y           Int          @default(0)
-  description String?      @db.Text
-  size        Float        @default(1)
-  due         String?
-  cascadeDue  Boolean      @default(true)
-  priority    String       @default("normal")
-  out_edges   Edge[]       @relation("outgoing")
-  in_edges    Edge[]       @relation("incoming")
-  nodeLayers  NodeLayers[]
-}
-
-model Edge {
-  id       String @id @default(cuid())
-  node1_id String
-  node2_id String
-  node1    Node   @relation("outgoing", fields: [node1_id], references: [id], onDelete: Cascade)
-  node2    Node   @relation("incoming", fields: [node2_id], references: [id], onDelete: Cascade)
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique(fields: [node1_id, node2_id])
+  id               String  @id @default(cuid())
+  graphId          String
+  graph            Graph   @relation(fields: [graphId], references: [id], onDelete: Cascade)
+  goal             String  @default("insert goal here")
+  archive          Boolean @default(false)
+  x                Int     @default(0)
+  y                Int     @default(0)
+  description      String? @db.Text
+  size             Float   @default(1)
+  due              String?
+  cascadeDue       Boolean @default(true)
+  priority         String  @default("normal")
+  nodeDependencies String  @db.Text @default("")
+  nodeLayers       String  @db.Text @default("")
 }
 
 model Graph {
@@ -56,27 +43,18 @@ model Graph {
   completeLayerId String  @unique
   completeLayer   Layer   @relation("completing", fields: [completeLayerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes           Node[]
   layers          Layer[] @relation("normal")
   showArchive     Boolean @default(false)
 }
 
 model Layer {
-  id              String       @id @default(cuid())
+  id              String  @id @default(cuid())
   name            String
   graphId         String
-  completingGraph Graph?       @relation("completing")
-  graph           Graph        @relation("normal", fields: [graphId], references: [id], onDelete: Cascade)
-  visible         Boolean      @default(false)
-  nodeIds         NodeLayers[]
-}
-
-model NodeLayers {
-  nodeId  String
-  layerId String
-  node    Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  layer   Layer  @relation(fields: [layerId], references: [id], onDelete: Cascade)
-
-  @@id(fields: [nodeId, layerId])
+  completingGraph Graph?  @relation("completing")
+  graph           Graph   @relation("normal", fields: [graphId], references: [id], onDelete: Cascade)
+  visible         Boolean @default(false)
 }
 
 // Necessary for Next auth
@@ -116,8 +94,6 @@ model User {
   accounts      Account[]
   sessions      Session[]
   graphs        Graph[]
-  nodes         Node[]
-  edges         Edge[]
 }
 
 model VerificationToken {

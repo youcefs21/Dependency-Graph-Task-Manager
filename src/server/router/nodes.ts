@@ -12,22 +12,38 @@ export const nodeRouter = createRouter()
     return next();
   })
   .query("getAll", {
-    input: z.object({userID: z.string().nullish()}),
+    input: z.object({
+      userID: z.string().nullish(),
+      graphID: z.string().nullish(),
+    }),
     async resolve({ ctx, input }) {
-      if (input.userID === null) return;
+      if (input.userID === null || input.graphID === null) return;
       if (input.userID !== ctx.session?.user?.id) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      const graph = await ctx.prisma.graph.findUnique({
+        where: {
+          id: input.graphID,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      if (graph?.userId !== input.userID) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
       return await ctx.prisma.node.findMany({
         where: {
-          userId: input.userID,
+          graphId: input.graphID,
         },
         select: {
           description: true,
           due: true,
           goal: true,
           id: true,
-          nodeLayers: {select: {layerId: true}},
+          nodeLayers: true,
+          nodeDependencies: true,
           priority: true,
           size: true,
           x: true,
@@ -38,28 +54,13 @@ export const nodeRouter = createRouter()
       });
     }
   })
-  .query("getPairs", {
-    input: z.object({userID: z.string().nullish()}),
-    async resolve({ ctx, input}) {
-      if (input.userID === null) return;
-      if (input.userID !== ctx.session?.user?.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      return await ctx.prisma.edge.findMany({
-        select: {
-          node1_id: true,
-          node2_id: true,
-        },
-        where: {
-          userId: input.userID
-        }
-      });
-    },
-  })
   .mutation("updateNode", {
     input: z.object({
       nodeId: z.string(),
+      graphId: z.string(),
       userId: z.string(),
+      nodeDependencies: z.string(),
+      nodeLayers: z.string(),
       cords: z.object({x: z.number(), y: z.number()}).optional(),
       goal: z.string().optional(),
       archive: z.boolean().optional(),
@@ -73,12 +74,27 @@ export const nodeRouter = createRouter()
       if (input.userId !== ctx.session?.user?.id) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      
+      const graph = await ctx.prisma.graph.findUnique({
+        where: {
+          id: input.graphId,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      if (graph?.userId !== input.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
       return await ctx.prisma.node.upsert({
         where: {id: input.nodeId},
         update: {
           x: input.cords?.x,
           y: input.cords?.y,
           goal: input.goal,
+          nodeDependencies: input.nodeDependencies,
+          nodeLayers: input.nodeLayers,
           archive: input.archive,
           description: input.description,
           size: input.nodeSize,
@@ -88,7 +104,9 @@ export const nodeRouter = createRouter()
         },
         create: {
           id: input.nodeId,
-          userId: input.userId,
+          graphId: input.graphId,
+          nodeDependencies: input.nodeDependencies,
+          nodeLayers: input.nodeLayers,
           x: input.cords?.x,
           y: input.cords?.y,
           goal: input.goal,
@@ -100,91 +118,32 @@ export const nodeRouter = createRouter()
       });
     },
   })
-  .mutation("addNodeLayer", {
-    input: z.object({
-      nodeId: z.string(),
-      layerId: z.string(),
-      userId: z.string(),
-    }),
-    async resolve({ input, ctx }) {
-      if (input.userId !== ctx.session?.user?.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      return await ctx.prisma.nodeLayers.create({
-        data: {
-          nodeId: input.nodeId,
-          layerId: input.layerId
-        }
-      });
-    }
-  })
-  .mutation("addPair", {
-    input: z.object({
-      node1Id: z.string(),
-      node2Id: z.string(),
-      userId: z.string()
-    }),
-    async resolve({ input, ctx }) {
-      if (input.userId === null) return;
-      if (input.userId !== ctx.session?.user?.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      return await ctx.prisma.edge.create({
-        data: {
-          node1_id: input.node1Id,
-          node2_id: input.node2Id,
-          userId: input.userId
-        }
-      });
-    },
-  })
   .mutation("deleteNode", {
     input: z.object({
       nodeId: z.string(),
-      userId: z.string()
+      userId: z.string(),
+      graphId: z.string(),
     }),
     async resolve({ input, ctx }) {
       if (input.userId !== ctx.session?.user?.id) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      return await ctx.prisma.node.delete({
-        where: {id: input.nodeId},
-      });
-    },
-  })
-  .mutation("deleteNodeLayer", {
-    input: z.object({
-      nodeId: z.string(),
-      layerId: z.string(),
-      userId: z.string()
-    }),
-    async resolve({ input, ctx }) {
-      if (input.userId !== ctx.session?.user?.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      return await ctx.prisma.nodeLayers.deleteMany({
+      const graph = await ctx.prisma.graph.findUnique({
         where: {
-          nodeId: input.nodeId,
-          layerId: input.layerId
-        }
+          id: input.graphId,
+        },
+        select: {
+          userId: true,
+        },
       });
-    },
-  })
-  .mutation("deletePair", {
-    input: z.object({
-      node1Id: z.string(),
-      node2Id: z.string(),
-      userId: z.string()
-    }),
-    async resolve({ input, ctx }) {
-      if (input.userId !== ctx.session?.user?.id) {
+      if (graph?.userId !== input.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      return await ctx.prisma.edge.deleteMany({
+      return await ctx.prisma.node.deleteMany({
         where: {
-          node1_id: input.node1Id,
-          node2_id: input.node2Id
-        }
+          graphId: input.graphId,
+          id: input.nodeId,
+        },
       });
     },
   });

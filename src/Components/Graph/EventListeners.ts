@@ -1,5 +1,5 @@
 import cuid from "cuid";
-import Immutable from "immutable";
+import imt from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { isNodeVisible } from "./Canvas";
@@ -28,7 +28,7 @@ export function focusNode(G: GState, selectedNode: string, width: number, height
             y: graph.TopLeftY - deltaY - (height / (2 * graph.scale)),
           },
         },
-        selectedNodes: Immutable.Set([selectedNode]),
+        selectedNodes: imt.Set([selectedNode]),
         treeFocus: !visibleDependencies.isEmpty() ? selectedNode : graph.treeFocus,
       }
     });
@@ -107,6 +107,7 @@ export function handlePointerDown(
       setNodes(tempNodes => {
         const node = tempNodes.get(newHeldNode)
         if (!node) return tempNodes
+        if (node.layerIds.has(graph.completeLayerId)) return tempNodes
         return tempNodes.set(newHeldNode, {
           ...node,
           action: node.action === "add" ? "add" : "update",
@@ -114,13 +115,13 @@ export function handlePointerDown(
             animation: "complete",
             startTime: Date.now(),
           },
-          layerIds: node.layerIds.set(graph.completeLayerId, "add")
+          layerIds: node.layerIds.add(graph.completeLayerId)
         });
       })
     }
 
     if (t === "deleteNode" && n.action != "add") {
-      edgeAction("delete", newHeldNode, "all")
+      edgeAction("deleteAll", newHeldNode, newHeldNode)
       setNodes(tempNodes => {
         const node = tempNodes.get(newHeldNode)
         if (!node) return tempNodes
@@ -131,7 +132,7 @@ export function handlePointerDown(
       });
     }
     else if (t === "deleteNode" && n.action === "add") {
-      edgeAction("delete", newHeldNode, "all")
+      edgeAction("deleteAll", newHeldNode, newHeldNode)
       setNodes(tempNodes => tempNodes.delete(newHeldNode));
     }
 
@@ -171,7 +172,7 @@ export function handlePointerDown(
     newHeldNode = "background";
   }
   
-  let newSelectedNodes = newHeldNode != "background" ? Immutable.Set([newHeldNode]) : Immutable.Set<string>();
+  let newSelectedNodes = newHeldNode != "background" ? imt.Set([newHeldNode]) : imt.Set<string>();
   if (graph.selectedNodes.has(newHeldNode)) {
     newSelectedNodes = graph.selectedNodes
   }
@@ -402,7 +403,7 @@ export function handleKeyDown(
 
     setNodes(tempNodes => {
       graph.selectedNodes.forEach((nodeID) => {
-        edgeAction("delete", nodeID, "all")
+        edgeAction("deleteAll", nodeID, nodeID)
         const node = tempNodes.get(nodeID)
         if (!node) return
         if (node.action != "add"){
@@ -419,7 +420,7 @@ export function handleKeyDown(
 
     setGraph(graph => ({
       ...graph,
-      selectedNodes: Immutable.Set<string>(),
+      selectedNodes: imt.Set<string>(),
       scale: graph.scale + 0.00001
     }));
 

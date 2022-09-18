@@ -1,5 +1,5 @@
 import cuid from "cuid";
-import Immutable from "immutable";
+import imt from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { isNodeVisible, useWindowDimensions } from "../Graph/Canvas";
 import { focusNode } from "../Graph/EventListeners";
@@ -348,7 +348,7 @@ export const GroupConfigPanel = ({G, setCollapse} : GenericPanelProps) => {
   )
 }
 
-function cascadeDueDate(nodeID: string, ns: Immutable.Map<string, nodeState>): Immutable.Map<string, nodeState> {
+function cascadeDueDate(nodeID: string, ns: imt.Map<string, nodeState>): imt.Map<string, nodeState> {
 
   const node = ns.get(nodeID)!;
 

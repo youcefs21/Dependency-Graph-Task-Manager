@@ -84,12 +84,12 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
 }
 
 
-export const hintText = (t: string, isParentEmpty: boolean) => {
+export const hintText = (t: string, isParentEmpty: boolean, isChildEmpty: boolean) => {
   switch(t) {
     case "addEdge":
-      return <>Select the node you want to <span className={"text-green-500"}>connect {isParentEmpty ? "from" : "to"}</span> </>
+      return <>Select the node you want to <span className={"text-green-500"}>connect {isChildEmpty ? "from" : "to"}</span> </>
     case "removeEdge":
-      return <>select the <span className="text-red-500">{isParentEmpty ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
+      return <>select the <span className="text-red-500">{isChildEmpty ? "first" : "second"}</span> node of the pair you want to <span className="text-red-500">disconnect</span></>
     case "addNode":
       return <>click anywhere on the screen to <span className="text-green-500">create</span> a node there</>
     case "deleteNode":

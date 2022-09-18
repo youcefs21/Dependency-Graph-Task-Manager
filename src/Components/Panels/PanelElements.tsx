@@ -66,17 +66,10 @@ function unselectLayer(G: GState, layerID: string, nodeID: string) {
   const node = nodes.get(nodeID);
   // should return if node is null or layerID is not in node.layerIds
   if (!node || !node.layerIds.has(layerID)) return;
-  if (node.layerIds.get(layerID) === "add") {
-    setNodes(nodes => nodes.set(nodeID, {
-      ...node,
-      layerIds: node.layerIds.delete(layerID)
-    }))
-  } else {
-    setNodes(nodes => nodes.set(nodeID, {
-      ...node,
-      layerIds: node.layerIds.set(layerID, "delete")
-    }));
-  }
+  setNodes(nodes => nodes.set(nodeID, {
+    ...node,
+    layerIds: node.layerIds.delete(layerID)
+  }))
 }
 
 function selectLayer(G: GState, layerID: string, nodeID: string) {
@@ -84,23 +77,15 @@ function selectLayer(G: GState, layerID: string, nodeID: string) {
   const node = nodes.get(nodeID);
   // should return if node is null or layerID is already in node.layerIds
   if (!node) return;
-  if (node.layerIds.get(layerID) === "delete") {
-    setNodes(nodes => nodes.set(nodeID, {
-      ...node,
-      layerIds: node.layerIds.set(layerID, "nothing"),
-      animation: layerID === graph.completeLayerId ? {animation: "complete", startTime: Date.now()} : node.animation
-    }))
-  } else {
-    setNodes(nodes => nodes.set(nodeID, {
-      ...node, 
-      layerIds: node.layerIds.set(layerID, "add"),
-      animation: layerID === graph.completeLayerId ? {animation: "complete", startTime: Date.now()} : node.animation
-    }));
-  }
+  setNodes(nodes => nodes.set(nodeID, {
+    ...node,
+    layerIds: node.layerIds.add(layerID),
+    animation: layerID === graph.completeLayerId ? {animation: "complete", startTime: Date.now()} : node.animation
+  }))
 }
 
 function handleLayers(nodeID: string, G: GState, isSelected: boolean, layerID: string) {
-  const {nodes, setNodes, graph, setGraph} = G;
+  const {nodes, graph} = G;
   if (nodeID === "group") {
     if (isSelected) {
       // unselect the layer from all nodes

@@ -44,7 +44,7 @@ const Home: NextPage = () => {
 
       <div className="absolute text-white w-full text-center my-7 font-mono pointer-events-none flex items-center flex-col gap-2 ">
         <p className="mx-5 max-w-3xl">
-          {hintText(currentTool, graph.edgeActionState.parents.isEmpty())}
+          {hintText(currentTool, graph.edgeActionState.parents.isEmpty(), graph.edgeActionState.children.isEmpty())}
         </p>
         { graph.toolbarMsg &&
         <p className="mx-5 max-w-3xl">

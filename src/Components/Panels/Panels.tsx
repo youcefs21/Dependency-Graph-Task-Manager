@@ -1,4 +1,4 @@
-import Immutable from "immutable";
+import imt from "immutable";
 import { Dispatch, SetStateAction } from "react";
 import { GState } from "../Graph/graphHandler";
 
@@ -19,7 +19,7 @@ export const ConfigPanel = ({G, title, setCollapse, direction = "right", childre
         <h2 className="font-semibold truncate">{title}</h2>
         <button onClick={
           () => {
-            setGraph(graph => ({...graph, selectedNodes: Immutable.Set<string>()}))
+            setGraph(graph => ({...graph, selectedNodes: imt.Set<string>()}))
             setCollapse(true)
           }
         }>close</button>

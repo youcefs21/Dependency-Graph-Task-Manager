@@ -1,5 +1,5 @@
 import assert from "assert";
-import Immutable from "immutable";
+import imt from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { handleDoubleClick, handleKeyDown, handleKeyUp, handleMove, handlePointerDown, handlePointerUp, handleWheel, movementShortcuts } from "./EventListeners";
@@ -28,8 +28,7 @@ export function isNodeVisible(node: nodeState, G: GState) {
 
   let inVisibleLayer = false;
   let inNoLayers = true;
-  node.layerIds.forEach((action, layerId) => {
-    if (action === "delete") return;
+  node.layerIds.forEach((layerId) => {
     inNoLayers = false;
     if (!graph.layers.get(layerId)?.visible) {
       inVisibleLayer = true
@@ -109,7 +108,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
   const pinchDiff = useRef<number>(-1);
   const clickTimestamp = useRef<number>(-1);
-  const {nodes, setNodes, graph, setGraph, edges, edgeAction} = G;
+  const {nodes, setNodes, graph, setGraph, edgeAction} = G;
 
 
   useEffect(() => {
@@ -117,8 +116,8 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
     setGraph(graph => ({
       ...graph,
       edgeActionState: {
-        parents: Immutable.Set(),
-        children: Immutable.Set(),
+        parents: imt.Set(),
+        children: imt.Set(),
         action: currentTool === "addEdge" || currentTool === "removeEdge" ? currentTool : "nothing",
       },
     }))
@@ -348,29 +347,25 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.stroke()
       }
 
+      nodes.forEach((node, id) => {
+        if (!isNodeVisible(node, G)) return;
+        node.dependencyIds.forEach((depId) => {
+          const depNode = nodes.get(depId)
+          let color = "#334155"
+          let endsSize = 4
+          if (!depNode) return;
+          
+          if (!isNodeVisible(depNode, G)) return;
+          if (node.layerIds.has(graph.completeLayerId) || depNode.layerIds.has(graph.completeLayerId)) {
+            color = "#336555"
+            endsSize = 0
+          }
+          createArrow(node, depNode, color, 0, endsSize)
+        });
 
-      // draw the lines
-      edges.forEach((edge, pair) => {
-        const node1 = nodes.get(pair.get(0)!) 
-        const node2 = nodes.get(pair.get(1)!)
-        if (!node1 || !node2) return;
-        
-        if (!isNodeVisible(node1, G) || !isNodeVisible(node2, G)) return;
-        let color = "#334155"
-        let endsSize = 4
-        if (
-          (node1.layerIds.has(graph.completeLayerId) && node1.layerIds.get(graph.completeLayerId) != "delete") || 
-          (node2.layerIds.has(graph.completeLayerId) && node2.layerIds.get(graph.completeLayerId) != "delete")
-        ) {
-          color = "#336555"
-          endsSize = 0
-        }
-
-        if (edge.action != "delete") {
-          createArrow(node1, node2, color, 0, endsSize)
-        }
       });
-      
+
+
       // draw the nodes and set the cursor
       setCursor("default")
       nodes.forEach((node, id) => {
@@ -379,13 +374,14 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         if (Math.abs(node.x - mx) < node.nodeSize*1.25 && Math.abs(node.y - my) < node.nodeSize*1.25 && !["move", "addNode"].includes(currentToolRef.current)) {
           setCursor("pointer")
           createNode(node, true, id)
-          return
         }
-        if (graph.selectedNodes.has(id)){
+        else if (graph.selectedNodes.has(id)){
           createNode(node, true, id)
-          return
+        } else {
+          createNode(node, false, id)
         }
-        createNode(node, false, id)
+
+
       });
 
       // draw selected area
@@ -435,8 +431,8 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         setGraph(graph => ({
           ...graph,
           edgeActionState: {
-            parents: Immutable.Set(),
-            children: Immutable.Set(),
+            parents: imt.Set(),
+            children: imt.Set(),
             action: "nothing",
           }
         }));
