@@ -19,6 +19,12 @@ interface canvasProps {
   G: GState
 }
 
+const blue = "rgb(59 130 246)"
+const red = "rgb(239 68 68)"
+const paleBlue = "#cbd5e1"
+const darkGreen = "#336555"
+const darkPaleBlue = "#334155"
+
 export function isNodeVisible(node: nodeState, G: GState) {
   const {graph} = G;
 
@@ -45,7 +51,9 @@ export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) 
   const isSelected = graph.selectedNodes.has(nodeId) || isHovered;
 
   let selectFill = "pink"
-  let color = "#cbd5e1"
+  let color = paleBlue
+  let nodeOutline = false
+  let nodeOutlineColor = blue
   switch (node.priority) {
     case "critical":
       color = "red"
@@ -60,7 +68,7 @@ export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) 
       selectFill = "lightblue"
       break;
     case "low":
-      selectFill = "#cbd5e1"
+      selectFill = paleBlue
       break;
   }
 
@@ -74,9 +82,17 @@ export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) 
     color = "#f472b6"
   } 
 
+  if (graph.edgeActionState.parents.has(nodeId)) {
+    color = red
+  } else if (graph.edgeActionState.children.has(nodeId)) {
+    color = blue
+  }
+
   return {
     color,
     selectFill,
+    nodeOutline,
+    nodeOutlineColor
   }
   
 
@@ -229,8 +245,14 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         }
         ctx.globalAlpha = alpha;
 
-        const {color, selectFill} = getNodeApearance(G, nodeID, isSelected)
+        const {color, selectFill, nodeOutline, nodeOutlineColor} = getNodeApearance(G, nodeID, isSelected)
         ctx.fillStyle = color;
+        if (nodeOutline) {
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, nodeSize + 5);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(1, nodeOutlineColor);
+          ctx.fillStyle = gradient;
+        }
         ctx.beginPath()
         ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
         ctx.fill()
@@ -333,11 +355,11 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         
         const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
         gradient.addColorStop(Math.min(Math.max(prog-r, 0), 1), color);
-        gradient.addColorStop(Math.max(Math.min(prog, 1), 0), "blue");
+        gradient.addColorStop(Math.max(Math.min(prog, 1), 0), blue);
         gradient.addColorStop(Math.max(Math.min(prog+r, 1), 0), color);
 
         gradient.addColorStop(Math.min(Math.max((1-prog)-r, 0), 1), color);
-        gradient.addColorStop(Math.max(Math.min(1-prog, 1), 0), "red");
+        gradient.addColorStop(Math.max(Math.min(1-prog, 1), 0), red);
         gradient.addColorStop(Math.max(Math.min((1-prog)+r, 1), 0), color);
 
         ctx.beginPath()
@@ -351,13 +373,13 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         if (!isNodeVisible(node, G)) return;
         node.dependencyIds.forEach((depId) => {
           const depNode = nodes.get(depId)
-          let color = "#334155"
+          let color = darkPaleBlue
           let endsSize = 4
           if (!depNode) return;
           
           if (!isNodeVisible(depNode, G)) return;
           if (node.layerIds.has(graph.completeLayerId) || depNode.layerIds.has(graph.completeLayerId)) {
-            color = "#336555"
+            color = darkGreen
             endsSize = 0
           }
           createArrow(node, depNode, color, 0, endsSize)
