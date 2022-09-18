@@ -85,17 +85,10 @@ interface TreePanelProps {
 const DiceIcon = () => {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#clip0_214_92)">
       <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#D9D9D9"/>
       <rect x="3" y="11" width="2" height="2" rx="1" fill="#D9D9D9"/>
       <rect x="7" y="7" width="2" height="2" rx="1" fill="#D9D9D9"/>
       <rect x="11" y="3" width="2" height="2" rx="1" fill="#D9D9D9"/>
-      </g>
-      <defs>
-      <clipPath id="clip0_214_92">
-      <rect width="16" height="16" fill="white"/>
-      </clipPath>
-      </defs>
     </svg>
   )
 }
@@ -104,19 +97,12 @@ const DiceIcon = () => {
 const TreeIcon = () => {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#clip0_213_85)">
       <rect x="0.5" y="0.5" width="7" height="3" stroke="#D9D9D9"/>
       <rect x="8.5" y="6.5" width="7" height="3" stroke="#D9D9D9"/>
       <rect x="8.5" y="12.5" width="7" height="3" stroke="#D9D9D9"/>
       <line x1="3.5" y1="4" x2="3.5" y2="14" stroke="#D9D9D9"/>
       <line x1="3" y1="7.5" x2="8" y2="7.5" stroke="#D9D9D9"/>
       <line x1="3" y1="13.5" x2="8" y2="13.5" stroke="#D9D9D9"/>
-      </g>
-      <defs>
-      <clipPath id="clip0_213_85">
-      <rect width="16" height="16" fill="white"/>
-      </clipPath>
-      </defs>
     </svg>
   )
 }

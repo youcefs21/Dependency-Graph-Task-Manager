@@ -31,7 +31,7 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
   const {mx, my} = useMousePos()
 
   return (
-      <div className="relative top-5 flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316] m-auto">
+      <div className="flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316]">
         <div className="flex my-2 mx-5">
 
           <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addNode"}>
@@ -70,7 +70,7 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
         <div className="flex items-center text-white text-sm font-semibold my-1 mx-5 font-mono">
           <p className={`${graph.saveState != "save error" ? "text-neutral-400" : "text-red-500"} text-xs`}>{ graph.saveState }</p>
           <Seperator/>
-          <div>
+          <div className="whitespace-nowrap">
             <p>x: {Math.floor(graph.TopLeftX + mx/(graph.scale) ?? 0)}</p>
             <p>y: {Math.floor(graph.TopLeftY + my/(graph.scale) ?? 0)}</p>
           </div>
