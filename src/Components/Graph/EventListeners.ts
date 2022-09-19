@@ -66,9 +66,11 @@ export function handlePointerDown(
   event: React.PointerEvent<HTMLCanvasElement>,
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
   G: GState,
-  currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
+  currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>,
+  nodeCache: MutableRefObject<imt.Map<string, nodeState>>
 ) {
   const {graph, setGraph, nodes, setNodes, edgeAction} = G;
+  nodeCache.current = nodes;
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
   evCache.current.push(event);
@@ -192,9 +194,11 @@ export function handlePointerUp(
   event: React.PointerEvent<HTMLCanvasElement>,
   evCache: MutableRefObject<React.PointerEvent<HTMLCanvasElement>[]>,
   pinchDiff: MutableRefObject<number>,
-  graph: graphState,
-  setGraph: Dispatch<SetStateAction<graphState>>,
+  G: GState,
+  nodesCache: MutableRefObject<imt.Map<string, nodeState>>
 ) {
+  const {graph, setGraph, nodes, setNodes} = G;
+  // setNodes(nodesCache.current); // undo any changes to nodes
 
   for (let i = 0; i < evCache.current.length; i++) {
     if (evCache.current[i]!.pointerId === event.pointerId) {

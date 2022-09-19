@@ -3,13 +3,8 @@ import imt from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { handleDoubleClick, handleKeyDown, handleKeyUp, handleMove, handlePointerDown, handlePointerUp, handleWheel, movementShortcuts } from "./EventListeners";
-import { GState, nodeState } from "./graphHandler";
+import { AABB, GState, nodeState } from "./graphHandler";
 
-
-interface vec2 {
-  x: number;
-  y: number;
-}
 
 
 interface canvasProps {
@@ -24,6 +19,9 @@ const red = "rgb(239 68 68)"
 const paleBlue = "#cbd5e1"
 const darkGreen = "#336555"
 const darkPaleBlue = "#334155"
+
+export const hitBoxHalfWidth = 8
+export const hitBoxHalfHeight = 6
 
 export function isNodeVisible(node: nodeState, G: GState) {
   const {graph} = G;
@@ -122,6 +120,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   const currentToolRef = useRef<toolStates>("pointer");
   const inCanvas = useRef<boolean>(false)
   const evCache = useRef<React.PointerEvent<HTMLCanvasElement>[]>([]);
+  const nodesCache = useRef<imt.Map<string, nodeState>>(G.nodes);
   const pinchDiff = useRef<number>(-1);
   const clickTimestamp = useRef<number>(-1);
   const {nodes, setNodes, graph, setGraph, edgeAction} = G;
@@ -258,12 +257,13 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.fill()
         ctx.closePath()
 
+        // fill the hitbox
         if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 200)) {
           ctx.beginPath()
           ctx.fillStyle = selectFill
           ctx.globalAlpha = 0.2*alpha;
-          const selectedW = Math.round(node.nodeSize*8) * graph.scale * 2;
-          const selectedH = Math.round(node.nodeSize*6) * graph.scale * 2;
+          const selectedW = Math.round(node.nodeSize*hitBoxHalfWidth) * graph.scale * 2;
+          const selectedH = Math.round(node.nodeSize*hitBoxHalfHeight) * graph.scale * 2;
           const selectedX = x - selectedW/2
           const selectedY = y - selectedH/2
           ctx.rect(selectedX, selectedY, selectedW, selectedH)
@@ -367,6 +367,30 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.moveTo(x2, y2)
         ctx.lineTo(x1, y1)
         ctx.stroke()
+      }
+
+      const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
+      const drawAABB = (AABB: AABB| null, colorIndex: number) => {
+        if (!AABB) return;
+        ctx.beginPath()
+        
+        const selectedX = (AABB.minX - graph.TopLeftX) * graph.scale
+        const selectedY = (AABB.minY - graph.TopLeftY) * graph.scale
+        const selectedW = (AABB.maxX - AABB.minX) * graph.scale
+        const selectedH = (AABB.maxY - AABB.minY) * graph.scale
+        
+        ctx.rect(selectedX, selectedY, selectedW, selectedH)
+        
+        ctx.strokeStyle = colors[colorIndex]!
+        ctx.lineWidth = graph.scale/5;
+        ctx.stroke()
+        ctx.closePath()
+        drawAABB(AABB.leaf1, (colorIndex+1)%colors.length)
+        drawAABB(AABB.leaf2, (colorIndex+1)%colors.length)
+      }
+      const drawAABBGrid = false
+      if (drawAABBGrid) {
+      drawAABB(graph.AABBTree, 0)
       }
 
       nodes.forEach((node, id) => {
@@ -473,14 +497,14 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
       width={width} height={height}
       onPointerEnter={() => inCanvas.current = true}
-      onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool)}
+      onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool, nodesCache)}
       onDoubleClick={(ev) => handleDoubleClick(ev, G, currentToolRef, setCollapseConfig)}
-      onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
-      onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
-      onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)}
+      onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
+      onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
+      onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
       onPointerLeave={(ev) => {
         inCanvas.current = false;
-        handlePointerUp(ev, evCache, pinchDiff, graph, setGraph)
+        handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)
       }}
       onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
       onWheel={(ev) => handleWheel(ev, graph, setGraph)}

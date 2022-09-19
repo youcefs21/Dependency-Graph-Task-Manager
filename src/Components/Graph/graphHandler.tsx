@@ -2,6 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "re
 import imt from "immutable";
 import { trpc } from "../../utils/trpc";
 import {useSession} from "next-auth/react";
+import { hitBoxHalfHeight, hitBoxHalfWidth } from "./Canvas";
 
 
 export type actionType = "nothing" | "add" | "delete" | "update"
@@ -30,6 +31,15 @@ export interface nodeState {
   treeCollapse: boolean,
 }
 
+export type AABB = {
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+  leaf1: AABB | null,
+  leaf2: AABB | null,
+}
+
 export interface graphState {
   graphId: string, 
   graphName: string,
@@ -54,6 +64,7 @@ export interface graphState {
     target: {x: number, y: number},
   },
   toolbarMsg: JSX.Element | null,
+  AABBTree: AABB | null,
 }
 
 export interface edgeState {
@@ -96,6 +107,7 @@ const initialGraph: graphState = {
   treeFocus: "root",
   animation: null,
   toolbarMsg: null,
+  AABBTree: null,
 }
 
 export const defaultNode: nodeState = {
@@ -117,6 +129,9 @@ export const defaultNode: nodeState = {
   treeCollapse: false,
 }
 
+export function isIntrececting (A: AABB, B: AABB){
+  return A.maxX > B.minX && A.minX < B.maxX && A.maxY > B.minY && A.minY < B.maxY
+}
 export function useGraph(): GState {
   const session = useSession();
 
@@ -156,6 +171,7 @@ export function useGraph(): GState {
       
       let layers = graph.layers
       let indexedLayerIds = graph.indexedLayerIds
+      let AABBTree: AABB | null = null
 
       graphInit.data.layers.forEach((layer) => {
         layers = layers.set(layer.id, {
@@ -203,6 +219,84 @@ export function useGraph(): GState {
         });
       });
 
+      let maxDepth = 0;
+
+      const insertAABBLeaf = (leaf: AABB, AABBTree: AABB | null, depth: number): AABB  => {
+        if (depth > maxDepth) {
+          maxDepth = depth;
+        }
+
+        if (!AABBTree) {
+          AABBTree = leaf
+        } else if (!isIntrececting(AABBTree, leaf)) {
+          // dig in to find the right place
+          AABBTree = {
+            minX: Math.min(AABBTree.minX, leaf.minX),
+            minY: Math.min(AABBTree.minY, leaf.minY),
+            maxX: Math.max(AABBTree.maxX, leaf.maxX),
+            maxY: Math.max(AABBTree.maxY, leaf.maxY),
+            leaf1: AABBTree,
+            leaf2: leaf,
+          }
+        } else if (AABBTree.leaf1 && AABBTree.leaf2) {
+          if (isIntrececting(AABBTree.leaf1, leaf)) {
+            AABBTree.leaf1 = insertAABBLeaf(leaf, AABBTree.leaf1, depth + 1)
+            if (AABBTree.leaf1) AABBTree = {
+              ...AABBTree,
+              minX: Math.min(AABBTree.leaf1.minX, AABBTree.leaf2.minX),
+              minY: Math.min(AABBTree.leaf1.minY, AABBTree.leaf2.minY),
+              maxX: Math.max(AABBTree.leaf1.maxX, AABBTree.leaf2.maxX),
+              maxY: Math.max(AABBTree.leaf1.maxY, AABBTree.leaf2.maxY),
+            }
+          } else if (isIntrececting(AABBTree.leaf2, leaf)) {
+            AABBTree.leaf2 = insertAABBLeaf(leaf, AABBTree.leaf2, depth + 1)
+            if (AABBTree.leaf2) AABBTree = {
+              ...AABBTree,
+              minX: Math.min(AABBTree.leaf1.minX, AABBTree.leaf2.minX),
+              minY: Math.min(AABBTree.leaf1.minY, AABBTree.leaf2.minY),
+              maxX: Math.max(AABBTree.leaf1.maxX, AABBTree.leaf2.maxX),
+              maxY: Math.max(AABBTree.leaf1.maxY, AABBTree.leaf2.maxY),
+            }
+          } else {
+            const distance1 = (leaf.maxX - AABBTree.leaf1.maxX)**2 + (leaf.maxY - AABBTree.leaf1.maxY)**2
+            const distance2 = (leaf.maxX - AABBTree.leaf2.maxX)**2 + (leaf.maxY - AABBTree.leaf2.maxY)**2
+            if (distance1 < distance2) {
+              AABBTree.leaf1 = {
+                maxX: Math.max(leaf.maxX, AABBTree.leaf1.maxX),
+                maxY: Math.max(leaf.maxY, AABBTree.leaf1.maxY),
+                minX: Math.min(leaf.minX, AABBTree.leaf1.minX),
+                minY: Math.min(leaf.minY, AABBTree.leaf1.minY),
+                leaf1: leaf,
+                leaf2: AABBTree.leaf1
+              }
+            } else {
+              AABBTree.leaf2 = {
+                maxX: Math.max(leaf.maxX, AABBTree.leaf2.maxX),
+                maxY: Math.max(leaf.maxY, AABBTree.leaf2.maxY),
+                minX: Math.min(leaf.minX, AABBTree.leaf2.minX),
+                minY: Math.min(leaf.minY, AABBTree.leaf2.minY),
+                leaf1: leaf,
+                leaf2: AABBTree.leaf2
+              }
+            }
+          }
+        } else {
+          console.error("AABBTree is invalid")
+        }
+        return AABBTree
+      }
+
+      tempNodes.forEach((node, id) => {
+        const leaf: AABB = {
+          minX: node.x - hitBoxHalfWidth,
+          minY: node.y - hitBoxHalfHeight,
+          maxX: node.x + hitBoxHalfWidth,
+          maxY: node.y + hitBoxHalfHeight,
+          leaf1: null,
+          leaf2: null,
+        }
+        AABBTree = insertAABBLeaf(leaf, AABBTree, 0)
+      });
 
       
       setGraph({
@@ -218,6 +312,7 @@ export function useGraph(): GState {
         indexedLayerIds: indexedLayerIds,
         completeLayerId: graphInit.data.completeLayerId ?? indexedLayerIds.get(0),
         showArchive: graphInit.data.showArchive,
+        AABBTree: AABBTree,
       });
 
 
