@@ -2,8 +2,8 @@ import cuid from "cuid";
 import imt from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
-import { isNodeVisible } from "./Canvas";
-import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
+import { hitBoxHalfHeight, hitBoxHalfWidth, isNodeVisible } from "./Canvas";
+import { defaultNode, graphState, GState, insertAABBLeaf, isAABBLeafValid, nodeState, removeAABBLeaf } from "./graphHandler";
 
 
 const heldKeys: Set<string> = new Set();
@@ -197,19 +197,24 @@ export function handlePointerUp(
   G: GState,
   nodesCache: MutableRefObject<imt.Map<string, nodeState>>
 ) {
+  const nCache = nodesCache.current;
   const {graph, setGraph, nodes, setNodes} = G;
   // setNodes(nodesCache.current); // undo any changes to nodes
 
+  // clear the click event from the cache
   for (let i = 0; i < evCache.current.length; i++) {
     if (evCache.current[i]!.pointerId === event.pointerId) {
       evCache.current.splice(i,1);
       break;
     }
   }
+  if (evCache.current.length < 2) {
+    pinchDiff.current = -1;
+  }
 
+  // handle edge action
   const EAS = graph.edgeActionState;
   if (EAS.action !== "nothing") {
-
     graph.selectedNodes.forEach((nodeId) => {
       if (EAS.parents.isEmpty() && !EAS.children.has(nodeId)) {
         setGraph(graph => ({
@@ -232,16 +237,61 @@ export function handlePointerUp(
 
   }
 
-  if (evCache.current.length < 2) {
-    pinchDiff.current = -1;
-  }
 
-  setGraph(graph => ({
-    ...graph,
-    heldNode: "nothing",
-    mouseDown: false,
-    selectedArea: {x1: 0, y1: 0, x2: 0, y2: 0}
-  }))
+  setGraph((graph) => {
+    if (!graph.mouseDown || graph.selectedNodes.size === 0) return graph
+    let tempAABB = graph.AABBTree;
+    graph.selectedNodes.forEach((nodeId) => {
+      const oldNode = nCache.get(nodeId)
+      const node = nodes.get(nodeId)
+      console.log("oldNode", oldNode?.x, oldNode?.y)
+      console.log("node", node?.x, node?.y)
+      if (!oldNode || !tempAABB) return
+      tempAABB = removeAABBLeaf(tempAABB, {
+        minX: oldNode.x - hitBoxHalfWidth,
+        minY: oldNode.y - hitBoxHalfHeight,
+        maxX: oldNode.x + hitBoxHalfWidth,
+        maxY: oldNode.y + hitBoxHalfHeight,
+        leaf1: null,
+        leaf2: null,
+      })
+    })
+    
+    graph.selectedNodes.some((nodeId) => {
+      const node = nodes.get(nodeId)
+      console.log(nodeId)
+      if (!node) return false
+      const leaf = {
+        minX: node.x - hitBoxHalfWidth,
+        minY: node.y - hitBoxHalfHeight,
+        maxX: node.x + hitBoxHalfWidth,
+        maxY: node.y + hitBoxHalfHeight,
+        leaf1: null,
+        leaf2: null,
+      }
+      if (!isAABBLeafValid(leaf, tempAABB)) {
+        setNodes(nCache)
+        tempAABB = graph.AABBTree
+        console.log("broke the loop")
+        return true
+      }
+      console.log("inserting node")
+      tempAABB = insertAABBLeaf(leaf, tempAABB)
+      return false
+    })
+    return {...graph, AABBTree: tempAABB}
+  })
+
+
+
+  setGraph(graph => { 
+    return {
+      ...graph,
+      heldNode: "nothing",
+      mouseDown: false,
+      selectedArea: {x1: 0, y1: 0, x2: 0, y2: 0},
+    }
+  })
 }
 
 

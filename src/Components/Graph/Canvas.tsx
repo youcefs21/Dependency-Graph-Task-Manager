@@ -369,6 +369,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.stroke()
       }
 
+      // Draw AABB visualisation
       const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
       const drawAABB = (AABB: AABB| null, colorIndex: number) => {
         if (!AABB) return;
@@ -388,7 +389,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         drawAABB(AABB.leaf1, (colorIndex+1)%colors.length)
         drawAABB(AABB.leaf2, (colorIndex+1)%colors.length)
       }
-      const drawAABBGrid = false
+      const drawAABBGrid = true
       if (drawAABBGrid) {
       drawAABB(graph.AABBTree, 0)
       }
