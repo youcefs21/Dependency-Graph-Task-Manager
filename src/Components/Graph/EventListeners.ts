@@ -443,7 +443,8 @@ export function handleKeyDown(
           ...graph,
           layers: graph.layers.set(layerId, {
             ...layer,
-            visible: !layer.visible
+            visible: !layer.visible,
+            action: layer.action === "add" ? "add" : "update"
           })
         }
       });
