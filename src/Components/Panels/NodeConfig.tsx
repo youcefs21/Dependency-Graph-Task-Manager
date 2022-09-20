@@ -120,7 +120,7 @@ const NodePropertiesSec = ({G, selectedNodeID}: {G: GState, selectedNodeID: stri
   )
 }
 
-const CreateNewNode = (graph: graphState, relatedNodeId: string, parent: boolean): graphState => {
+const CreateNewConnection = (graph: graphState, relatedNodeId: string, parent: boolean): graphState => {
   if (parent) {
     return {
       ...graph,
@@ -179,24 +179,18 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
               y: y + (parent ? 12 : -12),
             })
           })
-          if (parent) {
+          setGraph((graph) => {
             if (relatedNodeId === "group") {
               graph.selectedNodes.forEach((nodeId) => {
-                edgeAction("add", nodeId, newId);
+                graph = CreateNewConnection(graph, nodeId, parent);
               })
+              graph = CreateNewConnection(graph, newId, !parent);
             } else {
-              edgeAction("add", relatedNodeId, newId)
+              graph = CreateNewConnection(graph, newId, !parent);
+              graph = CreateNewConnection(graph, relatedNodeId, parent);
             }
-          }
-          else {
-            if (relatedNodeId === "group") {
-              graph.selectedNodes.forEach((nodeId) => {
-                edgeAction("add", newId, nodeId);
-              })
-            } else {
-              edgeAction("add", newId, relatedNodeId)
-            }
-          }
+            return graph;
+          })
         }}
       >
         + New Node
@@ -207,11 +201,11 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
           setGraph((graph) => {
             if (relatedNodeId === "group") {
               graph.selectedNodes.forEach((nodeId) => {
-                graph = CreateNewNode(graph, nodeId, parent);
+                graph = CreateNewConnection(graph, nodeId, !parent);
               })
               return graph;
             } else {
-              return CreateNewNode(graph, relatedNodeId, parent);
+              return CreateNewConnection(graph, relatedNodeId, !parent);
             }
           })
         }}
