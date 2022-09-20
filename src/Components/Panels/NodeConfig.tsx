@@ -201,11 +201,11 @@ const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: b
           setGraph((graph) => {
             if (relatedNodeId === "group") {
               graph.selectedNodes.forEach((nodeId) => {
-                graph = CreateNewConnection(graph, nodeId, !parent);
+                graph = CreateNewConnection(graph, nodeId, parent);
               })
               return graph;
             } else {
-              return CreateNewConnection(graph, relatedNodeId, !parent);
+              return CreateNewConnection(graph, relatedNodeId, parent);
             }
           })
         }}
