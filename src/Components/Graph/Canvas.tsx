@@ -2,8 +2,9 @@ import assert from "assert";
 import imt from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
+import { AABB } from "./AABB";
 import { handleDoubleClick, handleKeyDown, handleKeyUp, handleMove, handlePointerDown, handlePointerUp, handleWheel, movementShortcuts } from "./EventListeners";
-import { AABB, GState, nodeState } from "./graphHandler";
+import { GState, nodeState } from "./graphHandler";
 
 
 
@@ -22,6 +23,8 @@ const darkPaleBlue = "#334155"
 
 export const hitBoxHalfWidth = 8
 export const hitBoxHalfHeight = 6
+ 
+const drawAABBGrid = false
 
 export function isNodeVisible(node: nodeState, G: GState) {
   const {graph} = G;
@@ -371,7 +374,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
 
       // Draw AABB visualisation
       const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
-      const drawAABB = (AABB: AABB| null, colorIndex: number) => {
+      const drawAABB = (AABB: AABB, colorIndex: number) => {
         if (!AABB) return;
         ctx.beginPath()
         
@@ -380,16 +383,22 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const selectedW = (AABB.maxX - AABB.minX) * graph.scale
         const selectedH = (AABB.maxY - AABB.minY) * graph.scale
         
-        ctx.rect(selectedX, selectedY, selectedW, selectedH)
-        
-        ctx.strokeStyle = colors[colorIndex]!
-        ctx.lineWidth = graph.scale/5;
-        ctx.stroke()
-        ctx.closePath()
-        drawAABB(AABB.leaf1, (colorIndex+1)%colors.length)
-        drawAABB(AABB.leaf2, (colorIndex+1)%colors.length)
+        if (colorIndex >= 0) {
+          ctx.rect(selectedX, selectedY, selectedW, selectedH)
+          
+          ctx.strokeStyle = colors[colorIndex%colors.length]!
+          ctx.lineWidth = graph.scale/5;
+          ctx.stroke()
+          ctx.closePath()
+        }
+        if (AABB.leafs.length === 2) {
+          drawAABB(AABB.leafs[0]!, (colorIndex+1))
+          drawAABB(AABB.leafs[1]!, (colorIndex+1))
+        }
       }
-      const drawAABBGrid = true
+      // =============================
+      // = toggle AABB visualisation =
+      // =============================
       if (drawAABBGrid) {
       drawAABB(graph.AABBTree, 0)
       }

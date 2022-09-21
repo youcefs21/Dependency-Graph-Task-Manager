@@ -3,7 +3,7 @@ import imt from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { hitBoxHalfHeight, hitBoxHalfWidth, isNodeVisible } from "./Canvas";
-import { defaultNode, graphState, GState, insertAABBLeaf, isAABBLeafValid, nodeState, removeAABBLeaf } from "./graphHandler";
+import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
 
 
 const heldKeys: Set<string> = new Set();
@@ -242,43 +242,23 @@ export function handlePointerUp(
     if (!graph.mouseDown || graph.selectedNodes.size === 0) return graph
     let tempAABB = graph.AABBTree;
     graph.selectedNodes.forEach((nodeId) => {
-      const oldNode = nCache.get(nodeId)
-      const node = nodes.get(nodeId)
-      console.log("oldNode", oldNode?.x, oldNode?.y)
-      console.log("node", node?.x, node?.y)
-      if (!oldNode || !tempAABB) return
-      tempAABB = removeAABBLeaf(tempAABB, {
-        minX: oldNode.x - hitBoxHalfWidth,
-        minY: oldNode.y - hitBoxHalfHeight,
-        maxX: oldNode.x + hitBoxHalfWidth,
-        maxY: oldNode.y + hitBoxHalfHeight,
-        leaf1: null,
-        leaf2: null,
-      })
+      tempAABB = tempAABB.removeNode(nodeId);
     })
-    
+
     graph.selectedNodes.some((nodeId) => {
-      const node = nodes.get(nodeId)
-      console.log(nodeId)
+      const node = nodes.get(nodeId);
       if (!node) return false
-      const leaf = {
-        minX: node.x - hitBoxHalfWidth,
-        minY: node.y - hitBoxHalfHeight,
-        maxX: node.x + hitBoxHalfWidth,
-        maxY: node.y + hitBoxHalfHeight,
-        leaf1: null,
-        leaf2: null,
-      }
-      if (!isAABBLeafValid(leaf, tempAABB)) {
+      const temptempAABB = tempAABB.addNode(node, nodeId);
+      if (temptempAABB) {
+        tempAABB = temptempAABB;
+      } else {
+        tempAABB = graph.AABBTree;
         setNodes(nCache)
-        tempAABB = graph.AABBTree
-        console.log("broke the loop")
         return true
       }
-      console.log("inserting node")
-      tempAABB = insertAABBLeaf(leaf, tempAABB)
-      return false
+      return false;
     })
+
     return {...graph, AABBTree: tempAABB}
   })
 
