@@ -152,9 +152,11 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       setGraph(graph => {
         if (graph.animation?.animation === "pan") {
           const {x, y} = graph.animation.target;
-          if (Math.abs(x - graph.TopLeftX) < 1 && Math.abs(y - graph.TopLeftY) < 1) {
+          if (Math.abs(x - graph.TopLeftX) < 0.5 && Math.abs(y - graph.TopLeftY) < 0.5) {
             return {
               ...graph,
+              TopLeftX: x,
+              TopLeftY: y,
               animation: null,
             }
           }
