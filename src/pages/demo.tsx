@@ -1,5 +1,6 @@
 import {signIn, useSession} from "next-auth/react";
 import Head from "next/head";
+import Link from "next/link";
 import { useState } from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { useDemoGraph } from "../Components/Graph/demoGraphHandler";
@@ -50,9 +51,11 @@ export default function Component() {
         <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
         <div className="flex flex-wrap justify-center">
-          <a className="bg-gray-700 rounded my-1 p-2 text-white hover:bg-blue-500" href="/">
-            Login
-          </a>
+          <div className="bg-gray-700 rounded my-1 p-2 text-white hover:bg-blue-500" >
+            <Link href="/">
+              Login
+            </Link>
+          </div>
           <button onClick={() => setCollapseConfig((ex) => !ex)} className={"rounded-lg hover:bg-neutral-700 w-fit h-fit p-4 mx-4"}>
             <div className="w-[16px] h-[16px]">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
