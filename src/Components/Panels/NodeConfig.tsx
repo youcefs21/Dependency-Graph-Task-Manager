@@ -143,7 +143,7 @@ const CreateNewConnection = (graph: graphState, relatedNodeId: string, parent: b
 }
 const NewConnectionsButtons = ({G, parent, relatedNodeId}: {G: GState, parent: boolean, relatedNodeId: string}) => {
 
-  const {nodes, setNodes, edgeAction, setGraph, graph} = G;
+  const {nodes, setNodes, setGraph, graph} = G;
   const node = nodes.get(relatedNodeId);
   let x = 0;
   let y = 0;

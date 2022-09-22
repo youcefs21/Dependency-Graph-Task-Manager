@@ -3,6 +3,7 @@ import imt from "immutable";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { hitBoxHalfHeight, hitBoxHalfWidth, isNodeVisible } from "./Canvas";
+import { edgeAction } from "./edgeHandling";
 import { defaultNode, graphState, GState, nodeState } from "./graphHandler";
 
 
@@ -69,7 +70,7 @@ export function handlePointerDown(
   currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>,
   nodeCache: MutableRefObject<imt.Map<string, nodeState>>
 ) {
-  const {graph, setGraph, nodes, setNodes, edgeAction} = G;
+  const {graph, setGraph, nodes, setNodes} = G;
   nodeCache.current = nodes;
   const mx = event.clientX/graph.scale + graph.TopLeftX 
   const my = event.clientY/graph.scale + graph.TopLeftY 
@@ -123,7 +124,7 @@ export function handlePointerDown(
     }
 
     if (t === "deleteNode" && n.action != "add") {
-      edgeAction("deleteAll", newHeldNode, newHeldNode)
+      edgeAction(G, "deleteAll", newHeldNode, newHeldNode)
       setNodes(tempNodes => {
         const node = tempNodes.get(newHeldNode)
         if (!node) return tempNodes
@@ -134,7 +135,7 @@ export function handlePointerDown(
       });
     }
     else if (t === "deleteNode" && n.action === "add") {
-      edgeAction("deleteAll", newHeldNode, newHeldNode)
+      edgeAction(G, "deleteAll", newHeldNode, newHeldNode)
       setNodes(tempNodes => tempNodes.delete(newHeldNode));
     }
 
@@ -427,7 +428,7 @@ export function handleKeyDown(
   G: GState,
   currentTool: MutableRefObject<toolStates>, setCurrentTool: Dispatch<SetStateAction<toolStates>>
 ) {
-  const { nodes, edgeAction, graph, setGraph, setNodes } = G;
+  const { graph, setGraph, setNodes } = G;
 
   if (!heldKeys.has(event.key)) {
     heldKeys.add(event.key)
@@ -437,7 +438,7 @@ export function handleKeyDown(
 
     setNodes(tempNodes => {
       graph.selectedNodes.forEach((nodeID) => {
-        edgeAction("deleteAll", nodeID, nodeID)
+        edgeAction(G, "deleteAll", nodeID, nodeID)
         const node = tempNodes.get(nodeID)
         if (!node) return
         if (node.action != "add"){

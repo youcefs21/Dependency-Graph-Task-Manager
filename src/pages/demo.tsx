@@ -1,34 +1,22 @@
-import type { NextPage } from "next";
 import {signIn, useSession} from "next-auth/react";
 import Head from "next/head";
 import { useState } from "react";
 import { Canvas } from "../Components/Graph/Canvas";
-import { useGraph } from "../Components/Graph/graphHandler";
+import { useDemoGraph } from "../Components/Graph/demoGraphHandler";
 import { GraphConfigPanel } from "../Components/Panels/GraphConfig";
 import { GroupConfigPanel, NodeConfigPanel } from "../Components/Panels/NodeConfig";
 import { TreeExplorerPanel } from "../Components/Panels/TreePanel";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
 
+export default function Component() {
 
-const Home: NextPage = () => {
   const [currentTool, setCurrentTool] = useState<toolStates>("pointer");
-  const G = useGraph();
+  const G = useDemoGraph();
   const {graph} = G;
   const selectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
   const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
-  const auth = useSession()
 
-  if (auth.status === "unauthenticated") {
-    signIn()
-    return (<div></div>)
-  } else if (auth.status === "loading" || !graph.loaded) {
-    return (
-    <div className="w-screen h-screen flex items-center ">
-      <h1 className="text-4xl text-center text-white m-auto">Loading...</h1>
-    </div>
-    )
-  }
   
 
   return (
@@ -112,8 +100,5 @@ const Home: NextPage = () => {
 
     </>
   );
-};
 
-
-
-export default Home;
+}

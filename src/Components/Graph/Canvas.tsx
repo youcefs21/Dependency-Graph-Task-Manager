@@ -3,6 +3,7 @@ import imt from "immutable";
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import {toolStates} from "../Toolbar/Toolbar";
 import { AABB } from "./AABB";
+import { edgeAction } from "./edgeHandling";
 import { handleDoubleClick, handleKeyDown, handleKeyUp, handleMove, handlePointerDown, handlePointerUp, handleWheel, movementShortcuts } from "./EventListeners";
 import { GState, nodeState } from "./graphHandler";
 
@@ -126,7 +127,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   const nodesCache = useRef<imt.Map<string, nodeState>>(G.nodes);
   const pinchDiff = useRef<number>(-1);
   const clickTimestamp = useRef<number>(-1);
-  const {nodes, setNodes, graph, setGraph, edgeAction} = G;
+  const {nodes, setNodes, graph, setGraph} = G;
 
 
   useEffect(() => {
@@ -473,14 +474,14 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           // do a depth first search to check if a path from n1 to n2 already exists
           parents.forEach((n1) => {
             children.forEach((n2) => {
-              edgeAction("add", n1, n2)
+              edgeAction(G, "add", n1, n2)
             })
           });
         } 
         else if (graph.edgeActionState.action === "removeEdge") {
           parents.forEach((n1) => {
             children.forEach((n2) => {
-              edgeAction("delete", n1, n2)
+              edgeAction(G, "delete", n1, n2)
             })
           });
         }
