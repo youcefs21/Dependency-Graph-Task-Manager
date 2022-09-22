@@ -68,7 +68,7 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
         </div>
         <div></div>
         <div className="flex items-center text-white text-sm font-semibold my-1 mx-5 font-mono">
-          <p className={`${graph.saveState != "save error" ? "text-neutral-400" : "text-red-500"} text-xs`}>{ graph.saveState }</p>
+          <p className={`${graph.saveState != "save error" ? "text-neutral-400" : "text-red-500"} text-xs w-20 text-center`}>{ graph.saveState }</p>
           <Seperator/>
           <div className="whitespace-nowrap">
             <p>x: {Math.floor(graph.TopLeftX + mx/(graph.scale) ?? 0)}</p>

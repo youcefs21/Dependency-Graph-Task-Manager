@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { defaultNode, graphState, layerState, nodeState } from "./graphHandler";
 import imt from "immutable";
 import { AABB } from "./AABB";
-import { useWindowDimensions } from "./Canvas";
+import { hitBoxHalfHeight, hitBoxHalfWidth, useWindowDimensions } from "./Canvas";
 
 const initialGraph: graphState = {
   graphId: "demo",
@@ -33,14 +33,30 @@ const initialGraph: graphState = {
 const initialNodes: [string, nodeState][] = [
   ["A", {
     ...defaultNode,
-    goal: "Welcome to Nodify!",
+    goal: "Getting started with Nodify",
     dependencyIds: imt.List(["B"]),
   }],
   ["B", {
     ...defaultNode,
     goal: "Double click me!",
+    dependencyIds: imt.List(["C", "D"]),
     dependentIds: imt.List(["A"]),
-    y: 12
+    y: hitBoxHalfHeight*2
+  }],
+  ["C", {
+    ...defaultNode,
+    goal: "Completing a node",
+    description: "There is two ways of marking a node as complete",
+    dependentIds: imt.List(["B"]),
+    y: hitBoxHalfHeight*4,
+    x: hitBoxHalfWidth
+  }],
+  ["D", {
+    ...defaultNode,
+    goal: "Navigating the graph",
+    dependentIds: imt.List(["B"]),
+    y: hitBoxHalfHeight*4,
+    x: -hitBoxHalfWidth
   }],
 ]
 
