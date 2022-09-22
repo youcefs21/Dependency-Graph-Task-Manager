@@ -4,6 +4,14 @@ import imt from "immutable";
 import { AABB } from "./AABB";
 import { hitBoxHalfHeight, hitBoxHalfWidth, useWindowDimensions } from "./Canvas";
 
+const initialLayers: [string, layerState][] = [
+  ["complete", {
+    name: "complete",
+    visible: false,
+    action: "nothing"
+  }],
+]
+
 const initialGraph: graphState = {
   graphId: "demo",
   graphName: "Demo Graph",
@@ -18,10 +26,10 @@ const initialGraph: graphState = {
   userId: "demo",
   saveState: "demo mode, no save",
   loaded: false,
-  layers: imt.Map<string, layerState>(),
-  indexedLayerIds: imt.List<string>(),
+  layers: imt.Map<string, layerState>(initialLayers),
+  indexedLayerIds: imt.List<string>(["complete"]),
   showArchive: false,
-  completeLayerId: "",
+  completeLayerId: "complete",
   treeFocus: "root",
   animation: null,
   toolbarMsg: null,
