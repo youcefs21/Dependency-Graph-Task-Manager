@@ -278,7 +278,7 @@ export function useGraph(): GState {
           const node1 = tempNodes.get(parentId)
           const node2 = tempNodes.get(childId)
           if (node1 && node2) {
-            if (node1.cascadeDue && node1.due && node2.due !== node1.due) {
+            if (node2.cascadeDue && node1.due && node2.due !== node1.due) {
               tempNodes = tempNodes.set(childId, {
                 ...node2,
                 due: node1.due,
