@@ -315,20 +315,24 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             ctx.stroke()
             ctx.closePath()
           }
-          ctx.font = nodeSize.toString() + 'px sans-serif';
+
+          ctx.fillStyle = "black"
+          ctx.fillRect(x - (0.2*label.length*graph.scale), y-(graph.scale/2), 0.4*label.length*graph.scale, graph.scale)
+
+          ctx.font = (0.5*nodeSize).toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(label, x, y + nodeSize*2);
+          ctx.fillText(label, x, y);
           
           if (!datetime || (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete")) return;
           
           const delta = datetime - Date.now()
-          ctx.font = "bold " + (0.75*nodeSize).toString() + 'px monospace';
+          ctx.font = "bold " + (0.5*0.75*nodeSize).toString() + 'px monospace';
           ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(parseDeltaTime(delta), x, y - nodeSize*2);
+          ctx.fillText(parseDeltaTime(delta), x, y - nodeSize*1.5);
         }
       }
       // function that draws the arrows
