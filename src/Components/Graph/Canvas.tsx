@@ -24,7 +24,7 @@ const darkPaleBlue = "#334155"
 
 export const hitBoxHalfWidth = 8
 export const hitBoxHalfHeight = 6
- 
+
 const drawAABBGrid = false
 
 export function isNodeVisible(node: nodeState, G: GState) {
@@ -77,12 +77,12 @@ export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) 
   if (node.nodeColor !== "default") {
     color = node.nodeColor;
   }
-  
+
   if (isComplete) {
     color = "#99ff99"
   } else if (isSelected) {
     color = "#f472b6"
-  } 
+  }
 
   if (graph.edgeActionState.parents.has(nodeId)) {
     color = red
@@ -96,7 +96,7 @@ export function getNodeApearance(G: GState, nodeId: string, isHovered: boolean) 
     nodeOutline,
     nodeOutlineColor
   }
-  
+
 
 }
 
@@ -199,11 +199,11 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       } else if (!graph.mouseDown && clickTimestamp.current !== -1) {
         clickTimestamp.current = -1;
       }
-      
+
 
       // set up canvas
       const mainCanvas: HTMLCanvasElement = canvasRef.current!
-      const mx = fmx/graph.scale + graph.TopLeftX 
+      const mx = fmx/graph.scale + graph.TopLeftX
       const my = fmy/graph.scale + graph.TopLeftY
 
       let ratio = window.devicePixelRatio || 1;
@@ -215,7 +215,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       ctx.scale(ratio, ratio);
 
       ctx.clearRect(0,0, mainCanvas.width, mainCanvas.height)
-      
+
       // DRAW the grid
       if (graph.scale > 5) {
         ctx.lineWidth = graph.scale/50
@@ -300,7 +300,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
               }
               p1 = Math.min(delta/100, 1);
               p2 = Math.max(Math.min(delta/100 - 1, 1), 0);
-            } 
+            }
 
             ctx.strokeStyle = "green";
             ctx.lineCap = 'round';
@@ -309,30 +309,26 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             ctx.moveTo(ancor1.x, ancor1.y)
 
             ctx.lineTo((1-p1)*ancor1.x + p1*ancor2.x, (1-p1)*ancor1.y + p1*ancor2.y)
-            
+
             if(p2 > 0) ctx.lineTo((1-p2)*ancor2.x + p2*ancor3.x, (1-p2)*ancor2.y + p2*ancor3.y)
-            
+
             ctx.stroke()
             ctx.closePath()
           }
-
-          ctx.fillStyle = "black"
-          ctx.fillRect(x - (0.2*label.length*graph.scale), y-(graph.scale/2), 0.4*label.length*graph.scale, graph.scale)
-
-          ctx.font = (0.5*nodeSize).toString() + 'px sans-serif';
+          ctx.font = nodeSize.toString() + 'px sans-serif';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(label, x, y);
-          
+          ctx.fillText(label, x, y + nodeSize*2);
+
           if (!datetime || (node.layerIds.has(graph.completeLayerId) && node.layerIds.get(graph.completeLayerId) != "delete")) return;
-          
+
           const delta = datetime - Date.now()
-          ctx.font = "bold " + (0.5*0.75*nodeSize).toString() + 'px monospace';
+          ctx.font = "bold " + (0.75*nodeSize).toString() + 'px monospace';
           ctx.fillStyle = delta > 1000*60*60*24 ? "lime" : (delta > 1000*60*60 ? "orange" : "red") ;
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
-          ctx.fillText(parseDeltaTime(delta), x, y - nodeSize*1.5);
+          ctx.fillText(parseDeltaTime(delta), x, y - nodeSize*2);
         }
       }
       // function that draws the arrows
@@ -355,14 +351,14 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         const y1 = (node1.y - graph.TopLeftY)*graph.scale
         const y2 = (node2.y - graph.TopLeftY)*graph.scale
 
-        const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2) 
+        const len = Math.sqrt((x1-x2)**2 + (y2-y1)**2)
         if (len === 0) return;
         const prog = (bitPos*graph.scale)/len;
         const r = (bitR*graph.scale)/len;
-        
+
         ctx.lineWidth = 1 + graph.scale/5;
         // ctx.lineDashOffset = -dashOffset*graph.scale;
-        
+
         const gradient = ctx.createRadialGradient(x2, y2, 0, x2, y2, len)
         gradient.addColorStop(Math.min(Math.max(prog-r, 0), 1), color);
         gradient.addColorStop(Math.max(Math.min(prog, 1), 0), blue);
@@ -384,15 +380,15 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       const drawAABB = (AABB: AABB, colorIndex: number) => {
         if (!AABB) return;
         ctx.beginPath()
-        
+
         const selectedX = (AABB.minX - graph.TopLeftX) * graph.scale
         const selectedY = (AABB.minY - graph.TopLeftY) * graph.scale
         const selectedW = (AABB.maxX - AABB.minX) * graph.scale
         const selectedH = (AABB.maxY - AABB.minY) * graph.scale
-        
+
         if (colorIndex >= 0) {
           ctx.rect(selectedX, selectedY, selectedW, selectedH)
-          
+
           ctx.strokeStyle = colors[colorIndex%colors.length]!
           ctx.lineWidth = graph.scale/5;
           ctx.stroke()
@@ -407,7 +403,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
       // = toggle AABB visualisation =
       // =============================
       if (drawAABBGrid) {
-      drawAABB(graph.AABBTree, 0)
+        drawAABB(graph.AABBTree, 0)
       }
 
       nodes.forEach((node, id) => {
@@ -417,7 +413,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
           let color = darkPaleBlue
           let endsSize = 4
           if (!depNode) return;
-          
+
           if (!isNodeVisible(depNode, G)) return;
           if (node.layerIds.has(graph.completeLayerId) || depNode.layerIds.has(graph.completeLayerId)) {
             color = darkGreen
@@ -470,7 +466,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         }
         else if (currentToolRef.current === "deleteNode") {
           setCursor("no-drop")
-        } 
+        }
       }
 
       if (!graph.edgeActionState.parents.isEmpty() && !graph.edgeActionState.children.isEmpty()) {
@@ -483,7 +479,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
               edgeAction(G, "add", n1, n2)
             })
           });
-        } 
+        }
         else if (graph.edgeActionState.action === "removeEdge") {
           parents.forEach((n1) => {
             children.forEach((n2) => {
@@ -507,29 +503,29 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
   );
 
   return (
-  <>
-    <canvas 
-      ref={canvasRef} 
-      className={`absolute overflow-hidden touch-none inset-0`}
-      style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
-      width={width} height={height}
-      onPointerEnter={() => inCanvas.current = true}
-      onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool, nodesCache)}
-      onDoubleClick={(ev) => handleDoubleClick(ev, G, currentToolRef, setCollapseConfig)}
-      onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
-      onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
-      onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
-      onPointerLeave={(ev) => {
-        inCanvas.current = false;
-        handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)
-      }}
-      onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
-      onWheel={(ev) => handleWheel(ev, graph, setGraph)}
-      onKeyDown={(ev) => handleKeyDown(ev, G, currentToolRef, setCurrentTool)}
-      onKeyUp={(ev) => handleKeyUp(ev, currentToolRef, setCurrentTool)}
-      tabIndex={0}
+    <>
+      <canvas
+        ref={canvasRef}
+        className={`absolute overflow-hidden touch-none inset-0`}
+        style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
+        width={width} height={height}
+        onPointerEnter={() => inCanvas.current = true}
+        onPointerDown={(ev) => handlePointerDown(ev, evCache, G, currentToolRef, setCurrentTool, nodesCache)}
+        onDoubleClick={(ev) => handleDoubleClick(ev, G, currentToolRef, setCollapseConfig)}
+        onPointerUp={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
+        onPointerOut={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
+        onPointerCancel={(ev) => handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)}
+        onPointerLeave={(ev) => {
+          inCanvas.current = false;
+          handlePointerUp(ev, evCache, pinchDiff, G, nodesCache)
+        }}
+        onPointerMove={(ev) => handleMove(ev, evCache, pinchDiff, G, currentToolRef)}
+        onWheel={(ev) => handleWheel(ev, graph, setGraph)}
+        onKeyDown={(ev) => handleKeyDown(ev, G, currentToolRef, setCurrentTool)}
+        onKeyUp={(ev) => handleKeyUp(ev, currentToolRef, setCurrentTool)}
+        tabIndex={0}
       />
-  </>
+    </>
   )
 }
 
@@ -553,10 +549,10 @@ export function useWindowDimensions() {
 
 export function useMousePos() {
   const [mousePos, setMousePos] = useState({mx: 0, my: 0})
-     
-  
+
+
   useEffect(() => {
-    
+
     function handleMove(event: PointerEvent) {
       setMousePos({
         mx: event.x,
@@ -566,14 +562,14 @@ export function useMousePos() {
 
     window.addEventListener('pointermove', handleMove)
     return () => {
-        window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointermove', handleMove);
     }
   }, [mousePos]);
 
   return mousePos
 }
 /*
-// working custom cursor, low priority, and too tired to finish it up, 
+// working custom cursor, low priority, and too tired to finish it up,
 // also it works on mobile, which is bad
 
       <div className="absolute overflow-hidden inset-0 w-screen h-screen pointer-events-none">
