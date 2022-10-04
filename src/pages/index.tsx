@@ -17,7 +17,7 @@ const Home: NextPage = () => {
   const {graph} = G;
   const selectedNode = graph.selectedNodes.size < 2 ? graph.selectedNodes.first("nothing") : "nothing";
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
-  const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
+  const [collapseExplorer, setCollapseExplorer] = useState<boolean>(false)
   const auth = useSession()
 
   if (auth.status === "unauthenticated") {
@@ -46,37 +46,36 @@ const Home: NextPage = () => {
         G={G}
       />
 
-      <div className="flex relative top-5 w-full place-content-between items-center">
-        <button onClick={() => {
-          setCollapseExplorer((explorer) => !explorer)
-        }} className="w-fit h-fit p-4 hover:bg-neutral-700 rounded-lg mx-4">
-          <BurgerMenuIcon/>
-        </button>
+      <div>
+        <div className="flex relative top-5 w-full place-content-between items-center">
+          <button onClick={() => {
+            setCollapseExplorer((explorer) => !explorer)
+          }} className="w-fit h-fit p-4 hover:bg-neutral-700 rounded-lg mx-4">
+            <BurgerMenuIcon/>
+          </button>
 
+          <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
-        <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
-
-        <button onClick={() => setCollapseConfig((ex) => !ex)} className={"rounded-lg hover:bg-neutral-700 w-fit h-fit p-4 mx-4"}>
-          <SettingsIcon/>
-        </button>
-
-
-      </div>
-
-
-
-
-      <div className="absolute text-white w-full text-center my-7 font-mono pointer-events-none flex items-center flex-col gap-2 ">
-        <p className="mx-5 max-w-3xl">
-          {hintText(currentTool, graph.edgeActionState.parents.isEmpty(), graph.edgeActionState.children.isEmpty())}
-        </p>
-        { graph.toolbarMsg &&
-        <p className="mx-5 max-w-3xl">
-          {graph.toolbarMsg}
-        </p>
-        }
+          <button onClick={() => setCollapseConfig((ex) => !ex)} className={"rounded-lg hover:bg-neutral-700 w-fit h-fit p-4 mx-4"}>
+            <SettingsIcon/>
+          </button>
+        </div>
+        <div className="absolute text-white w-full text-center my-7 font-mono pointer-events-none flex items-center flex-col gap-2 ">
+          <p className="mx-5 max-w-3xl">
+            {hintText(currentTool, graph.edgeActionState.parents.isEmpty(), graph.edgeActionState.children.isEmpty())}
+          </p>
+          { graph.toolbarMsg &&
+          <p className="mx-5 max-w-3xl">
+            {graph.toolbarMsg}
+          </p>
+          }
+        </div>
       </div>
       
+      { !collapseExplorer &&
+        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer}/>
+      }
+
       { !collapseConfig && selectedNode != "nothing" && 
         <NodeConfigPanel G={G} selectedNodeID={selectedNode} setCollapseConfig={setCollapseConfig}/>
       }
@@ -87,10 +86,6 @@ const Home: NextPage = () => {
 
       { !collapseConfig && graph.selectedNodes.size > 1 &&
         <GroupConfigPanel G={G} setCollapse={setCollapseConfig}/>
-      }
-      
-      { !collapseExplorer &&
-        <TreeExplorerPanel G={G} setCollapse={setCollapseExplorer}/>
       }
 
     </>

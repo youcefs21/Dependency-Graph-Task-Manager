@@ -506,7 +506,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
     <>
       <canvas
         ref={canvasRef}
-        className={`absolute overflow-hidden touch-none inset-0`}
+        className={`absolute overflow-hidden touch-none inset-0 -z-10`}
         style={{"cursor": cursor, WebkitTapHighlightColor: "transparent"}}
         width={width} height={height}
         onPointerEnter={() => inCanvas.current = true}

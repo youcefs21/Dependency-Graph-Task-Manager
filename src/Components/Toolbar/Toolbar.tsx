@@ -31,7 +31,7 @@ export function Toolbar({currentTool, setCurrentTool, graph}: ToolbarProps) {
   const {mx, my} = useMousePos()
 
   return (
-      <div className="flex w-5/6 max-w-4xl justify-between rounded-xl bg-[#121316]">
+      <div className="flex max-w-4xl justify-between rounded-xl bg-[#121316]">
         <div className="flex my-2 mx-5">
 
           <ToolbarButton currentTool={currentTool} setCurrentTool={setCurrentTool} toolName={"addNode"}>

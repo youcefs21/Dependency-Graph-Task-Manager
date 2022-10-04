@@ -114,7 +114,7 @@ export const TreeExplorerPanel = ({G, setCollapse} : TreePanelProps) => {
   const visited = new Set<string>();
   let leafs: string[] = [];
   const {width, height} = useWindowDimensions();
-  const [onlyLeafs, setOnlyLeafs] = useState<boolean>(false);
+  const [onlyLeafs, setOnlyLeafs] = useState<boolean>(true);
 
   function fillTree(nodeId: string): NodeIdTree {
     const node = nodes.get(nodeId);
