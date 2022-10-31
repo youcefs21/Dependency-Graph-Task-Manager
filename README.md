@@ -12,7 +12,7 @@ This project is no longer maintained as I have turned my focus to the new redesi
 
 ### Why did you abandon this version?
 
-t'is the fate of the first concept. It's not a very user friendly interface. I have taken the lessons I've learnt from this project, and applying them to create something better, coming soon™
+'tis the fate of the first concept. It's not a very user friendly interface, and it might be focusing a bit *too much* on the graph. I have taken the lessons I've learnt from this project, and applying them to create something better. A new Nodify built from the ground up, coming soon™
 
 ### Is the site still up?
 
