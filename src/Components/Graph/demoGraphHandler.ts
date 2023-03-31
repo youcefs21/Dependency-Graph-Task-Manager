@@ -15,7 +15,7 @@ const initialLayers: [string, layerState][] = [
 const initialGraph: graphState = {
   graphId: "demo",
   graphName: "Demo Graph",
-  scale: 43.15400380789334,
+  scale: 20,
   TopLeftX: -25.027574333239095,
   TopLeftY: -27.74060247256179,
   mouseDown: false,
@@ -109,7 +109,6 @@ const initialNodes: [string, nodeState][] = [
       ]),
       "dependentIds": imt.List([
         "A",
-        "clfwimjk600012v6m4pinp9ox"
       ]),
       "cascadeDue": true,
       "treeCollapse": false
@@ -160,31 +159,6 @@ const initialNodes: [string, nodeState][] = [
     }
   ],
   [
-    "clfwimjk600012v6m4pinp9ox",
-    {
-      "x": -27,
-      "y": -4,
-      "goal": "Completion tool",
-      "description": "click on the check-mark inside the circle on the toolbar and then click on a node to complete it!",
-      "action": "update",
-      "animation": null,
-      "nodeSize": 1,
-      "nodeColor": "default",
-      "due": null,
-      "priority": "normal",
-      "layerIds": imt.Set([]),
-      "archive": false,
-      "dependencyIds": imt.List([
-        "C"
-      ]),
-      "dependentIds": imt.List([
-        "clfwiy55u00032v6mzfc1mimj"
-      ]),
-      "cascadeDue": true,
-      "treeCollapse": false
-    }
-  ],
-  [
     "clfwivv8o00022v6m7x0atwn1",
     {
       "x": -16,
@@ -225,7 +199,6 @@ const initialNodes: [string, nodeState][] = [
       "layerIds": imt.Set([]),
       "archive": false,
       "dependencyIds": imt.List([
-        "clfwimjk600012v6m4pinp9ox"
       ]),
       "dependentIds": imt.List([]),
       "cascadeDue": true,

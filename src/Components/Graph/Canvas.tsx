@@ -315,7 +315,7 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
             ctx.stroke()
             ctx.closePath()
           }
-          ctx.font = nodeSize.toString() + 'px sans-serif';
+          ctx.font = nodeSize.toString() + 'px monospace';
           ctx.fillStyle = "white";
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
