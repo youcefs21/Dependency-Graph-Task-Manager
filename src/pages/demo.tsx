@@ -1,13 +1,13 @@
-import {signIn, useSession} from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Canvas } from "../Components/Graph/Canvas";
 import { useDemoGraph } from "../Components/Graph/demoGraphHandler";
 import { GraphConfigPanel } from "../Components/Panels/GraphConfig";
 import { GroupConfigPanel, NodeConfigPanel } from "../Components/Panels/NodeConfig";
 import { TreeExplorerPanel } from "../Components/Panels/TreePanel";
 import { hintText, Toolbar, toolStates } from "../Components/Toolbar/Toolbar";
+import {nodeState} from "../Components/Graph/graphHandler";
 
 export default function Component() {
 
@@ -18,7 +18,23 @@ export default function Component() {
   const [collapseConfig, setCollapseConfig] = useState<boolean>(true)
   const [collapseExplorer, setCollapseExplorer] = useState<boolean>(true)
 
-  
+  useEffect(() => {
+    // set an interval of 1 second
+    const interval = setInterval(() => {
+      // const nodes: [string, nodeState][] = []
+      // G.nodes.forEach((node, key) => {
+      //   nodes.push([
+      //       key, node
+      //   ])
+      // })
+      console.log(G.graph)
+    }, 5000)
+
+    // clear interval on re-render to avoid memory leaks
+    return () => clearInterval(interval)
+  }, [G.graph])
+
+
 
   return (
     <>
@@ -51,11 +67,6 @@ export default function Component() {
         <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool} graph={graph}/>
 
         <div className="flex flex-wrap justify-center">
-          <div className="bg-gray-700 rounded my-1 p-2 text-white hover:bg-blue-500" >
-            <Link href="/">
-              Login
-            </Link>
-          </div>
           <button onClick={() => setCollapseConfig((ex) => !ex)} className={"rounded-lg hover:bg-neutral-700 w-fit h-fit p-4 mx-4"}>
             <div className="w-[16px] h-[16px]">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -15,9 +15,9 @@ const initialLayers: [string, layerState][] = [
 const initialGraph: graphState = {
   graphId: "demo",
   graphName: "Demo Graph",
-  scale: 30,
-  TopLeftX: 0,
-  TopLeftY: 0,
+  scale: 43.15400380789334,
+  TopLeftX: -25.027574333239095,
+  TopLeftY: -27.74060247256179,
   mouseDown: false,
   heldNode: "nothing",
   selectedNodes: imt.Set(),
@@ -38,34 +38,200 @@ const initialGraph: graphState = {
   height: 0,
 }
 
+
 const initialNodes: [string, nodeState][] = [
-  ["A", {
-    ...defaultNode,
-    goal: "Getting started with Nodify",
-    dependencyIds: imt.List(["B"]),
-  }],
-  ["B", {
-    ...defaultNode,
-    goal: "Double click me!",
-    dependencyIds: imt.List(["C", "D"]),
-    dependentIds: imt.List(["A"]),
-    y: hitBoxHalfHeight*2
-  }],
-  ["C", {
-    ...defaultNode,
-    goal: "Completing a node",
-    description: "There is two ways of marking a node as complete",
-    dependentIds: imt.List(["B"]),
-    y: hitBoxHalfHeight*4,
-    x: hitBoxHalfWidth
-  }],
-  ["D", {
-    ...defaultNode,
-    goal: "Navigating the graph",
-    dependentIds: imt.List(["B"]),
-    y: hitBoxHalfHeight*4,
-    x: -hitBoxHalfWidth
-  }],
+  [
+    "A",
+    {
+      "x": -10,
+      "y": -12,
+      "goal": "root node",
+      "description": "This is a root node, it's not a dependency of anything, so it's a terminal goal\n\nThe red connection means the connected node should be complete first",
+      "action": "update",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([
+        "B",
+        "C"
+      ]),
+      "dependentIds": imt.List([]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "B",
+    {
+      "x": 6,
+      "y": -2,
+      "goal": "Deadline",
+      "description": "if you set a due date on a node, it'll have a countdown on it!",
+      "action": "add",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": "2023-05-09T08:26",
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([
+        "D"
+      ]),
+      "dependentIds": imt.List([
+        "A"
+      ]),
+      "cascadeDue": false,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "C",
+    {
+      "x": -10,
+      "y": 1,
+      "goal": "leaf node",
+      "description": "This is a leaf node, it has no dependencies! it can be complete right now! ",
+      "action": "update",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([
+        "clfwivv8o00022v6m7x0atwn1"
+      ]),
+      "dependentIds": imt.List([
+        "A",
+        "clfwimjk600012v6m4pinp9ox"
+      ]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "D",
+    {
+      "x": 17,
+      "y": 3,
+      "goal": "Deadline Cascade",
+      "description": "When you set the due date for a non-root node, all it's children inherit it as a maximum deadline.\n\nAs in, this node can't be set to be due before it's parent node (the node that depends on it).  ",
+      "action": "add",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": "2023-05-09T08:26",
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([]),
+      "dependentIds": imt.List([
+        "B"
+      ]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "clfwibezq00002v6m0x12ne8y",
+    {
+      "x": -10,
+      "y": -17,
+      "goal": "double click a node to focus on it",
+      "description": "start at the root node!",
+      "action": "add",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([]),
+      "dependentIds": imt.List([]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "clfwimjk600012v6m4pinp9ox",
+    {
+      "x": -27,
+      "y": -4,
+      "goal": "Completion tool",
+      "description": "click on the check-mark inside the circle on the toolbar and then click on a node to complete it!",
+      "action": "update",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([
+        "C"
+      ]),
+      "dependentIds": imt.List([
+        "clfwiy55u00032v6mzfc1mimj"
+      ]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "clfwivv8o00022v6m7x0atwn1",
+    {
+      "x": -16,
+      "y": 8,
+      "goal": "A completed node",
+      "description": "This node is marked as complete",
+      "action": "update",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([
+        "complete"
+      ]),
+      "archive": false,
+      "dependencyIds": imt.List([]),
+      "dependentIds": imt.List([
+        "C"
+      ]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ],
+  [
+    "clfwiy55u00032v6mzfc1mimj",
+    {
+      "x": -31,
+      "y": 6,
+      "goal": "insert goal here",
+      "description": null,
+      "action": "delete",
+      "animation": null,
+      "nodeSize": 1,
+      "nodeColor": "default",
+      "due": null,
+      "priority": "normal",
+      "layerIds": imt.Set([]),
+      "archive": false,
+      "dependencyIds": imt.List([
+        "clfwimjk600012v6m4pinp9ox"
+      ]),
+      "dependentIds": imt.List([]),
+      "cascadeDue": true,
+      "treeCollapse": false
+    }
+  ]
 ]
 
 export function useDemoGraph() {
@@ -75,10 +241,13 @@ export function useDemoGraph() {
 
 
   useEffect(() => {
+    // for each node, add it to the AABB tree
+    nodes.forEach((node, nodeId) => {
+        graph.AABBTree = graph.AABBTree.addNode(node, nodeId) ?? graph.AABBTree;
+    })
+
     setGraph({
       ...graph, 
-      TopLeftX: graph.TopLeftX - (width-graph.width)/(graph.scale*2), 
-      TopLeftY: graph.TopLeftY - (height-graph.height)/(graph.scale*2),
       loaded: true,
       width: width,
       height: height,

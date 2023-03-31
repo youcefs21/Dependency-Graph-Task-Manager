@@ -22,14 +22,16 @@ export class AABB {
   }
 
   intersects(B: AABB) {
-    if (this.maxX === 0 && this.minX === 0) {
-      return false
-    }
-    return this.maxX > B.minX && this.minX < B.maxX && this.maxY > B.minY && this.minY < B.maxY
+    return false
+    // if (this.maxX === 0 && this.minX === 0) {
+    //   return false
+    // }
+    // return this.maxX > B.minX && this.minX < B.maxX && this.maxY > B.minY && this.minY < B.maxY
   }
 
   
   copy() {
+    return this;
     const newTree = new AABB()
     newTree.minX = this.minX
     newTree.minY = this.minY
@@ -41,6 +43,7 @@ export class AABB {
   }
 
   expand() {
+    return;
     if (this.leafs.length === 2) {
       this.minX = Math.min(this.leafs[0]!.minX, this.leafs[1]!.minX)
       this.minY = Math.min(this.leafs[0]!.minY, this.leafs[1]!.minY)
@@ -56,6 +59,7 @@ export class AABB {
 
   // create a leaf from a node, and add it to the graph
   addNode(node: nodeState, nodeId: string) {
+    return this;
     const leaf = new AABB()
     leaf.minX = node.x - hitBoxHalfWidth,
     leaf.minY = node.y - hitBoxHalfHeight,
@@ -71,6 +75,7 @@ export class AABB {
 
   // recursivly removes a node from the tree
   removeNode(nodeId: string) {// TODO: should probably read over this again lmao
+    return this;
     if (!this.nodeIds.has(nodeId)) return this
     let tree = this.copy()
     tree.nodeIds = tree.nodeIds.delete(nodeId)
@@ -89,6 +94,7 @@ export class AABB {
   }
 
   isLeafValid(leaf: AABB): boolean {
+    return true
     if (!this.intersects(leaf)) {
       return true
     } else if (this.leafs.length < 2) {
@@ -103,6 +109,7 @@ export class AABB {
   
   // inserts a leaf into an appropriate position in the tree
   addLeaf(leaf: AABB) : AABB {
+    return this;
     const tree = this.copy()
     if (tree.intersects(leaf)) {
       

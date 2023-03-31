@@ -25,7 +25,7 @@ const darkPaleBlue = "#334155"
 export const hitBoxHalfWidth = 8
 export const hitBoxHalfHeight = 6
 
-const drawAABBGrid = false
+const drawAABBGrid = true
 
 export function isNodeVisible(node: nodeState, G: GState) {
   const {graph} = G;
@@ -264,22 +264,22 @@ export function Canvas({ currentTool, setCurrentTool, setCollapseConfig, G}: can
         ctx.closePath()
 
         // fill the hitbox
-        if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 200)) {
-          ctx.beginPath()
-          ctx.fillStyle = selectFill
-          ctx.globalAlpha = 0.2*alpha;
-          const selectedW = Math.round(node.nodeSize*hitBoxHalfWidth) * graph.scale * 2;
-          const selectedH = Math.round(node.nodeSize*hitBoxHalfHeight) * graph.scale * 2;
-          const selectedX = x - selectedW/2
-          const selectedY = y - selectedH/2
-          ctx.rect(selectedX, selectedY, selectedW, selectedH)
-          ctx.strokeStyle = "black"
-          ctx.fill()
-          ctx.globalAlpha = 0.1*alpha;
-          ctx.stroke();
-          ctx.closePath()
-          ctx.globalAlpha = alpha;
-        }
+        // if (graph.selectedNodes.includes(nodeID) || (graph.heldNode != "background" && graph.mouseDown && clickTimestamp.current !== -1 && Date.now() - clickTimestamp.current > 200)) {
+        //   ctx.beginPath()
+        //   ctx.fillStyle = selectFill
+        //   ctx.globalAlpha = 0.1*alpha;
+        //   const selectedW = Math.round(node.nodeSize*hitBoxHalfWidth) * graph.scale * 2;
+        //   const selectedH = Math.round(node.nodeSize*hitBoxHalfHeight) * graph.scale * 2;
+        //   const selectedX = x - selectedW/2
+        //   const selectedY = y - selectedH/2
+        //   ctx.rect(selectedX, selectedY, selectedW, selectedH)
+        //   ctx.strokeStyle = "black"
+        //   ctx.fill()
+        //   ctx.globalAlpha = 0.1*alpha;
+        //   ctx.stroke();
+        //   ctx.closePath()
+        //   ctx.globalAlpha = alpha;
+        // }
 
 
         if (nodeSize > 5 ){
